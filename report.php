@@ -11,24 +11,24 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: #f0f2f5;
         }
-        .bottom-nav {
-            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+        .calculation-row {
+            border-bottom: 1px solid #e5e7eb;
+            padding: 8px 0;
         }
-        .add-expense-btn {
-            transform: translateY(-50%);
-            box-shadow: 0 0 15px rgba(37, 99, 235, 0.5);
+        .calculation-row:last-child {
+            border-bottom: none;
+            font-weight: 600;
+            background-color: #f9fafb;
+            margin: 4px -12px -8px -12px;
+            padding: 8px 12px;
+            border-radius: 0 0 6px 6px;
         }
-        .chart-container {
-            height: 200px;
-            position: relative;
+        .member-card {
+            transition: all 0.2s ease;
         }
-        .bar {
-            position: absolute;
-            bottom: 0;
-            width: 12%;
-            background-color: #3b82f6;
-            border-radius: 6px 6px 0 0;
-            transition: height 0.3s ease;
+        .member-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         }
     </style>
 </head>
@@ -44,8 +44,8 @@
                     <i class="fas fa-wallet text-blue-600 text-2xl"></i>
                 </div>
                 <div>
-                    <h1 class="text-lg font-bold text-gray-800">Bachelor Room</h1>
-                    <p class="text-xs text-gray-500">Expense Reports</p>
+                    <h1 class="text-lg font-bold text-gray-800">Kitchen Group</h1>
+                    <p class="text-xs text-gray-500">Food Expense Settlement</p>
                 </div>
             </div>
             <div class="flex items-center">
@@ -64,10 +64,10 @@
 
     <!-- Main Content -->
     <main class="pt-20 pb-24 px-4 max-w-md mx-auto">
-        <!-- Report Period Selector with Filters -->
+        <!-- Report Period Selector -->
         <div class="bg-white rounded-xl shadow-md p-4 mb-4">
             <div class="flex flex-col space-y-3">
-                <h2 class="text-lg font-semibold">Monthly Overview</h2>
+                <h2 class="text-lg font-semibold">🍳 Kitchen Group Monthly Food Expenses</h2>
                 
                 <!-- Month and Year Filter -->
                 <div class="flex justify-between items-center gap-2">
@@ -100,376 +100,680 @@
                 
                 <div class="flex justify-between items-center">
                     <div>
-                        <p class="text-sm text-gray-500">Total Expenses</p>
-                        <p class="text-xl font-bold"><i class="fas fa-rupee-sign"></i>1,250.00</p>
+                        <p class="text-sm text-gray-500">Total Food Expenses</p>
+                        <p class="text-xl font-bold total-expense-display-header"><i class="fas fa-rupee-sign"></i><span id="total-expense-amount">3,210.00</span></p>
                     </div>
                     <div>
-                        <p class="text-sm text-gray-500">Your Share</p>
-                        <p class="text-xl font-bold text-blue-600"><i class="fas fa-rupee-sign"></i>312.50</p>
+                        <p class="text-sm text-gray-500">Per Person Share</p>
+                        <p class="text-xl font-bold text-blue-600"><i class="fas fa-rupee-sign"></i><span id="avg-share-amount">642.00</span></p>
                     </div>
                 </div>
                 <div class="h-2 w-full bg-gray-200 rounded-full">
-                    <div class="h-2 bg-blue-600 rounded-full" style="width: 65%"></div>
+                    <div class="h-2 bg-green-600 rounded-full" style="width: 75%"></div>
                 </div>
             </div>
         </div>
 
-        
-
-        <!-- Settlement Summary (compact design) -->
+        <!-- Kitchen Food Settlement Summary -->
         <div class="bg-white rounded-xl shadow-md p-4 mb-4">
-            <h2 class="text-lg font-semibold mb-3">Settlement Summary</h2>
+            <h2 class="text-lg font-semibold mb-3">🍽️ Kitchen Food Settlement Summary</h2>
             
-            <!-- Compact card layout -->
-            <div class="space-y-2 mb-4">
-                <!-- Member 1 -->
-                <div class="flex items-center justify-between bg-gray-50 rounded-lg p-2.5">
-                    <div class="flex items-center">
-                        <div class="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center mr-2">
-                            <span class="text-green-600 font-bold">A</span>
-                        </div>
-                        <span class="font-medium">Alice</span>
-                    </div>
-                    <div class="text-green-600 font-semibold">+₹250.00</div>
-                </div>
-                
-                <!-- Member 2 -->
-                <div class="flex items-center justify-between bg-gray-50 rounded-lg p-2.5">
-                    <div class="flex items-center">
-                        <div class="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center mr-2">
-                            <span class="text-red-600 font-bold">B</span>
-                        </div>
-                        <span class="font-medium">Bob</span>
-                    </div>
-                    <div class="text-red-600 font-semibold">-₹150.00</div>
-                </div>
-                
-                <!-- Member 3 -->
-                <div class="flex items-center justify-between bg-gray-50 rounded-lg p-2.5">
-                    <div class="flex items-center">
-                        <div class="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center mr-2">
-                            <span class="text-red-600 font-bold">C</span>
-                        </div>
-                        <span class="font-medium">Charlie</span>
-                    </div>
-                    <div class="text-red-600 font-semibold">-₹100.00</div>
-                </div>
-                
-                <!-- Member 4 -->
-                <div class="flex items-center justify-between bg-gray-50 rounded-lg p-2.5">
-                    <div class="flex items-center">
-                        <div class="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center mr-2">
-                            <span class="text-green-600 font-bold">D</span>
-                        </div>
-                        <span class="font-medium">David</span>
-                    </div>
-                    <div class="text-green-600 font-semibold">+₹50.00</div>
-                </div>
-                
-                <!-- Member 5 -->
-                <div class="flex items-center justify-between bg-gray-50 rounded-lg p-2.5">
-                    <div class="flex items-center">
-                        <div class="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center mr-2">
-                            <span class="text-red-600 font-bold">E</span>
-                        </div>
-                        <span class="font-medium">Eva</span>
-                    </div>
-                    <div class="text-red-600 font-semibold">-₹50.00</div>
+            <!-- Food Expense Breakdown -->
+            <div class="bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg p-4 mb-4 border border-green-100">
+                <h3 class="font-semibold mb-3 text-green-800">
+                    <i class="fas fa-utensils mr-2"></i>Food Expense Breakdown
+                </h3>
+                <div id="expense-breakdown" class="space-y-2 text-sm">
+                    <!-- Kitchen bill will be populated by JavaScript -->
                 </div>
             </div>
 
-            <!-- Who pays whom section (compact) -->
-            <h3 class="font-semibold mb-2">Who Pays Whom</h3>
-            <div class="bg-blue-50 rounded-lg p-3">
-                <div class="space-y-2">
-                    <!-- Payment 1 -->
-                    <div class="flex items-center justify-between">
+            <!-- Per Day Calculation Display -->
+            <div class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-4 mb-4 border border-blue-100">
+                <h3 class="font-semibold mb-3 text-blue-800">
+                    <i class="fas fa-calculator mr-2"></i>Per Day Amount Calculation
+                </h3>
+                <div id="per-day-calculation" class="space-y-2 text-sm">
+                    <!-- Per day calculation will be populated by JavaScript -->
+                </div>
+            </div>
+            
+            <!-- Meal Participation Settings -->
+            <div class="mb-4 p-3 bg-orange-50 rounded-lg border border-orange-200">
+                <h3 class="font-semibold mb-2 text-sm text-orange-800">
+                    <i class="fas fa-calendar-check mr-2"></i>Meal Participation Settings
+                </h3>
+                <p class="text-xs text-gray-600 mb-2">Adjust for members who didn't eat with the group for entire month</p>
+                <div class="grid grid-cols-2 gap-2">
+                    <div class="col-span-2">
+                        <label class="text-xs text-gray-600 block mb-1">Days in month:</label>
+                        <input type="number" id="days-in-month" value="30" min="28" max="31" class="w-full border rounded px-2 py-1 text-sm" />
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Member Settlement Cards -->
+            <div class="space-y-3 mb-4" id="members-list">
+                <!-- Member 1 -->
+                <div class="member-card p-4 bg-white border-2 border-gray-100 rounded-lg shadow-sm" data-member-id="1">
+                    <div class="flex justify-between items-start mb-3">
                         <div class="flex items-center">
-                            <div class="w-6 h-6 rounded-full bg-red-100 flex items-center justify-center mr-1">
-                                <span class="text-red-600 text-xs font-bold">B</span>
+                            <div class="w-12 h-12 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold mr-3">
+                                <span>R</span>
                             </div>
-                            <span class="text-sm">pays</span>
-                            <div class="w-6 h-6 rounded-full bg-green-100 flex items-center justify-center mx-1">
-                                <span class="text-green-600 text-xs font-bold">A</span>
+                            <div>
+                                <div class="font-semibold text-lg">Rahul</div>
+                                <div class="text-sm text-gray-500 flex items-center">
+                                    <span class="mr-2">Meal days:</span>
+                                    <input type="number" class="days-present w-16 border rounded px-2 py-1 text-center" value="30" min="0" max="31">
+                                </div>
                             </div>
                         </div>
-                        <span class="font-semibold text-sm">₹150.00</span>
+                        <div class="text-right">
+                            <div class="settlement-amount text-green-600 font-bold text-xl">+₹250.00</div>
+                            <div class="text-xs text-gray-500">Net Settlement</div>
+                        </div>
                     </div>
                     
-                    <!-- Payment 2 -->
-                    <div class="flex items-center justify-between">
+                    <!-- Detailed Calculation -->
+                    <div class="bg-gray-50 rounded-lg p-3 border-l-4 border-blue-400">
+                        <div class="text-xs font-medium text-gray-700 mb-2">
+                            <i class="fas fa-chart-line mr-1"></i>Calculation Details
+                        </div>
+                        <div class="calculation-details space-y-1 text-xs">
+                            <!-- Will be populated by JavaScript -->
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Member 2 -->
+                <div class="member-card p-4 bg-white border-2 border-gray-100 rounded-lg shadow-sm" data-member-id="2">
+                    <div class="flex justify-between items-start mb-3">
                         <div class="flex items-center">
-                            <div class="w-6 h-6 rounded-full bg-red-100 flex items-center justify-center mr-1">
-                                <span class="text-red-600 text-xs font-bold">C</span>
+                            <div class="w-12 h-12 rounded-full bg-green-500 flex items-center justify-center text-white font-bold mr-3">
+                                <span>A</span>
                             </div>
-                            <span class="text-sm">pays</span>
-                            <div class="w-6 h-6 rounded-full bg-green-100 flex items-center justify-center mx-1">
-                                <span class="text-green-600 text-xs font-bold">A</span>
+                            <div>
+                                <div class="font-semibold text-lg">Amit</div>
+                                <div class="text-sm text-gray-500 flex items-center">
+                                    <span class="mr-2">Meal days:</span>
+                                    <input type="number" class="days-present w-16 border rounded px-2 py-1 text-center" value="25" min="0" max="31">
+                                </div>
                             </div>
                         </div>
-                        <span class="font-semibold text-sm">₹100.00</span>
+                        <div class="text-right">
+                            <div class="settlement-amount text-red-600 font-bold text-xl">-₹150.00</div>
+                            <div class="text-xs text-gray-500">Net Settlement</div>
+                        </div>
                     </div>
                     
-                    <!-- Payment 3 -->
-                    <div class="flex items-center justify-between">
+                    <div class="bg-gray-50 rounded-lg p-3 border-l-4 border-green-400">
+                        <div class="text-xs font-medium text-gray-700 mb-2">
+                            <i class="fas fa-chart-line mr-1"></i>Calculation Details
+                        </div>
+                        <div class="calculation-details space-y-1 text-xs">
+                            <!-- Will be populated by JavaScript -->
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Member 3 -->
+                <div class="member-card p-4 bg-white border-2 border-gray-100 rounded-lg shadow-sm" data-member-id="3">
+                    <div class="flex justify-between items-start mb-3">
                         <div class="flex items-center">
-                            <div class="w-6 h-6 rounded-full bg-red-100 flex items-center justify-center mr-1">
-                                <span class="text-red-600 text-xs font-bold">E</span>
+                            <div class="w-12 h-12 rounded-full bg-purple-500 flex items-center justify-center text-white font-bold mr-3">
+                                <span>S</span>
                             </div>
-                            <span class="text-sm">pays</span>
-                            <div class="w-6 h-6 rounded-full bg-green-100 flex items-center justify-center mx-1">
-                                <span class="text-green-600 text-xs font-bold">D</span>
+                            <div>
+                                <div class="font-semibold text-lg">Suresh</div>
+                                <div class="text-sm text-gray-500 flex items-center">
+                                    <span class="mr-2">Meal days:</span>
+                                    <input type="number" class="days-present w-16 border rounded px-2 py-1 text-center" value="22" min="0" max="31">
+                                </div>
                             </div>
                         </div>
-                        <span class="font-semibold text-sm">₹50.00</span>
+                        <div class="text-right">
+                            <div class="settlement-amount text-red-600 font-bold text-xl">-₹100.00</div>
+                            <div class="text-xs text-gray-500">Net Settlement</div>
+                        </div>
                     </div>
+                    
+                    <div class="bg-gray-50 rounded-lg p-3 border-l-4 border-purple-400">
+                        <div class="text-xs font-medium text-gray-700 mb-2">
+                            <i class="fas fa-chart-line mr-1"></i>Calculation Details
+                        </div>
+                        <div class="calculation-details space-y-1 text-xs">
+                            <!-- Will be populated by JavaScript -->
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Member 4 -->
+                <div class="member-card p-4 bg-white border-2 border-gray-100 rounded-lg shadow-sm" data-member-id="4">
+                    <div class="flex justify-between items-start mb-3">
+                        <div class="flex items-center">
+                            <div class="w-12 h-12 rounded-full bg-yellow-500 flex items-center justify-center text-white font-bold mr-3">
+                                <span>V</span>
+                            </div>
+                            <div>
+                                <div class="font-semibold text-lg">Vijay</div>
+                                <div class="text-sm text-gray-500 flex items-center">
+                                    <span class="mr-2">Meal days:</span>
+                                    <input type="number" class="days-present w-16 border rounded px-2 py-1 text-center" value="28" min="0" max="31">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <div class="settlement-amount text-green-600 font-bold text-xl">+₹50.00</div>
+                            <div class="text-xs text-gray-500">Net Settlement</div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-gray-50 rounded-lg p-3 border-l-4 border-yellow-400">
+                        <div class="text-xs font-medium text-gray-700 mb-2">
+                            <i class="fas fa-chart-line mr-1"></i>Calculation Details
+                        </div>
+                        <div class="calculation-details space-y-1 text-xs">
+                            <!-- Will be populated by JavaScript -->
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Member 5 -->
+                <div class="member-card p-4 bg-white border-2 border-gray-100 rounded-lg shadow-sm" data-member-id="5">
+                    <div class="flex justify-between items-start mb-3">
+                        <div class="flex items-center">
+                            <div class="w-12 h-12 rounded-full bg-red-500 flex items-center justify-center text-white font-bold mr-3">
+                                <span>P</span>
+                            </div>
+                            <div>
+                                <div class="font-semibold text-lg">Prakash</div>
+                                <div class="text-sm text-gray-500 flex items-center">
+                                    <span class="mr-2">Meal days:</span>
+                                    <input type="number" class="days-present w-16 border rounded px-2 py-1 text-center" value="27" min="0" max="31">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <div class="settlement-amount text-red-600 font-bold text-xl">-₹50.00</div>
+                            <div class="text-xs text-gray-500">Net Settlement</div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-gray-50 rounded-lg p-3 border-l-4 border-red-400">
+                        <div class="text-xs font-medium text-gray-700 mb-2">
+                            <i class="fas fa-chart-line mr-1"></i>Calculation Details
+                        </div>
+                        <div class="calculation-details space-y-1 text-xs">
+                            <!-- Will be populated by JavaScript -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Summary Verification -->
+            <div class="bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg p-4 mb-4 border">
+                <h3 class="font-semibold mb-3 text-gray-800">
+                    <i class="fas fa-balance-scale mr-2"></i>Balance Verification
+                </h3>
+                <div id="balance-summary" class="grid grid-cols-2 gap-4 text-sm">
+                    <!-- Will be populated by JavaScript -->
+                </div>
+            </div>
+            
+            <div class="flex justify-end mb-4">
+                <button id="recalculate-btn" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition-colors duration-200 shadow-md">
+                    <i class="fas fa-sync-alt mr-2"></i>Recalculate Settlement
+                </button>
+            </div>
+
+            <!-- Who pays whom section -->
+            <div class="bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg p-4 border border-green-200">
+                <h3 class="font-semibold mb-3 text-green-800">
+                    <i class="fas fa-exchange-alt mr-2"></i>Payment Instructions
+                </h3>
+                <div id="payment-instructions" class="space-y-3">
+                    <!-- Will be populated by JavaScript -->
                 </div>
             </div>
             
             <!-- Settlement Date -->
-            <div class="mt-3 text-right text-sm text-gray-500">
-                Settlement Date: <span class="font-medium">June 30, 2023</span>
-            </div>
-        </div>
-
-
-
-        <!-- Expense Chart -->
-        <div class="bg-white rounded-xl shadow-md p-4 mb-4">
-            <h2 class="text-lg font-semibold mb-3">Monthly Breakdown</h2>
-            <div class="chart-container">
-                <!-- Bars for the chart -->
-                <div class="bar" style="left: 5%; height: 60%;"></div>
-                <div class="bar" style="left: 20%; height: 80%;"></div>
-                <div class="bar" style="left: 35%; height: 40%;"></div>
-                <div class="bar" style="left: 50%; height: 90%;"></div>
-                <div class="bar" style="left: 65%; height: 70%;"></div>
-                <div class="bar" style="left: 80%; height: 50%;"></div>
-            </div>
-            <div class="flex justify-between text-xs text-gray-500 mt-2">
-                <span>Jan</span>
-                <span>Feb</span>
-                <span>Mar</span>
-                <span>Apr</span>
-                <span>May</span>
-                <span>Jun</span>
-            </div>
-        </div>
-
-
-
-
-
-
-
-
-        <!-- Export Options -->
-        <div class="bg-white rounded-xl shadow-md p-4 mb-4">
-            <h2 class="text-lg font-semibold mb-3">Export Report</h2>
-            <div class="flex space-x-2">
-                <button class="flex-1 py-2 bg-blue-600 text-white rounded-lg flex items-center justify-center">
-                    <i class="fas fa-file-pdf mr-2"></i> PDF
-                </button>
-                <button class="flex-1 py-2 bg-green-600 text-white rounded-lg flex items-center justify-center">
-                    <i class="fas fa-file-excel mr-2"></i> Excel
-                </button>
+            <div class="mt-4 text-center text-sm text-gray-600 bg-gray-50 rounded-lg p-3">
+                <i class="fas fa-calendar mr-2"></i>
+                Settlement Date: <span class="font-semibold settlement-date">September 30, 2025</span>
             </div>
         </div>
     </main>
-
-    <!-- No bottom navigation bar as requested -->
     
-    <!-- JavaScript for Month Filter -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Set default month and year to current month and year
-            const currentDate = new Date();
-            const currentMonth = (currentDate.getMonth() + 1).toString().padStart(2, '0'); // +1 because getMonth() returns 0-11
-            const currentYear = currentDate.getFullYear().toString();
-            
-            // Set the default selected options for settlement filters
+            // Member data with FOOD/KITCHEN expenses only
+            const memberData = [
+                { 
+                    id: 1, 
+                    name: 'Rahul', 
+                    avatar: 'R',
+                    color: 'blue',
+                    totalSpent: 850.00
+                },
+                { 
+                    id: 2, 
+                    name: 'Amit', 
+                    avatar: 'A',
+                    color: 'green',
+                    totalSpent: 620.00
+                },
+                { 
+                    id: 3, 
+                    name: 'Suresh', 
+                    avatar: 'S',
+                    color: 'purple',
+                    totalSpent: 720.00
+                },
+                { 
+                    id: 4, 
+                    name: 'Vijay', 
+                    avatar: 'V',
+                    color: 'yellow',
+                    totalSpent: 540.00
+                },
+                { 
+                    id: 5, 
+                    name: 'Prakash', 
+                    avatar: 'P',
+                    color: 'red',
+                    totalSpent: 480.00
+                }
+            ];
+
             const settlementMonth = document.getElementById('settlement-month');
             const settlementYear = document.getElementById('settlement-year');
+            const daysInMonthInput = document.getElementById('days-in-month');
+            const recalculateBtn = document.getElementById('recalculate-btn');
+            
+            // Set current date
+            const currentDate = new Date();
+            const currentMonth = (currentDate.getMonth() + 1).toString().padStart(2, '0');
+            const currentYear = currentDate.getFullYear().toString();
             
             if (settlementMonth && settlementYear) {
                 settlementMonth.value = currentMonth;
                 settlementYear.value = currentYear;
-                
-                // Add event listeners for settlement filters
                 settlementMonth.addEventListener('change', updateSettlementData);
                 settlementYear.addEventListener('change', updateSettlementData);
             }
             
-            // Function to update settlement data based on selected month and year
+            function updateExpenseBreakdown() {
+                const breakdownEl = document.getElementById('expense-breakdown');
+                if (!breakdownEl) return;
+                
+                // Calculate total expense
+                const totalExpense = memberData.reduce((sum, member) => sum + member.totalSpent, 0);
+                
+                // Simple breakdown showing just kitchen bill
+                const breakdownHTML = `
+                    <div class="calculation-row flex justify-between items-center bg-blue-50 rounded">
+                        <div class="flex items-center">
+                            <i class="fas fa-utensils text-blue-800 mr-2"></i>
+                            <span class="font-semibold text-blue-800">Kitchen Bill</span>
+                        </div>
+                        <div class="font-bold text-blue-800">₹${totalExpense.toFixed(2)}</div>
+                    </div>
+                `;
+                
+                breakdownEl.innerHTML = breakdownHTML;
+                
+                // Update header totals
+                document.getElementById('total-expense-amount').textContent = totalExpense.toFixed(2);
+                document.getElementById('avg-share-amount').textContent = (totalExpense / memberData.length).toFixed(2);
+            }
+
+            function updatePerDayCalculation() {
+                const perDayCalculationEl = document.getElementById('per-day-calculation');
+                if (!perDayCalculationEl) return;
+
+                const totalDaysInMonth = parseInt(daysInMonthInput.value) || 30;
+                
+                // Get current member attendance
+                const totalDaysPresent = memberData.reduce((sum, member) => {
+                    const memberEl = document.querySelector(`div[data-member-id="${member.id}"]`);
+                    const daysPresent = parseInt(memberEl.querySelector('.days-present').value) || 0;
+                    return sum + daysPresent;
+                }, 0);
+                
+                const totalExpense = memberData.reduce((sum, member) => sum + member.totalSpent, 0);
+                const perDayAmount = totalDaysPresent > 0 ? totalExpense / totalDaysPresent : 0;
+                
+                let calculationHTML = `
+                    <div class="calculation-row flex justify-between">
+                        <span>Total Kitchen Bill:</span>
+                        <span class="font-semibold text-blue-600">₹${totalExpense.toFixed(2)}</span>
+                    </div>
+                    <div class="calculation-row flex justify-between">
+                        <span>Total Days in Month:</span>
+                        <span class="font-semibold">${totalDaysInMonth} days</span>
+                    </div>
+                `;
+
+                // Show each member's days present
+                memberData.forEach(member => {
+                    const memberEl = document.querySelector(`div[data-member-id="${member.id}"]`);
+                    const daysPresent = parseInt(memberEl.querySelector('.days-present').value) || 0;
+                    calculationHTML += `
+                        <div class="calculation-row flex justify-between text-xs">
+                            <span class="ml-4">${member.name} present:</span>
+                            <span>${daysPresent} days</span>
+                        </div>
+                    `;
+                });
+
+                calculationHTML += `
+                    <div class="calculation-row flex justify-between border-t pt-2">
+                        <span class="font-semibold">Total Days Present (All Members):</span>
+                        <span class="font-bold text-orange-600">${totalDaysPresent} days</span>
+                    </div>
+                    <div class="calculation-row flex justify-between bg-orange-50 rounded px-2 py-1">
+                        <span class="font-semibold text-orange-800">Per Day Amount:</span>
+                        <div class="text-right">
+                            <div class="font-bold text-orange-800">₹${perDayAmount.toFixed(2)} per day</div>
+                            <div class="text-xs text-orange-600">₹${totalExpense.toFixed(2)} ÷ ${totalDaysPresent} days</div>
+                        </div>
+                    </div>
+                `;
+
+                perDayCalculationEl.innerHTML = calculationHTML;
+            }
+            
+            function calculateSettlement() {
+                const totalDaysInMonth = parseInt(daysInMonthInput.value) || 30;
+                
+                // Get member attendance
+                const members = memberData.map(member => {
+                    const memberEl = document.querySelector(`div[data-member-id="${member.id}"]`);
+                    const daysPresent = parseInt(memberEl.querySelector('.days-present').value) || 0;
+                    
+                    return {
+                        ...member,
+                        daysPresent: daysPresent,
+                        attendanceRatio: daysPresent / totalDaysInMonth
+                    };
+                });
+                
+                // Calculate total expense and per-day amounts
+                const totalExpense = members.reduce((sum, member) => sum + member.totalSpent, 0);
+                const totalDaysPresent = members.reduce((sum, member) => sum + member.daysPresent, 0);
+                const perDayAmount = totalDaysPresent > 0 ? totalExpense / totalDaysPresent : 0;
+                
+                let positiveTotal = 0;
+                let negativeTotal = 0;
+                
+                // Calculate each member's settlement
+                members.forEach(member => {
+                    const fairShareBasedOnAttendance = perDayAmount * member.daysPresent;
+                    const actualSpent = member.totalSpent;
+                    const netSettlement = actualSpent - fairShareBasedOnAttendance;
+                    
+                    // Track totals
+                    if (netSettlement > 0) {
+                        positiveTotal += netSettlement;
+                    } else {
+                        negativeTotal += Math.abs(netSettlement);
+                    }
+                    
+                    // Update member card
+                    const memberEl = document.querySelector(`div[data-member-id="${member.id}"]`);
+                    const amountEl = memberEl.querySelector('.settlement-amount');
+                    const calculationDetails = memberEl.querySelector('.calculation-details');
+                    
+                    // Update settlement amount display
+                    if (netSettlement >= 0) {
+                        amountEl.textContent = `+₹${netSettlement.toFixed(2)}`;
+                        amountEl.className = 'settlement-amount text-green-600 font-bold text-xl';
+                    } else {
+                        amountEl.textContent = `-₹${Math.abs(netSettlement).toFixed(2)}`;
+                        amountEl.className = 'settlement-amount text-red-600 font-bold text-xl';
+                    }
+                    
+                    // Update calculation details - showing clear per-day calculation
+                    let detailsHTML = `
+                        <div class="calculation-row flex justify-between">
+                            <span>Total spent by ${member.name}:</span>
+                            <span class="font-semibold text-blue-600">₹${actualSpent.toFixed(2)}</span>
+                        </div>
+                        <div class="calculation-row flex justify-between">
+                            <span>Days ${member.name} was present:</span>
+                            <span class="font-semibold">${member.daysPresent} days</span>
+                        </div>
+                        <div class="calculation-row flex justify-between">
+                            <span>Per day amount (for all):</span>
+                            <span class="font-semibold text-orange-600">₹${perDayAmount.toFixed(2)}/day</span>
+                        </div>
+                        <div class="calculation-row flex justify-between">
+                            <span>${member.name}'s fair share:</span>
+                            <span class="text-purple-600">₹${perDayAmount.toFixed(2)} × ${member.daysPresent} = ₹${fairShareBasedOnAttendance.toFixed(2)}</span>
+                        </div>
+                        <div class="calculation-row flex justify-between">
+                            <span class="font-semibold">Net Settlement:</span>
+                            <div class="text-right">
+                                <div class="font-bold ${netSettlement >= 0 ? 'text-green-600' : 'text-red-600'}">
+                                    ${netSettlement >= 0 ? '+' : ''}₹${netSettlement.toFixed(2)}
+                                </div>
+                                <div class="text-xs text-gray-500">
+                                    ₹${actualSpent.toFixed(2)} - ₹${fairShareBasedOnAttendance.toFixed(2)}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    
+                    calculationDetails.innerHTML = detailsHTML;
+                });
+                
+                // Update per-day calculation display
+                updatePerDayCalculation();
+                
+                // Update balance summary
+                updateBalanceSummary(positiveTotal, negativeTotal, totalExpense, perDayAmount, totalDaysPresent);
+                
+                // Update payment instructions
+                updatePaymentInstructions(members);
+            }
+            
+            function updateBalanceSummary(positiveTotal, negativeTotal, totalExpense, perDayAmount, totalDaysPresent) {
+                const balanceSummary = document.getElementById('balance-summary');
+                if (!balanceSummary) return;
+                
+                const balanceDiff = Math.abs(positiveTotal - negativeTotal);
+                const isBalanced = balanceDiff < 0.01;
+                
+                balanceSummary.innerHTML = `
+                    <div class="space-y-2">
+                        <div class="flex justify-between">
+                            <span>Total Food Expense:</span>
+                            <span class="font-semibold">₹${totalExpense.toFixed(2)}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Per Day Food Cost:</span>
+                            <span class="font-semibold">₹${perDayAmount.toFixed(2)}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Total Meal Days:</span>
+                            <span class="font-semibold">${totalDaysPresent} days</span>
+                        </div>
+                    </div>
+                    <div class="space-y-2">
+                        <div class="flex justify-between">
+                            <span class="text-green-600">To Receive (+):</span>
+                            <span class="font-semibold text-green-600">₹${positiveTotal.toFixed(2)}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-red-600">To Pay (-):</span>
+                            <span class="font-semibold text-red-600">₹${negativeTotal.toFixed(2)}</span>
+                        </div>
+                        <div class="flex justify-between pt-2 border-t">
+                            <span class="font-semibold">Balance:</span>
+                            <span class="font-bold ${isBalanced ? 'text-green-600' : 'text-yellow-600'}">
+                                ${isBalanced ? '✓ Balanced' : `₹${balanceDiff.toFixed(2)} diff`}
+                            </span>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            function updatePaymentInstructions(members) {
+                const paymentInstructions = document.getElementById('payment-instructions');
+                if (!paymentInstructions) return;
+                
+                // Simple debt settlement algorithm
+                const creditors = members.filter(m => {
+                    const memberEl = document.querySelector(`div[data-member-id="${m.id}"]`);
+                    const settlementText = memberEl.querySelector('.settlement-amount').textContent;
+                    return settlementText.startsWith('+');
+                }).map(m => {
+                    const memberEl = document.querySelector(`div[data-member-id="${m.id}"]`);
+                    const amount = parseFloat(memberEl.querySelector('.settlement-amount').textContent.replace(/[+₹]/g, ''));
+                    return { ...m, amount: amount };
+                });
+                
+                const debtors = members.filter(m => {
+                    const memberEl = document.querySelector(`div[data-member-id="${m.id}"]`);
+                    const settlementText = memberEl.querySelector('.settlement-amount').textContent;
+                    return settlementText.startsWith('-');
+                }).map(m => {
+                    const memberEl = document.querySelector(`div[data-member-id="${m.id}"]`);
+                    const amount = parseFloat(memberEl.querySelector('.settlement-amount').textContent.replace(/[-₹]/g, ''));
+                    return { ...m, amount: amount };
+                });
+                
+                let instructionsHTML = '';
+                
+                if (creditors.length === 0 && debtors.length === 0) {
+                    instructionsHTML = `
+                        <div class="text-center py-4 text-green-600">
+                            <i class="fas fa-check-circle text-2xl mb-2"></i>
+                            <div class="font-semibold">All Settled!</div>
+                            <div class="text-sm">No payments required this month.</div>
+                        </div>
+                    `;
+                } else {
+                    // Sort by amount for better settlement optimization
+                    creditors.sort((a, b) => b.amount - a.amount);
+                    debtors.sort((a, b) => b.amount - a.amount);
+                    
+                    let i = 0, j = 0;
+                    while (i < creditors.length && j < debtors.length) {
+                        const creditor = creditors[i];
+                        const debtor = debtors[j];
+                        const paymentAmount = Math.min(creditor.amount, debtor.amount);
+                        
+                        if (paymentAmount > 0.01) { // Only show payments above 1 paisa
+                            instructionsHTML += `
+                                <div class="flex items-center justify-between p-3 bg-white rounded-lg border border-green-200 shadow-sm">
+                                    <div class="flex items-center space-x-3">
+                                        <div class="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center">
+                                            <span class="text-red-600 text-xs font-bold">${debtor.avatar}</span>
+                                        </div>
+                                        <i class="fas fa-arrow-right text-gray-400"></i>
+                                        <div class="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center">
+                                            <span class="text-green-600 text-xs font-bold">${creditor.avatar}</span>
+                                        </div>
+                                        <div class="text-sm">
+                                            <div class="font-medium">${debtor.name} pays ${creditor.name}</div>
+                                            <div class="text-xs text-gray-500">Settlement payment</div>
+                                        </div>
+                                    </div>
+                                    <div class="text-right">
+                                        <div class="font-bold text-lg text-green-600">₹${paymentAmount.toFixed(2)}</div>
+                                    </div>
+                                </div>
+                            `;
+                        }
+                        
+                        // Update amounts
+                        creditor.amount -= paymentAmount;
+                        debtor.amount -= paymentAmount;
+                        
+                        // Move to next creditor/debtor if current one is settled
+                        if (creditor.amount < 0.01) i++;
+                        if (debtor.amount < 0.01) j++;
+                    }
+                }
+                
+                if (instructionsHTML === '') {
+                    instructionsHTML = `
+                        <div class="text-center py-4 text-gray-500">
+                            <i class="fas fa-info-circle text-2xl mb-2"></i>
+                            <div>No payments required</div>
+                        </div>
+                    `;
+                }
+                
+                paymentInstructions.innerHTML = instructionsHTML;
+            }
+            
             function updateSettlementData() {
                 if (!settlementMonth || !settlementYear) return;
                 
                 const selectedMonth = settlementMonth.value;
                 const selectedYear = settlementYear.value;
                 
-                // Demo: Update settlement date display
+                // Update days in month
+                const selectedMonthInt = parseInt(selectedMonth);
+                const selectedYearInt = parseInt(selectedYear);
+                const lastDay = new Date(selectedYearInt, selectedMonthInt, 0).getDate();
+                daysInMonthInput.value = lastDay;
+                daysInMonthInput.max = lastDay;
+                
+                // Update settlement date display
                 const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 
                                    'July', 'August', 'September', 'October', 'November', 'December'];
-                const monthIndex = parseInt(selectedMonth) - 1;
-                const lastDay = new Date(parseInt(selectedYear), monthIndex + 1, 0).getDate();
+                const monthIndex = selectedMonthInt - 1;
                 
-                const settlementDateEl = document.querySelector('.mt-3.text-right.text-sm.text-gray-500 span');
+                const settlementDateEl = document.querySelector('.settlement-date');
                 if (settlementDateEl) {
                     settlementDateEl.textContent = `${monthNames[monthIndex]} ${lastDay}, ${selectedYear}`;
                 }
                 
-                // In a real app, you would fetch data for the selected month/year here
-                // and update the settlement summary accordingly
+                // Recalculate with new month data
+                calculateSettlement();
             }
             
-            // Initialize with current date data
-            if (settlementMonth && settlementYear) {
-                updateSettlementData();
+            // Event listeners
+            if (recalculateBtn) {
+                recalculateBtn.addEventListener('click', calculateSettlement);
             }
             
-            // Existing code for other filters
-            const monthFilter = document.getElementById('month-filter');
-            const yearFilter = document.getElementById('year-filter');
-            if (!monthFilter || !yearFilter) {
-                // Required filter elements not present; skip script
-                return;
-            }
-            const transactions = document.querySelectorAll('.recent-transactions .flex.items-center.justify-between');
-            
-            // Add class to transaction container for easier selection
-            const transactionContainer = document.querySelector('.recent-transactions');
-            if (!transactionContainer) {
-                // Add class to the container if it doesn't have one
-                document.querySelector('.space-y-4')?.classList.add('recent-transactions');
-            }
-            
-            // Use the already defined currentDate, currentMonth and currentYear variables
-            
-            // Set the default selected options to current month and year
-            monthFilter.value = currentMonth;
-            
-            // Check if the current year exists in the options
-            let yearExists = false;
-            for (let i = 0; i < yearFilter.options.length; i++) {
-                if (yearFilter.options[i].value === currentYear) {
-                    yearExists = true;
-                    break;
-                }
-            }
-            
-            // If current year doesn't exist in options, add it
-            if (!yearExists && currentYear !== 'all') {
-                const newOption = document.createElement('option');
-                newOption.value = currentYear;
-                newOption.textContent = currentYear;
-                yearFilter.appendChild(newOption);
-            }
-            
-            yearFilter.value = currentYear;
-            
-            // Call filterTransactions to apply both filters
-            filterTransactions();
-            
-            // Function to filter transactions based on month and year
-            function filterTransactions() {
-                const selectedMonth = monthFilter.value;
-                const selectedYear = yearFilter.value;
-                
-                // Get all transaction date elements
-                const dateElements = document.querySelectorAll('.recent-transactions .text-xs.text-gray-500');
-                
-                dateElements.forEach((dateEl, index) => {
-                    const transaction = dateEl.closest('.flex.items-center.justify-between');
-                    const dateText = dateEl.textContent;
-                    
-                    // Extract month and year from date (format: 'Jun 15, 2023')
-                    const dateParts = dateText.split(' ');
-                    const monthName = dateParts[0];
-                    const year = dateParts[2];
-                    
-                    // Convert month name to number
-                    const monthMap = {
-                        'Jan': '01', 'Feb': '02', 'Mar': '03', 'Apr': '04',
-                        'May': '05', 'Jun': '06', 'Jul': '07', 'Aug': '08',
-                        'Sep': '09', 'Oct': '10', 'Nov': '11', 'Dec': '12'
-                    };
-                    
-                    const monthNumber = monthMap[monthName];
-                    
-                    // Show/hide based on filter
-                    const monthMatch = selectedMonth === 'all' || monthNumber === selectedMonth;
-                    const yearMatch = selectedYear === 'all' || year === selectedYear;
-                    
-                    if (monthMatch && yearMatch) {
-                        transaction.style.display = 'flex';
-                    } else {
-                        transaction.style.display = 'none';
+            // Add event listeners for days present inputs
+            document.querySelectorAll('.days-present').forEach(input => {
+                input.addEventListener('change', function() {
+                    const max = parseInt(daysInMonthInput.value) || 30;
+                    if (parseInt(this.value) > max) {
+                        this.value = max;
+                    } else if (parseInt(this.value) < 0 || isNaN(parseInt(this.value))) {
+                        this.value = 0;
                     }
+                    calculateSettlement(); // Auto-recalculate on change
                 });
-                
-                // Update total expenses and share based on visible transactions
-                updateTotals();
+            });
+            
+            // Add event listener for days in month
+            if (daysInMonthInput) {
+                daysInMonthInput.addEventListener('change', function() {
+                    // Update max values for all days-present inputs
+                    document.querySelectorAll('.days-present').forEach(input => {
+                        input.max = this.value;
+                        if (parseInt(input.value) > parseInt(this.value)) {
+                            input.value = this.value;
+                        }
+                    });
+                    calculateSettlement();
+                });
             }
             
-            // Add event listeners to both filters
-            monthFilter.addEventListener('change', filterTransactions);
-            yearFilter.addEventListener('change', filterTransactions);
-            
-            function updateTotals() {
-                // This function would calculate new totals based on visible transactions
-                // For demo purposes, we'll just show different values for different months and years
-                const selectedMonth = monthFilter.value;
-                const selectedYear = yearFilter.value;
-                const totalExpenseEl = document.querySelector('.text-xl.font-bold');
-                const yourShareEl = document.querySelector('.text-xl.font-bold.text-blue-600');
-                
-                // Demo values for different months
-                const monthlyData = {
-                    'all': { total: '₹4,250.00', share: '₹1,062.50' },
-                    '01': { total: '₹3,850.00', share: '₹962.50' },
-                    '02': { total: '₹4,120.00', share: '₹1,030.00' },
-                    '03': { total: '₹3,640.00', share: '₹910.00' },
-                    '04': { total: '₹4,580.00', share: '₹1,145.00' },
-                    '05': { total: '₹3,920.00', share: '₹980.00' },
-                    '06': { total: '₹4,250.00', share: '₹1,062.50' },
-                    '07': { total: '₹3,780.00', share: '₹945.00' },
-                    '08': { total: '₹4,350.00', share: '₹1,087.50' },
-                    '09': { total: '₹3,980.00', share: '₹995.00' },
-                    '10': { total: '₹4,150.00', share: '₹1,037.50' },
-                    '11': { total: '₹3,890.00', share: '₹972.50' },
-                    '12': { total: '₹4,420.00', share: '₹1,105.00' }
-                };
-                
-                // Demo values for different years (multipliers)
-                const yearMultiplier = {
-                    'all': 1,
-                    '2023': 0.9,
-                    '2024': 1.0,
-                    '2025': 1.1
-                };
-                
-                // Update the displayed values
-                if (totalExpenseEl && yourShareEl && monthlyData[selectedMonth]) {
-                    let total = monthlyData[selectedMonth].total;
-                    let share = monthlyData[selectedMonth].share;
-                    
-                    // Apply year multiplier if not 'all'
-                    if (selectedYear !== 'all' && yearMultiplier[selectedYear]) {
-                        // Extract numeric value, apply multiplier, and format back
-                        let totalValue = parseFloat(total.replace('₹', '').replace(',', ''));
-                        let shareValue = parseFloat(share.replace('₹', '').replace(',', ''));
-                        
-                        totalValue = totalValue * yearMultiplier[selectedYear];
-                        shareValue = shareValue * yearMultiplier[selectedYear];
-                        
-                        total = '₹' + totalValue.toFixed(2);
-                        share = '₹' + shareValue.toFixed(2);
-                    }
-                    
-                    totalExpenseEl.innerHTML = total.replace('₹', '<i class="fas fa-rupee-sign"></i>');
-                    yourShareEl.innerHTML = share.replace('₹', '<i class="fas fa-rupee-sign"></i>');
-                }
-            }
+            // Initialize
+            updateSettlementData();
+            updateExpenseBreakdown();
+            updatePerDayCalculation();
+            calculateSettlement();
         });
     </script>
 </body>
