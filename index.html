@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bachelor Room Expense Management</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f2f5;
+        }
+        .bottom-nav {
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+        }
+        .add-expense-btn {
+            transform: translateY(-50%);
+            box-shadow: 0 0 15px rgba(37, 99, 235, 0.5);
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <!-- Top Header with Logo and Profile -->
+    <header class="fixed top-0 left-0 right-0 bg-white shadow-md z-10">
+        <div class="flex justify-between items-center px-4 py-3">
+            <div class="flex items-center">
+                <div class="mr-3">
+                    <i class="fas fa-wallet text-blue-600 text-2xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-lg font-bold text-gray-800">Bachelor Room</h1>
+                    <p class="text-xs text-gray-500">Expense Management</p>
+                </div>
+            </div>
+            <div class="flex items-center">
+                <div class="mr-4 relative">
+                    <i class="fas fa-bell text-gray-600 text-xl"></i>
+                    <span class="absolute top-0 right-0 h-2 w-2 bg-red-500 rounded-full"></span>
+                </div>
+                <a href="profile.html">
+                    <div class="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
+                        <i class="fas fa-user text-blue-600"></i>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="pt-20 pb-24 px-4">
+        <div class="bg-white rounded-xl shadow-md p-4 mb-4">
+            <h2 class="text-lg font-semibold mb-2">Monthly Overview</h2>
+            <div class="flex justify-between items-center mb-4">
+                <div>
+                    <p class="text-sm text-gray-500">Total Expenses</p>
+                    <p class="text-xl font-bold"><i class="fas fa-rupee-sign"></i>1,250.00</p>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-500">Your Share</p>
+                    <p class="text-xl font-bold text-blue-600"><i class="fas fa-rupee-sign"></i>312.50</p>
+                </div>
+            </div>
+            <div class="h-2 w-full bg-gray-200 rounded-full">
+                <div class="h-2 bg-blue-600 rounded-full" style="width: 65%"></div>
+            </div>
+        </div>
+
+        <!-- My Rooms Section -->
+        <div class="bg-white rounded-xl shadow-md p-4 mb-4">
+            <div class="flex justify-between items-center mb-4">
+                <div class="flex items-center">
+                    <h2 class="text-lg font-semibold">My Rooms</h2>
+                    <i class="fas fa-chevron-right text-sm text-gray-400 ml-2"></i>
+                </div>
+                <!-- Create Room Floating Button within header -->
+                <button class="h-9 w-9 rounded-full bg-blue-600 text-white flex items-center justify-center shadow-md hover:bg-blue-700">
+                    <i class="fas fa-plus"></i>
+                </button>
+            </div>
+            <!-- Room Cards -->
+            <div class="grid gap-3">
+                <!-- Room Card 1 -->
+                <a href="group.html" class="flex items-center justify-between p-3 border rounded-lg hover:shadow-sm transition-shadow">
+                    <div>
+                        <p class="font-medium">Bachelor Pad A</p>
+                        <p class="text-xs text-gray-500">5 Members • Active 2h ago</p>
+                    </div>
+                    <span class="text-sm text-gray-400">›</span>
+                </a>
+                <!-- Room Card 2 -->
+                <a href="kitchen2.html" class="flex items-center justify-between p-3 border rounded-lg hover:shadow-sm transition-shadow">
+                    <div>
+                        <p class="font-medium">Bachelor Pad B</p>
+                        <p class="text-xs text-gray-500">3 Members • Active 1d ago</p>
+                    </div>
+                    <span class="text-sm text-gray-400">›</span>
+                </a>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-md p-4 mb-4">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-lg font-semibold">Recent Expenses</h2>
+                <a href="#" class="text-sm text-blue-600">View All</a>
+            </div>
+            
+            <div class="space-y-4">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center">
+                        <div class="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center mr-3">
+                            <i class="fas fa-shopping-basket text-blue-600"></i>
+                        </div>
+                        <div>
+                            <p class="font-medium">Groceries</p>
+                            <p class="text-xs text-gray-500">May 15, 2023</p>
+                        </div>
+                    </div>
+                    <p class="font-semibold"><i class="fas fa-rupee-sign"></i>45.80</p>
+                </div>
+                
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center">
+                        <div class="h-10 w-10 rounded-full bg-green-100 flex items-center justify-center mr-3">
+                            <i class="fas fa-bolt text-green-600"></i>
+                        </div>
+                        <div>
+                            <p class="font-medium">Electricity</p>
+                            <p class="text-xs text-gray-500">May 12, 2023</p>
+                        </div>
+                    </div>
+                    <p class="font-semibold"><i class="fas fa-rupee-sign"></i>78.25</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Bottom Navigation -->
+    <nav class="fixed bottom-0 left-0 right-0 bg-white bottom-nav">
+        <div class="relative">
+            <!-- Add Expense Button (More Prominent) -->
+            <div class="absolute left-1/2 transform -translate-x-1/2 -top-1">
+                <button class="h-16 px-6 rounded-full bg-blue-600 text-white flex items-center justify-center add-expense-btn">
+                    <i class="fas fa-plus-circle text-xl mr-2"></i>
+                    <span class="font-medium">Add Expense</span>
+                </button>
+            </div>
+            
+            <div class="flex justify-around items-center h-16 px-4">
+                <a href="#" class="flex flex-col items-center justify-center text-blue-600">
+                    <i class="fas fa-home text-xl"></i>
+                    <span class="text-xs mt-1">Home</span>
+                </a>
+                
+                <!-- Spacer for center button -->
+                <div class="w-14"></div>
+                
+                <a href="report.html" class="flex flex-col items-center justify-center text-gray-500">
+                    <i class="fas fa-chart-bar text-xl"></i>
+                    <span class="text-xs mt-1">Report</span>
+                </a>
+            </div>
+        </div>
+    </nav>
+
+   
+</body>
+</html>
