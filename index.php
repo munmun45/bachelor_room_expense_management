@@ -38,7 +38,7 @@
                     <i class="fas fa-bell text-gray-600 text-xl"></i>
                     <span class="absolute top-0 right-0 h-2 w-2 bg-red-500 rounded-full"></span>
                 </div>
-                <a href="profile.html">
+                <a href="profile.php">
                     <div class="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
                         <i class="fas fa-user text-blue-600"></i>
                     </div>
@@ -81,7 +81,7 @@
             <!-- Room Cards -->
             <div class="grid gap-3">
                 <!-- Room Card 1 -->
-                <a href="group.html" class="flex items-center justify-between p-3 border rounded-lg hover:shadow-sm transition-shadow">
+                <a href="group.php" class="flex items-center justify-between p-3 border rounded-lg hover:shadow-sm transition-shadow">
                     <div>
                         <p class="font-medium">Bachelor Pad A</p>
                         <p class="text-xs text-gray-500">5 Members • Active 2h ago</p>
@@ -89,7 +89,7 @@
                     <span class="text-sm text-gray-400">›</span>
                 </a>
                 <!-- Room Card 2 -->
-                <a href="kitchen2.html" class="flex items-center justify-between p-3 border rounded-lg hover:shadow-sm transition-shadow">
+                <a href="kitchen2.php" class="flex items-center justify-between p-3 border rounded-lg hover:shadow-sm transition-shadow">
                     <div>
                         <p class="font-medium">Bachelor Pad B</p>
                         <p class="text-xs text-gray-500">3 Members • Active 1d ago</p>
@@ -155,7 +155,7 @@
                 <!-- Spacer for center button -->
                 <div class="w-14"></div>
                 
-                <a href="report.html" class="flex flex-col items-center justify-center text-gray-500">
+                <a href="report.php" class="flex flex-col items-center justify-center text-gray-500">
                     <i class="fas fa-chart-bar text-xl"></i>
                     <span class="text-xs mt-1">Report</span>
                 </a>
