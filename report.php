@@ -359,32 +359,31 @@
             </div>
 
             <!-- Kitchen Food Settlement Summary -->
-            <div class="bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg p-4 border border-green-200 mb-4">
-                <h3 class="font-semibold mb-3 text-green-800">
-                    <i class="fas fa-utensils mr-2"></i>Kitchen Food Settlement Summary
+            <div class="card p-4 bg-white border border-gray-200 rounded-lg shadow-sm mb-4">
+                <h3 class="section-title text-gray-800 mb-3">
+                    <i class="fas fa-utensils mr-2 text-gray-600"></i>Kitchen Food Settlement Summary
                 </h3>
                 <div id="kitchen-payment-instructions" class="space-y-3">
                     <!-- Will be populated by JavaScript -->
                 </div>
             </div>
             
-           
         </div>
 
 
-         <!-- Special Item Expense Settlement Summary -->
-            <div class="bg-gradient-to-r from-purple-50 to-indigo-50 rounded-lg p-4 border border-purple-200">
-                <h3 class="font-semibold mb-3 text-purple-800">
-                    <i class="fas fa-gift mr-2"></i>Special Item Expense Settlement Summary
-                </h3>
-                <div id="special-payment-instructions" class="space-y-3">
-                    <!-- Will be populated by JavaScript -->
-                </div>
+        <!-- Special Item Expense Settlement Summary -->
+        <div class="card p-4 bg-white border border-gray-200 rounded-lg shadow-sm mb-4">
+            <h3 class="section-title text-gray-800 mb-3">
+                <i class="fas fa-gift mr-2 text-gray-600"></i>Special Item Expense Settlement Summary
+            </h3>
+            <div id="special-payment-instructions" class="space-y-3">
+                <!-- Will be populated by JavaScript -->
             </div>
+        </div>
             
             <!-- Settlement Date -->
-            <div class="mt-4 text-center text-sm text-gray-600 bg-gray-50 rounded-lg p-3">
-                <i class="fas fa-calendar mr-2"></i>
+            <div class="card mt-4 text-center text-sm text-gray-600 bg-white border border-gray-200 rounded-lg shadow-sm p-3">
+                <i class="fas fa-calendar mr-2 text-gray-600"></i>
                 Settlement Date: <span class="font-semibold settlement-date">September 30, 2025</span>
             </div>
 
@@ -861,8 +860,8 @@
                 } else {
                     // Show special item calculation in a separate detailed section
                     specialInstructionsHTML += `
-                        <div class="mb-4 p-4 bg-purple-50 rounded-lg border border-purple-200 shadow-md">
-                            <h4 class="font-semibold text-purple-700 mb-3 text-lg border-b border-purple-200 pb-2">Special Item Expense Calculation</h4>
+                        <div class="mb-4 p-4 bg-gray-50 rounded-lg border border-gray-200 shadow-sm">
+                            <h4 class="font-semibold text-gray-700 mb-3 text-lg border-b border-gray-200 pb-2">Special Item Expense Calculation</h4>
                             <div class="space-y-3">
                     `;
                     
