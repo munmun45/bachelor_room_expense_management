@@ -368,7 +368,11 @@
                 </div>
             </div>
             
-            <!-- Special Item Expense Settlement Summary -->
+           
+        </div>
+
+
+         <!-- Special Item Expense Settlement Summary -->
             <div class="bg-gradient-to-r from-purple-50 to-indigo-50 rounded-lg p-4 border border-purple-200">
                 <h3 class="font-semibold mb-3 text-purple-800">
                     <i class="fas fa-gift mr-2"></i>Special Item Expense Settlement Summary
@@ -383,7 +387,15 @@
                 <i class="fas fa-calendar mr-2"></i>
                 Settlement Date: <span class="font-semibold settlement-date">September 30, 2025</span>
             </div>
-        </div>
+
+
+
+
+
+
+
+
+
     </main>
     
     <script>
