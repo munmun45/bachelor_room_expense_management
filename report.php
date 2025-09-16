@@ -309,6 +309,37 @@
                         </div>
                     </div>
                 </div>
+                
+                <!-- Member 6 -->
+                <div class="member-card p-4 bg-white border-2 border-gray-100 rounded-lg shadow-sm" data-member-id="6">
+                    <div class="flex justify-between items-start mb-3">
+                        <div class="flex items-center">
+                            <div class="w-12 h-12 rounded-full bg-green-500 flex items-center justify-center text-white font-bold mr-3">
+                                <span>M</span>
+                            </div>
+                            <div>
+                                <div class="font-semibold text-lg">Munmun</div>
+                                <div class="text-sm text-gray-500 flex items-center">
+                                    <span class="mr-2">Meal days:</span>
+                                    <input type="number" class="days-present w-16 border rounded px-2 py-1 text-center" value="26" min="0" max="31">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <div class="settlement-amount text-green-600 font-bold text-xl">+₹0.00</div>
+                            <div class="text-xs text-gray-500">Net Settlement</div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-gray-50 rounded-lg p-3 border-l-4 border-green-400">
+                        <div class="text-xs font-medium text-gray-700 mb-2">
+                            <i class="fas fa-chart-line mr-1"></i>Calculation Details
+                        </div>
+                        <div class="calculation-details space-y-1 text-xs">
+                            <!-- Will be populated by JavaScript -->
+                        </div>
+                    </div>
+                </div>
             </div>
             
             <!-- Summary Verification -->
@@ -327,12 +358,22 @@
                 </button>
             </div>
 
-            <!-- Who pays whom section -->
-            <div class="bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg p-4 border border-green-200">
+            <!-- Kitchen Food Settlement Summary -->
+            <div class="bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg p-4 border border-green-200 mb-4">
                 <h3 class="font-semibold mb-3 text-green-800">
-                    <i class="fas fa-exchange-alt mr-2"></i>Payment Instructions
+                    <i class="fas fa-utensils mr-2"></i>Kitchen Food Settlement Summary
                 </h3>
-                <div id="payment-instructions" class="space-y-3">
+                <div id="kitchen-payment-instructions" class="space-y-3">
+                    <!-- Will be populated by JavaScript -->
+                </div>
+            </div>
+            
+            <!-- Special Item Expense Settlement Summary -->
+            <div class="bg-gradient-to-r from-purple-50 to-indigo-50 rounded-lg p-4 border border-purple-200">
+                <h3 class="font-semibold mb-3 text-purple-800">
+                    <i class="fas fa-gift mr-2"></i>Special Item Expense Settlement Summary
+                </h3>
+                <div id="special-payment-instructions" class="space-y-3">
                     <!-- Will be populated by JavaScript -->
                 </div>
             </div>
@@ -348,43 +389,57 @@
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             // Member data with FOOD/KITCHEN expenses only
-            const memberData = [
-                { 
+            const memberData = [{
                     id: 1, 
                     name: 'Rahul', 
                     avatar: 'R',
                     color: 'blue',
-                    totalSpent: 850.00
+                    totalSpent: 850.00,
+                    specialItemSpent: 500.00
                 },
                 { 
                     id: 2, 
                     name: 'Amit', 
                     avatar: 'A',
                     color: 'green',
-                    totalSpent: 620.00
+                    totalSpent: 620.00,
+                    specialItemSpent: 1000.00
                 },
                 { 
                     id: 3, 
                     name: 'Suresh', 
                     avatar: 'S',
                     color: 'purple',
-                    totalSpent: 720.00
+                    totalSpent: 720.00,
+                    specialItemSpent: 2000.00
                 },
                 { 
                     id: 4, 
                     name: 'Vijay', 
                     avatar: 'V',
                     color: 'yellow',
-                    totalSpent: 540.00
+                    totalSpent: 540.00,
+                    specialItemSpent: 500.00
                 },
                 { 
                     id: 5, 
                     name: 'Prakash', 
                     avatar: 'P',
                     color: 'red',
-                    totalSpent: 480.00
+                    totalSpent: 480.00,
+                    specialItemSpent: 0.00
+                },
+                { 
+                    id: 6,
+                    name: 'Munmun',
+                    avatar: 'M',
+                    color: 'green',
+                    totalSpent: 480.00,
+                    specialItemSpent: 100.00 
                 }
             ];
+            
+            
 
             const settlementMonth = document.getElementById('settlement-month');
             const settlementYear = document.getElementById('settlement-year');
@@ -407,10 +462,10 @@
                 const breakdownEl = document.getElementById('expense-breakdown');
                 if (!breakdownEl) return;
                 
-                // Calculate total expense
+                // Calculate total kitchen expense ONLY (exclude special items)
                 const totalExpense = memberData.reduce((sum, member) => sum + member.totalSpent, 0);
                 
-                // Simple breakdown showing just kitchen bill
+                // Breakdown showing kitchen bill only (special items shown in separate tab)
                 const breakdownHTML = `
                     <div class="calculation-row flex justify-between items-center bg-blue-50 rounded">
                         <div class="flex items-center">
@@ -443,6 +498,15 @@
                 
                 const totalExpense = memberData.reduce((sum, member) => sum + member.totalSpent, 0);
                 const perDayAmount = totalDaysPresent > 0 ? totalExpense / totalDaysPresent : 0;
+                
+                // Calculate total special item spent
+                const totalSpecialItemSpent = memberData.reduce((sum, member) => sum + (member.specialItemSpent || 0), 0);
+                
+                // Calculate special item per person share (equal split)
+                const specialItemPerPersonShare = totalSpecialItemSpent / memberData.length;
+                
+                // Calculate grand total
+                const grandTotal = totalExpense + totalSpecialItemSpent;
                 
                 let calculationHTML = `
                     <div class="calculation-row flex justify-between">
@@ -504,13 +568,24 @@
                 const totalDaysPresent = members.reduce((sum, member) => sum + member.daysPresent, 0);
                 const perDayAmount = totalDaysPresent > 0 ? totalExpense / totalDaysPresent : 0;
                 
+                // Calculate total special item spent
+                const totalSpecialItemSpent = members.reduce((sum, member) => sum + (member.specialItemSpent || 0), 0);
+                
+                // Calculate special item per person share (equal split)
+                const specialItemPerPersonShare = totalSpecialItemSpent / members.length;
+                
+                // Calculate grand total (for display purposes only)
+                const grandTotal = totalExpense + totalSpecialItemSpent;
+                
                 let positiveTotal = 0;
                 let negativeTotal = 0;
                 
-                // Calculate each member's settlement
+                // Calculate each member's settlement - KITCHEN FOOD ONLY
                 members.forEach(member => {
                     const fairShareBasedOnAttendance = perDayAmount * member.daysPresent;
                     const actualSpent = member.totalSpent;
+                    
+                    // Calculate net settlement for kitchen food only
                     const netSettlement = actualSpent - fairShareBasedOnAttendance;
                     
                     // Track totals
@@ -534,7 +609,7 @@
                         amountEl.className = 'settlement-amount text-red-600 font-bold text-xl';
                     }
                     
-                    // Update calculation details - showing clear per-day calculation
+                    // Update calculation details - showing ONLY kitchen food calculation
                     let detailsHTML = `
                         <div class="calculation-row flex justify-between">
                             <span>Total spent by ${member.name}:</span>
@@ -549,7 +624,7 @@
                             <span class="font-semibold text-orange-600">₹${perDayAmount.toFixed(2)}/day</span>
                         </div>
                         <div class="calculation-row flex justify-between">
-                            <span>${member.name}'s fair share:</span>
+                            <span>${member.name}'s food share:</span>
                             <span class="text-purple-600">₹${perDayAmount.toFixed(2)} × ${member.daysPresent} = ₹${fairShareBasedOnAttendance.toFixed(2)}</span>
                         </div>
                         <div class="calculation-row flex justify-between">
@@ -620,53 +695,102 @@
             }
             
             function updatePaymentInstructions(members) {
-                const paymentInstructions = document.getElementById('payment-instructions');
-                if (!paymentInstructions) return;
+                const kitchenPaymentInstructions = document.getElementById('kitchen-payment-instructions');
+                const specialPaymentInstructions = document.getElementById('special-payment-instructions');
+                if (!kitchenPaymentInstructions || !specialPaymentInstructions) return;
                 
-                // Simple debt settlement algorithm
-                const creditors = members.filter(m => {
-                    const memberEl = document.querySelector(`div[data-member-id="${m.id}"]`);
-                    const settlementText = memberEl.querySelector('.settlement-amount').textContent;
-                    return settlementText.startsWith('+');
-                }).map(m => {
-                    const memberEl = document.querySelector(`div[data-member-id="${m.id}"]`);
-                    const amount = parseFloat(memberEl.querySelector('.settlement-amount').textContent.replace(/[+₹]/g, ''));
-                    return { ...m, amount: amount };
+                // Calculate total expense and per-day amounts for KITCHEN FOOD ONLY
+                const totalExpense = members.reduce((sum, member) => sum + member.totalSpent, 0);
+                const totalDaysPresent = members.reduce((sum, member) => sum + member.daysPresent, 0);
+                const perDayAmount = totalDaysPresent > 0 ? totalExpense / totalDaysPresent : 0;
+                
+                // Calculate total special item spent - SEPARATE CALCULATION
+                const totalSpecialItemSpent = members.reduce((sum, member) => sum + (member.specialItemSpent || 0), 0);
+                
+                // Calculate special item per person share (equal split) - SEPARATE CALCULATION
+                const specialItemPerPersonShare = totalSpecialItemSpent / members.length;
+                
+                // Get special item payments for each member
+                const specialItemPayments = {};
+                members.forEach(member => {
+                    if (member.specialItemSpent) {
+                        specialItemPayments[member.id] = member.specialItemSpent;
+                    }
                 });
                 
-                const debtors = members.filter(m => {
-                    const memberEl = document.querySelector(`div[data-member-id="${m.id}"]`);
-                    const settlementText = memberEl.querySelector('.settlement-amount').textContent;
-                    return settlementText.startsWith('-');
-                }).map(m => {
-                    const memberEl = document.querySelector(`div[data-member-id="${m.id}"]`);
-                    const amount = parseFloat(memberEl.querySelector('.settlement-amount').textContent.replace(/[-₹]/g, ''));
-                    return { ...m, amount: amount };
+                // Create kitchen food settlement data - KITCHEN FOOD ONLY
+                const kitchenCreditors = [];
+                const kitchenDebtors = [];
+                
+                // Create special item settlement data - SEPARATE CALCULATION
+                const specialCreditors = [];
+                const specialDebtors = [];
+                
+                // Calculate kitchen food settlements - KITCHEN FOOD ONLY
+                members.forEach(member => {
+                    const fairShareBasedOnAttendance = perDayAmount * member.daysPresent;
+                    const actualSpent = member.totalSpent;
+                    const kitchenNetSettlement = actualSpent - fairShareBasedOnAttendance;
+                    
+                    if (kitchenNetSettlement > 0) {
+                        kitchenCreditors.push({
+                            ...member,
+                            amount: kitchenNetSettlement
+                        });
+                    } else if (kitchenNetSettlement < 0) {
+                        kitchenDebtors.push({
+                            ...member,
+                            amount: Math.abs(kitchenNetSettlement)
+                        });
+                    }
                 });
                 
-                let instructionsHTML = '';
+                // Calculate special item settlements
+                members.forEach(member => {
+                    const specialItemPaid = member.specialItemSpent || 0;
+                    const specialItemNetSettlement = specialItemPaid - specialItemPerPersonShare;
+                    
+                    if (specialItemNetSettlement > 0) {
+                        specialCreditors.push({
+                            ...member,
+                            amount: specialItemNetSettlement,
+                            specialItemPaid: specialItemPaid
+                        });
+                    } else if (specialItemNetSettlement < 0) {
+                        specialDebtors.push({
+                            ...member,
+                            amount: Math.abs(specialItemNetSettlement),
+                            specialItemPaid: specialItemPaid
+                        });
+                    }
+                });
                 
-                if (creditors.length === 0 && debtors.length === 0) {
-                    instructionsHTML = `
+                // Sort by amount for better settlement optimization
+                kitchenCreditors.sort((a, b) => b.amount - a.amount);
+                kitchenDebtors.sort((a, b) => b.amount - a.amount);
+                specialCreditors.sort((a, b) => b.amount - a.amount);
+                specialDebtors.sort((a, b) => b.amount - a.amount);
+                
+                // Process Kitchen Food Settlements
+                let kitchenInstructionsHTML = '';
+                
+                if (kitchenCreditors.length === 0 && kitchenDebtors.length === 0) {
+                    kitchenInstructionsHTML = `
                         <div class="text-center py-4 text-green-600">
                             <i class="fas fa-check-circle text-2xl mb-2"></i>
-                            <div class="font-semibold">All Settled!</div>
-                            <div class="text-sm">No payments required this month.</div>
+                            <div class="font-semibold">All Kitchen Expenses Settled!</div>
+                            <div class="text-sm">No kitchen payments required this month.</div>
                         </div>
                     `;
                 } else {
-                    // Sort by amount for better settlement optimization
-                    creditors.sort((a, b) => b.amount - a.amount);
-                    debtors.sort((a, b) => b.amount - a.amount);
-                    
                     let i = 0, j = 0;
-                    while (i < creditors.length && j < debtors.length) {
-                        const creditor = creditors[i];
-                        const debtor = debtors[j];
+                    while (i < kitchenCreditors.length && j < kitchenDebtors.length) {
+                        const creditor = kitchenCreditors[i];
+                        const debtor = kitchenDebtors[j];
                         const paymentAmount = Math.min(creditor.amount, debtor.amount);
                         
                         if (paymentAmount > 0.01) { // Only show payments above 1 paisa
-                            instructionsHTML += `
+                            kitchenInstructionsHTML += `
                                 <div class="flex items-center justify-between p-3 bg-white rounded-lg border border-green-200 shadow-sm">
                                     <div class="flex items-center space-x-3">
                                         <div class="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center">
@@ -678,7 +802,9 @@
                                         </div>
                                         <div class="text-sm">
                                             <div class="font-medium">${debtor.name} pays ${creditor.name}</div>
-                                            <div class="text-xs text-gray-500">Settlement payment</div>
+                                            <div class="text-xs text-gray-500">
+                                                Kitchen food settlement
+                                            </div>
                                         </div>
                                     </div>
                                     <div class="text-right">
@@ -698,16 +824,177 @@
                     }
                 }
                 
-                if (instructionsHTML === '') {
-                    instructionsHTML = `
+                if (kitchenInstructionsHTML === '') {
+                    kitchenInstructionsHTML = `
                         <div class="text-center py-4 text-gray-500">
                             <i class="fas fa-info-circle text-2xl mb-2"></i>
-                            <div>No payments required</div>
+                            <div>No kitchen payments required</div>
                         </div>
                     `;
                 }
                 
-                paymentInstructions.innerHTML = instructionsHTML;
+                kitchenPaymentInstructions.innerHTML = kitchenInstructionsHTML;
+                
+                // Process Special Item Settlements
+                let specialInstructionsHTML = '';
+                
+                if (specialCreditors.length === 0 && specialDebtors.length === 0 && members.every(m => !(m.specialItemSpent > 0))) {
+                    specialInstructionsHTML = `
+                        <div class="text-center py-4 text-purple-600">
+                            <i class="fas fa-check-circle text-2xl mb-2"></i>
+                            <div class="font-semibold">All Special Item Expenses Settled!</div>
+                            <div class="text-sm">No special item payments required this month.</div>
+                        </div>
+                    `;
+                } else {
+                    // Show special item calculation in a separate detailed section
+                    specialInstructionsHTML += `
+                        <div class="mb-4 p-4 bg-purple-50 rounded-lg border border-purple-200 shadow-md">
+                            <h4 class="font-semibold text-purple-700 mb-3 text-lg border-b border-purple-200 pb-2">Special Item Expense Calculation</h4>
+                            <div class="space-y-3">
+                    `;
+                    
+                    // Add total special item expense with enhanced styling
+                    specialInstructionsHTML += `
+                        <div class="calculation-row flex justify-between items-center">
+                            <span class="font-medium">Total Special Item Expense:</span>
+                            <span class="font-semibold text-purple-600 text-lg">₹${totalSpecialItemSpent.toFixed(2)}</span>
+                        </div>
+                        <div class="calculation-row flex justify-between items-center">
+                            <span class="font-medium">Number of Members:</span>
+                            <span class="font-semibold">${members.length}</span>
+                        </div>
+                        <div class="calculation-row flex justify-between bg-purple-100 rounded-lg px-3 py-2 border border-purple-200">
+                            <span class="font-semibold text-purple-800">Per Member Share:</span>
+                            <div class="text-right">
+                                <div class="font-bold text-purple-800 text-lg">₹${specialItemPerPersonShare.toFixed(2)}</div>
+                                <div class="text-xs text-purple-600">Calculation: ₹${totalSpecialItemSpent.toFixed(2)} ÷ ${members.length} members</div>
+                            </div>
+                        </div>
+                    `;
+                    
+                    // Add each member's special item details with enhanced styling and clarity
+                    members.forEach(member => {
+                        const specialItemPaid = member.specialItemSpent || 0;
+                        const specialItemNetSettlement = specialItemPaid - specialItemPerPersonShare;
+                        const isCreditor = specialItemNetSettlement > 0;
+                        const isDebtor = specialItemNetSettlement < 0;
+                        
+                        if (specialItemPaid > 0 || isDebtor) {
+                            specialInstructionsHTML += `
+                                <div class="member-special-item mt-4 pt-3 border-t-2 border-purple-200">
+                                    <div class="flex items-center gap-2 mb-2">
+                                        <div class="w-6 h-6 rounded-full bg-purple-100 flex items-center justify-center">
+                                            <span class="text-purple-600 text-xs font-bold">${member.avatar}</span>
+                                        </div>
+                                        <span class="font-medium text-purple-800">${member.name}'s Special Item Details:</span>
+                                    </div>
+                                </div>
+                            `;
+                            
+                            if (specialItemPaid > 0) {
+                                specialInstructionsHTML += `
+                                    <div class="calculation-row flex justify-between bg-blue-50 rounded-lg px-3 py-1 border border-blue-100 mb-2">
+                                        <span class="font-medium">${member.name} paid for special item:</span>
+                                        <span class="font-semibold text-blue-600">+₹${specialItemPaid.toFixed(2)}</span>
+                                    </div>
+                                `;
+                            } else {
+                                specialInstructionsHTML += `
+                                    <div class="calculation-row flex justify-between bg-gray-50 rounded-lg px-3 py-1 border border-gray-100 mb-2">
+                                        <span class="font-medium">${member.name} paid for special item:</span>
+                                        <span class="font-semibold text-gray-600">₹0.00</span>
+                                    </div>
+                                `;
+                            }
+                            
+                            specialInstructionsHTML += `
+                                <div class="calculation-row flex justify-between px-3 py-1">
+                                    <span class="font-medium">${member.name}'s fair share:</span>
+                                    <span class="font-semibold text-purple-600">₹${specialItemPerPersonShare.toFixed(2)}</span>
+                                </div>
+                                <div class="calculation-row flex justify-between ${isCreditor ? 'bg-green-50 border border-green-100' : isDebtor ? 'bg-red-50 border border-red-100' : 'bg-gray-50 border border-gray-100'} rounded-lg px-3 py-2 mt-1">
+                                    <span class="font-semibold">Net Settlement:</span>
+                                    <span class="font-bold ${isCreditor ? 'text-green-600' : isDebtor ? 'text-red-600' : 'text-gray-600'}">
+                                        ${isCreditor ? '+' : ''}₹${specialItemNetSettlement.toFixed(2)}
+                                    </span>
+                                </div>
+                            `;
+                        }
+                    });
+                    
+                    specialInstructionsHTML += `
+                            </div>
+                        </div>
+                        <h4 class="font-semibold text-purple-700 mb-3 text-lg border-b border-purple-200 pb-2 mt-4">Special Item Payment Instructions</h4>
+                    `;
+                    
+                    // Then show the payment instructions
+                    let i = 0, j = 0;
+                    let hasPayments = false;
+                    
+                    while (i < specialCreditors.length && j < specialDebtors.length) {
+                        const creditor = specialCreditors[i];
+                        const debtor = specialDebtors[j];
+                        const paymentAmount = Math.min(creditor.amount, debtor.amount);
+                        
+                        if (paymentAmount > 0.01) { // Only show payments above 1 paisa
+                            hasPayments = true;
+                            specialInstructionsHTML += `
+                                <div class="flex items-center justify-between p-4 bg-white rounded-lg border border-purple-200 shadow-md mb-3 hover:bg-purple-50 transition-colors">
+                                    <div class="flex items-center space-x-3">
+                                        <div class="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center shadow-sm">
+                                            <span class="text-red-600 text-sm font-bold">${debtor.avatar}</span>
+                                        </div>
+                                        <i class="fas fa-arrow-right text-purple-400"></i>
+                                        <div class="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center shadow-sm">
+                                            <span class="text-purple-600 text-sm font-bold">${creditor.avatar}</span>
+                                        </div>
+                                        <div class="ml-1">
+                                            <div class="font-medium text-purple-800">${debtor.name} pays ${creditor.name}</div>
+                                            <div class="text-xs text-purple-600">
+                                                Special item settlement
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="text-right">
+                                        <div class="font-bold text-xl text-purple-600">₹${paymentAmount.toFixed(2)}</div>
+                                        <div class="text-xs text-gray-500">For special items</div>
+                                    </div>
+                                </div>
+                            `;
+                        }
+                        
+                        // Update amounts
+                        creditor.amount -= paymentAmount;
+                        debtor.amount -= paymentAmount;
+                        
+                        // Move to next creditor/debtor if current one is settled
+                        if (creditor.amount < 0.01) i++;
+                        if (debtor.amount < 0.01) j++;
+                    }
+                    
+                    if (!hasPayments) {
+                        specialInstructionsHTML += `
+                            <div class="text-center py-6 text-purple-500 bg-purple-50 rounded-lg border border-purple-200">
+                                <i class="fas fa-check-circle text-3xl mb-2"></i>
+                                <div class="font-medium">No Special Item Payments Required</div>
+                                <div class="text-sm text-purple-400">All special item expenses are already balanced</div>
+                            </div>
+                        `;
+                    }
+                }
+                
+                if (specialInstructionsHTML === '') {
+                    specialInstructionsHTML = `
+                        <div class="text-center py-4 text-gray-500">
+                            <i class="fas fa-info-circle text-2xl mb-2"></i>
+                            <div>No special item payments required</div>
+                        </div>
+                    `;
+                }
+                
+                specialPaymentInstructions.innerHTML = specialInstructionsHTML;
             }
             
             function updateSettlementData() {
