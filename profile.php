@@ -1,3 +1,225 @@
+<?php
+session_start();
+require_once 'config/config.php';
+
+// Check if user is logged in
+if (!isset($_SESSION['user_id'])) {
+    header('Location: login.php');
+    exit;
+}
+
+// Get user data
+$user_id = $_SESSION['user_id'];
+$sql = "SELECT * FROM users WHERE id = ?";
+$stmt = $conn->prepare($sql);
+$stmt->bind_param("i", $user_id);
+$stmt->execute();
+$result = $stmt->get_result();
+
+if ($result->num_rows === 0) {
+    header('Location: login.php');
+    exit;
+}
+
+$user = $result->fetch_assoc();
+
+// Initialize default values for user fields if not set
+$user['email'] = $user['email'] ?? '';
+$user['room_number'] = $user['room_number'] ?? '';
+$user['occupation'] = $user['occupation'] ?? '';
+$user['emergency_contact'] = $user['emergency_contact'] ?? '';
+
+// Format joined date if exists
+$joined_date = !empty($user['joined_date']) ? date('d M, Y', strtotime($user['joined_date'])) : 'Not set';
+
+// Get KYC status
+$kyc_status = $user['kyc_status'];
+$kyc_badge_class = ($kyc_status == 'verified') ? 'kyc-verified' : 'kyc-badge';
+$kyc_badge_text = ucfirst($kyc_status);
+
+// Profile image path
+$profile_image = !empty($user['profile_image']) ? 'uploads/profile/' . $user['profile_image'] : 'uploads/profile/default_avatar.png';
+
+// Check if directory exists, if not create it
+if (!file_exists('uploads/profile/')) {
+    mkdir('uploads/profile/', 0777, true);
+}
+
+// Create default avatar if it doesn't exist
+if (!file_exists('uploads/profile/default_avatar.png')) {
+    // Create a simple text file as placeholder
+    $default_avatar = 'uploads/profile/default_avatar.png';
+    file_put_contents($default_avatar, ''); // Create empty file
+    
+    // Use a default image from the web if available
+    $default_image_path = 'assets/default_avatar.png';
+    if (file_exists($default_image_path)) {
+        copy($default_image_path, $default_avatar);
+    }
+}
+
+// Handle profile update
+$update_message = '';
+if (isset($_GET['status']) && isset($_GET['message'])) {
+    $status = $_GET['status'];
+    $message = $_GET['message'];
+    
+    if ($status === 'success') {
+        $update_message = '<div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">' . htmlspecialchars($message) . '</div>';
+    } else {
+        $update_message = '<div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">' . htmlspecialchars($message) . '</div>';
+    }
+}
+
+// Handle profile image upload
+if (isset($_POST['update_profile']) && isset($_FILES['profile_image'])) {
+    $allowed = ['jpg', 'jpeg', 'png', 'gif'];
+    $filename = $_FILES['profile_image']['name'];
+    $file_ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+    
+    if (in_array($file_ext, $allowed)) {
+        $new_filename = $user_id . '_' . time() . '.' . $file_ext;
+        $target_file = 'uploads/profile/' . $new_filename;
+        
+        if (move_uploaded_file($_FILES['profile_image']['tmp_name'], $target_file)) {
+            // Delete old profile image if it's not the default
+            if ($user['profile_image'] != 'default_avatar.png' && file_exists('uploads/profile/' . $user['profile_image'])) {
+                unlink('uploads/profile/' . $user['profile_image']);
+            }
+            
+            // Update database with new image only
+            $sql = "UPDATE users SET profile_image = ? WHERE id = ?";
+            $stmt = $conn->prepare($sql);
+            $stmt->bind_param("si", $new_filename, $user_id);
+            $stmt->execute();
+            
+            $profile_image = 'uploads/profile/' . $new_filename;
+            
+            // Refresh user data after image update
+            $sql = "SELECT * FROM users WHERE id = ?";
+            $stmt = $conn->prepare($sql);
+            $stmt->bind_param("i", $user_id);
+            $stmt->execute();
+            $result = $stmt->get_result();
+            $user = $result->fetch_assoc();
+            
+            $update_message = '<div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">Profile image updated successfully!</div>';
+        }
+    }
+}
+
+// Update user data - only process this if the form submission is not for profile image
+if (isset($_POST['update_profile']) && !isset($_FILES['profile_image'])) {
+    $full_name = $_POST['full_name'] ?? '';
+    $email = $_POST['email'] ?? '';
+    $room_number = $_POST['room_number'] ?? '';
+    $occupation = $_POST['occupation'] ?? '';
+    $emergency_contact = $_POST['emergency_contact'] ?? '';
+    
+    $sql = "UPDATE users SET full_name = ?, email = ?, room_number = ?, occupation = ?, emergency_contact = ? WHERE id = ?";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("sssssi", $full_name, $email, $room_number, $occupation, $emergency_contact, $user_id);
+    
+    if ($stmt->execute()) {
+        $update_message = '<div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">Profile updated successfully!</div>';
+        
+        // Refresh user data
+        $sql = "SELECT * FROM users WHERE id = ?";
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param("i", $user_id);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $user = $result->fetch_assoc();
+    } else {
+        $update_message = '<div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">Failed to update profile!</div>';
+    }
+}
+
+
+// Handle KYC document upload
+if (isset($_POST['upload_kyc'])) {
+    $kyc_type = $_POST['kyc_type'];
+    $allowed = ['jpg', 'jpeg', 'png', 'pdf'];
+    
+    if (isset($_FILES['kyc_document']) && $_FILES['kyc_document']['error'] === 0) {
+        $filename = $_FILES['kyc_document']['name'];
+        $file_ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+        
+        if (in_array($file_ext, $allowed)) {
+            // Create directory if not exists
+            if (!file_exists('uploads/kyc/')) {
+                mkdir('uploads/kyc/', 0777, true);
+            }
+            
+            $new_filename = $user_id . '_' . $kyc_type . '_' . time() . '.' . $file_ext;
+            $target_file = 'uploads/kyc/' . $new_filename;
+            
+            if (move_uploaded_file($_FILES['kyc_document']['tmp_name'], $target_file)) {
+                // Update database based on KYC type
+                $column_name = '';
+                switch ($kyc_type) {
+                    case 'id_proof':
+                        $column_name = 'id_proof';
+                        break;
+                    case 'address_proof':
+                        $column_name = 'address_proof';
+                        break;
+                    case 'selfie':
+                        $column_name = 'selfie_verification';
+                        break;
+                }
+                
+                if (!empty($column_name)) {
+                    $sql = "UPDATE users SET $column_name = ? WHERE id = ?";
+                    $stmt = $conn->prepare($sql);
+                    $stmt->bind_param("si", $new_filename, $user_id);
+                    
+                    if ($stmt->execute()) {
+                        // Check if all KYC documents are uploaded
+                        $sql = "SELECT id_proof, address_proof, selfie_verification FROM users WHERE id = ?";
+                        $stmt = $conn->prepare($sql);
+                        $stmt->bind_param("i", $user_id);
+                        $stmt->execute();
+                        $result = $stmt->get_result();
+                        $kyc_data = $result->fetch_assoc();
+                        
+                        if (!empty($kyc_data['id_proof']) && !empty($kyc_data['address_proof']) && !empty($kyc_data['selfie_verification'])) {
+                            // Update KYC status to verified
+                            $sql = "UPDATE users SET kyc_status = 'verified' WHERE id = ?";
+                            $stmt = $conn->prepare($sql);
+                            $stmt->bind_param("i", $user_id);
+                            $stmt->execute();
+                            
+                            $kyc_status = 'verified';
+                            $kyc_badge_class = 'kyc-verified';
+                            $kyc_badge_text = 'Verified';
+                        }
+                        
+                        $update_message = '<div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">Document uploaded successfully!</div>';
+                        
+                        // Refresh user data
+                        $sql = "SELECT * FROM users WHERE id = ?";
+                        $stmt = $conn->prepare($sql);
+                        $stmt->bind_param("i", $user_id);
+                        $stmt->execute();
+                        $result = $stmt->get_result();
+                        $user = $result->fetch_assoc();
+                    } else {
+                        $update_message = '<div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">Failed to update document information!</div>';
+                    }
+                }
+            } else {
+                $update_message = '<div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">Failed to upload document!</div>';
+            }
+        } else {
+            $update_message = '<div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">Invalid file format! Allowed formats: jpg, jpeg, png, pdf</div>';
+        }
+    }
+}
+
+// Form action now points to the process file
+$form_action = 'process/profile_update_process.php';
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -29,6 +251,25 @@
             background-color: #dcfce7;
             color: #166534;
         }
+        .profile-image-container {
+            position: relative;
+            display: inline-block;
+        }
+        .profile-image-edit {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            background: #3b82f6;
+            color: white;
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border: 2px solid white;
+        }
     </style>
 </head>
 <body class="bg-gray-100">
@@ -53,7 +294,7 @@
                     <span class="absolute top-0 right-0 h-2 w-2 bg-red-500 rounded-full"></span>
                 </div>
                 <div>
-                    <img src="https://randomuser.me/api/portraits/men/32.jpg" alt="Profile" class="h-8 w-8 rounded-full border-2 border-blue-500">
+                    <img src="<?php echo $profile_image; ?>" alt="Profile" class="h-8 w-8 rounded-full border-2 border-blue-500 object-cover">
                 </div>
             </div>
         </div>
@@ -61,45 +302,90 @@
 
     <!-- Main Content -->
     <main class="container mx-auto px-4 pt-20 pb-6 max-w-md">
+        <?php echo $update_message; ?>
+        
         <!-- Profile Header -->
         <div class="profile-header rounded-xl shadow-md p-6 mb-4 text-white text-center">
-            <div class="flex justify-center mb-4">
-                <img src="https://randomuser.me/api/portraits/men/32.jpg" alt="Profile" class="h-24 w-24 rounded-full border-4 border-white shadow-lg">
-            </div>
-            <h2 class="text-2xl font-bold">Rahul Sharma</h2>
-            <p class="text-blue-100">rahul.sharma@example.com</p>
-            <p class="text-blue-100 text-sm">+91 98765 43210</p>
+            <form id="profile_image_form" action="" method="post" enctype="multipart/form-data" class="mb-4">
+                <div class="flex justify-center">
+                    <div class="profile-image-container">
+                        <img src="<?php echo $profile_image; ?>" alt="Profile" class="h-24 w-24 rounded-full border-4 border-white shadow-lg object-cover">
+                        <label for="profile_image" class="profile-image-edit">
+                            <i class="fas fa-camera"></i>
+                        </label>
+                        <input type="file" id="profile_image" name="profile_image" class="hidden" onchange="document.getElementById('profile_image_form').submit()">
+                        <input type="hidden" name="update_profile" value="1">
+                    </div>
+                </div>
+            </form>
+            <h2 class="text-2xl font-bold"><?php echo htmlspecialchars($user['full_name']); ?></h2>
+            <p class="text-blue-100"><?php echo htmlspecialchars($user['email'] ?? 'Email not set'); ?></p>
+            <p class="text-blue-100 text-sm"><?php echo htmlspecialchars($user['phone']); ?></p>
             <div class="mt-4 flex justify-center">
-                <span class="kyc-badge text-xs px-3 py-1 rounded-full font-medium">KYC Pending</span>
+                <span class="<?php echo $kyc_badge_class; ?> text-xs px-3 py-1 rounded-full font-medium">KYC <?php echo $kyc_badge_text; ?></span>
             </div>
         </div>
 
         <!-- Profile Information -->
         <div class="bg-white rounded-xl shadow-md p-4 mb-4">
-            <h3 class="text-lg font-semibold mb-4">Personal Information</h3>
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-semibold">Personal Information</h3>
+                <button id="edit-profile-btn" class="text-blue-600 text-sm font-medium">
+                    <i class="fas fa-edit mr-1"></i> Edit
+                </button>
+            </div>
             
-            <div class="space-y-3">
+            <!-- View Mode -->
+            <div id="profile-view" class="space-y-3">
                 <div class="flex justify-between items-center">
                     <p class="text-gray-500">Full Name</p>
-                    <p class="font-medium">Rahul Sharma</p>
+                    <p class="font-medium"><?php echo htmlspecialchars($user['full_name']); ?></p>
                 </div>
                 <div class="flex justify-between items-center">
                     <p class="text-gray-500">Room Number</p>
-                    <p class="font-medium">204</p>
+                    <p class="font-medium"><?php echo htmlspecialchars($user['room_number'] ?? 'Not set'); ?></p>
                 </div>
                 <div class="flex justify-between items-center">
                     <p class="text-gray-500">Joined Date</p>
-                    <p class="font-medium">15 Jan, 2023</p>
+                    <p class="font-medium"><?php echo $joined_date; ?></p>
                 </div>
                 <div class="flex justify-between items-center">
                     <p class="text-gray-500">Occupation</p>
-                    <p class="font-medium">Software Engineer</p>
+                    <p class="font-medium"><?php echo htmlspecialchars($user['occupation'] ?? 'Not set'); ?></p>
                 </div>
                 <div class="flex justify-between items-center">
                     <p class="text-gray-500">Emergency Contact</p>
-                    <p class="font-medium">+91 87654 32109</p>
+                    <p class="font-medium"><?php echo htmlspecialchars($user['emergency_contact'] ?? 'Not set'); ?></p>
                 </div>
             </div>
+            
+            <!-- Edit Mode -->
+            <form id="profile-edit" action="<?php echo $form_action; ?>" method="post" enctype="multipart/form-data" class="space-y-4 hidden">
+                <div>
+                    <label for="full_name" class="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+                    <input type="text" id="full_name" name="full_name" value="<?php echo htmlspecialchars($user['full_name']); ?>" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                <div>
+                    <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                    <input type="email" id="email" name="email" value="<?php echo htmlspecialchars($user['email'] ?? ''); ?>" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                <div>
+                    <label for="room_number" class="block text-sm font-medium text-gray-700 mb-1">Room Number</label>
+                    <input type="text" id="room_number" name="room_number" value="<?php echo htmlspecialchars($user['room_number'] ?? ''); ?>" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                <div>
+                    <label for="occupation" class="block text-sm font-medium text-gray-700 mb-1">Occupation</label>
+                    <input type="text" id="occupation" name="occupation" value="<?php echo htmlspecialchars($user['occupation'] ?? ''); ?>" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                <div>
+                    <label for="emergency_contact" class="block text-sm font-medium text-gray-700 mb-1">Emergency Contact</label>
+                    <input type="text" id="emergency_contact" name="emergency_contact" value="<?php echo htmlspecialchars($user['emergency_contact'] ?? ''); ?>" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                <div class="flex space-x-3">
+                    <button type="submit" name="update_profile" class="flex-1 bg-blue-600 text-white py-2 rounded-lg font-medium">Save Changes</button>
+                    <button type="button" id="cancel-edit" class="flex-1 bg-gray-300 text-gray-700 py-2 rounded-lg font-medium">Cancel</button>
+                </div>
+            </form>
         </div>
 
         <!-- KYC Section -->
@@ -118,7 +404,16 @@
                                 <p class="text-xs text-gray-500">Aadhar Card, PAN, or Passport</p>
                             </div>
                         </div>
-                        <button class="bg-blue-600 text-white text-sm px-3 py-1 rounded-lg">Upload</button>
+                        <?php if (!empty($user['id_proof'])): ?>
+                            <span class="kyc-verified text-xs px-3 py-1 rounded-full font-medium">Uploaded</span>
+                        <?php else: ?>
+                            <form action="" method="post" enctype="multipart/form-data" class="inline">
+                                <input type="hidden" name="kyc_type" value="id_proof">
+                                <label for="id_proof" class="bg-blue-600 text-white text-sm px-3 py-1 rounded-lg cursor-pointer">Upload</label>
+                                <input type="file" id="id_proof" name="kyc_document" class="hidden" onchange="this.form.submit()">
+                                <input type="hidden" name="upload_kyc" value="1">
+                            </form>
+                        <?php endif; ?>
                     </div>
                 </div>
                 
@@ -131,24 +426,55 @@
                                 <p class="text-xs text-gray-500">Utility Bill or Rental Agreement</p>
                             </div>
                         </div>
-                        <button class="bg-blue-600 text-white text-sm px-3 py-1 rounded-lg">Upload</button>
+                        <?php if (!empty($user['address_proof'])): ?>
+                            <span class="kyc-verified text-xs px-3 py-1 rounded-full font-medium">Uploaded</span>
+                        <?php else: ?>
+                            <form action="" method="post" enctype="multipart/form-data" class="inline">
+                                <input type="hidden" name="kyc_type" value="address_proof">
+                                <label for="address_proof" class="bg-blue-600 text-white text-sm px-3 py-1 rounded-lg cursor-pointer">Upload</label>
+                                <input type="file" id="address_proof" name="kyc_document" class="hidden" onchange="this.form.submit()">
+                                <input type="hidden" name="upload_kyc" value="1">
+                            </form>
+                        <?php endif; ?>
                     </div>
                 </div>
                 
                 <div class="border border-gray-200 rounded-lg p-3">
                     <div class="flex justify-between items-center">
                         <div class="flex items-center">
-                            <i class="fas fa-user-check text-green-500 mr-3 text-xl"></i>
+                            <i class="fas fa-user-check text-blue-500 mr-3 text-xl"></i>
                             <div>
                                 <p class="font-medium">Selfie Verification</p>
                                 <p class="text-xs text-gray-500">Take a selfie for verification</p>
                             </div>
                         </div>
-                        <span class="kyc-verified text-xs px-3 py-1 rounded-full font-medium">Completed</span>
+                        <?php if (!empty($user['selfie_verification'])): ?>
+                            <span class="kyc-verified text-xs px-3 py-1 rounded-full font-medium">Completed</span>
+                        <?php else: ?>
+                            <form action="" method="post" enctype="multipart/form-data" class="inline">
+                                <input type="hidden" name="kyc_type" value="selfie">
+                                <label for="selfie" class="bg-blue-600 text-white text-sm px-3 py-1 rounded-lg cursor-pointer">Upload</label>
+                                <input type="file" id="selfie" name="kyc_document" class="hidden" onchange="this.form.submit()">
+                                <input type="hidden" name="upload_kyc" value="1">
+                            </form>
+                        <?php endif; ?>
                     </div>
                 </div>
                 
-                <button class="w-full bg-blue-600 text-white py-3 rounded-lg font-medium mt-4">Complete KYC Verification</button>
+                <?php if ($kyc_status != 'verified'): ?>
+                <div class="mt-4">
+                    <p class="text-sm text-gray-600 mb-2">Upload all documents to complete your KYC verification.</p>
+                    <div class="w-full bg-gray-200 rounded-full h-2.5">
+                        <?php 
+                        $progress = 0;
+                        if (!empty($user['id_proof'])) $progress += 33.33;
+                        if (!empty($user['address_proof'])) $progress += 33.33;
+                        if (!empty($user['selfie_verification'])) $progress += 33.34;
+                        ?>
+                        <div class="bg-blue-600 h-2.5 rounded-full" style="width: <?php echo $progress; ?>%"></div>
+                    </div>
+                </div>
+                <?php endif; ?>
             </div>
         </div>
 
@@ -160,6 +486,17 @@
         </div>
     </main>
 
-    <!-- Bottom Navigation Removed -->
+    <script>
+        // Toggle profile edit mode
+        document.getElementById('edit-profile-btn').addEventListener('click', function() {
+            document.getElementById('profile-view').classList.add('hidden');
+            document.getElementById('profile-edit').classList.remove('hidden');
+        });
+        
+        document.getElementById('cancel-edit').addEventListener('click', function() {
+            document.getElementById('profile-edit').classList.add('hidden');
+            document.getElementById('profile-view').classList.remove('hidden');
+        });
+    </script>
 </body>
 </html>

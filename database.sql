@@ -6,6 +6,15 @@ CREATE TABLE users (
     phone VARCHAR(20) NOT NULL UNIQUE,
     email VARCHAR(100) NULL,
     password VARCHAR(255) NOT NULL,
+    profile_image VARCHAR(255) DEFAULT 'default_avatar.png',
+    room_number VARCHAR(20) NULL,
+    joined_date DATE NULL,
+    occupation VARCHAR(100) NULL,
+    emergency_contact VARCHAR(20) NULL,
+    kyc_status ENUM('pending', 'verified', 'rejected') DEFAULT 'pending',
+    id_proof VARCHAR(255) NULL,
+    address_proof VARCHAR(255) NULL,
+    selfie_verification VARCHAR(255) NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
