@@ -76,6 +76,8 @@ if (isset($_POST['update_profile'])) {
     } else {
         $response = ['status' => 'error', 'message' => 'Update failed: ' . $conn->error];
     }
+} else {
+    $response = ['status' => 'error', 'message' => 'No update action specified'];
 }
 
 // Return JSON response for AJAX requests
