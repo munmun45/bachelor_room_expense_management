@@ -341,10 +341,7 @@ $form_action = 'process/profile_update_process.php';
                     <p class="text-gray-500">Full Name</p>
                     <p class="font-medium"><?php echo htmlspecialchars($user['full_name']); ?></p>
                 </div>
-                <div class="flex justify-between items-center">
-                    <p class="text-gray-500">Room Number</p>
-                    <p class="font-medium"><?php echo htmlspecialchars($user['room_number'] ?? 'Not set'); ?></p>
-                </div>
+                
                 <div class="flex justify-between items-center">
                     <p class="text-gray-500">Joined Date</p>
                     <p class="font-medium"><?php echo $joined_date; ?></p>
@@ -363,23 +360,20 @@ $form_action = 'process/profile_update_process.php';
             <form id="profile-edit" action="<?php echo $form_action; ?>" method="post" enctype="multipart/form-data" class="space-y-4 hidden">
                 <div>
                     <label for="full_name" class="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
-                    <input type="text" id="full_name" name="full_name" value="<?php echo htmlspecialchars($user['full_name']); ?>" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                    <input type="text" id="full_name" name="full_name" value="<?php echo htmlspecialchars($user['full_name']); ?>" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500" required>
                 </div>
                 <div>
-                    <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                    <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email (optional)</label>
                     <input type="email" id="email" name="email" value="<?php echo htmlspecialchars($user['email'] ?? ''); ?>" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                 </div>
+                
                 <div>
-                    <label for="room_number" class="block text-sm font-medium text-gray-700 mb-1">Room Number</label>
-                    <input type="text" id="room_number" name="room_number" value="<?php echo htmlspecialchars($user['room_number'] ?? ''); ?>" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                </div>
-                <div>
-                    <label for="occupation" class="block text-sm font-medium text-gray-700 mb-1">Occupation</label>
+                    <label for="occupation" class="block text-sm font-medium text-gray-700 mb-1">Occupation (optional)</label>
                     <input type="text" id="occupation" name="occupation" value="<?php echo htmlspecialchars($user['occupation'] ?? ''); ?>" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                 </div>
                 <div>
                     <label for="emergency_contact" class="block text-sm font-medium text-gray-700 mb-1">Emergency Contact</label>
-                    <input type="text" id="emergency_contact" name="emergency_contact" value="<?php echo htmlspecialchars($user['emergency_contact'] ?? ''); ?>" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                    <input type="text" id="emergency_contact" name="emergency_contact" value="<?php echo htmlspecialchars($user['emergency_contact'] ?? ''); ?>" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500" required>
                 </div>
                 <div class="flex space-x-3">
                     <button type="submit" name="update_profile" class="flex-1 bg-blue-600 text-white py-2 rounded-lg font-medium">Save Changes</button>
