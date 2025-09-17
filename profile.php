@@ -151,6 +151,13 @@
                 <button class="w-full bg-blue-600 text-white py-3 rounded-lg font-medium mt-4">Complete KYC Verification</button>
             </div>
         </div>
+
+        <!-- Logout Button -->
+        <div class="bg-white rounded-xl shadow-md p-4 mb-4">
+            <a href="process/logout_process.php" class="block w-full bg-red-600 text-white py-3 rounded-lg font-medium text-center">
+                <i class="fas fa-sign-out-alt mr-2"></i>Logout
+            </a>
+        </div>
     </main>
 
     <!-- Bottom Navigation Removed -->
