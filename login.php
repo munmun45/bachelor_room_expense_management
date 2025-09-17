@@ -16,11 +16,7 @@
 <body class="bg-gray-100">
     <div class="min-h-screen flex items-center justify-center p-4">
         <div class="w-full max-w-md bg-white rounded-xl shadow-lg p-6">
-            <div class="flex justify-start mb-6">
-                <a href="index.html" class="text-blue-600 hover:text-blue-800">
-                    <i class="fas fa-arrow-left"></i> Back
-                </a>
-            </div>
+            
             
             <div class="text-center mb-8">
                 <h1 class="text-2xl font-bold text-gray-800">Welcome Back</h1>
@@ -53,7 +49,7 @@
                         <input id="remember-me" name="remember-me" type="checkbox" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
                         <label for="remember-me" class="ml-2 block text-sm text-gray-700">Remember me</label>
                     </div>
-                    <a href="forgot-password.html" class="text-sm font-medium text-blue-600 hover:text-blue-500">Forgot password?</a>
+                    <a href="forgot-password.php" class="text-sm font-medium text-blue-600 hover:text-blue-500">Forgot password?</a>
                 </div>
                 
                 <div>
@@ -65,7 +61,7 @@
             
             <div class="mt-6 text-center">
                 <p class="text-sm text-gray-600">
-                    Don't have an account? <a href="register.html" class="font-medium text-blue-600 hover:text-blue-500">Register</a>
+                    Don't have an account? <a href="register.php" class="font-medium text-blue-600 hover:text-blue-500">Register</a>
                 </p>
             </div>
         </div>

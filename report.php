@@ -372,10 +372,8 @@
 
 
         <!-- Special Item Expense Settlement Summary -->
-        <div class="card p-4 bg-white border border-gray-200 rounded-lg shadow-sm mb-4">
-            <h3 class="section-title text-gray-800 mb-3">
-                <i class="fas fa-gift mr-2 text-gray-600"></i>Special Item Expense Settlement Summary
-            </h3>
+        <div class="bg-white rounded-xl shadow-md p-4 mb-4">
+            <h2 class="text-lg font-semibold mb-3">🎁 Special Item Expense Settlement Summary</h2>
             <div id="special-payment-instructions" class="space-y-3">
                 <!-- Will be populated by JavaScript -->
             </div>
@@ -860,9 +858,11 @@
                 } else {
                     // Show special item calculation in a separate detailed section
                     specialInstructionsHTML += `
-                        <div class="mb-4 p-4 bg-gray-50 rounded-lg border border-gray-200 shadow-sm">
-                            <h4 class="font-semibold text-gray-700 mb-3 text-lg border-b border-gray-200 pb-2">Special Item Expense Calculation</h4>
-                            <div class="space-y-3">
+                        <div class="bg-gradient-to-r from-purple-50 to-indigo-50 rounded-lg p-4 mb-4 border border-purple-100">
+                            <h3 class="font-semibold mb-3 text-purple-800">
+                                <i class="fas fa-calculator mr-2"></i>Special Item Expense Calculation
+                            </h3>
+                            <div class="space-y-2 text-sm">
                     `;
                     
                     // Add total special item expense with enhanced styling
@@ -937,7 +937,7 @@
                     specialInstructionsHTML += `
                             </div>
                         </div>
-                        <h4 class="font-semibold text-purple-700 mb-3 text-lg border-b border-purple-200 pb-2 mt-4">Special Item Payment Instructions</h4>
+                        <h4 class="font-semibold text-purple-700 mb-3 text-lg">Special Item Payment Instructions</h4>
                     `;
                     
                     // Then show the payment instructions
@@ -952,25 +952,24 @@
                         if (paymentAmount > 0.01) { // Only show payments above 1 paisa
                             hasPayments = true;
                             specialInstructionsHTML += `
-                                <div class="flex items-center justify-between p-4 bg-white rounded-lg border border-purple-200 shadow-md mb-3 hover:bg-purple-50 transition-colors">
+                                <div class="flex items-center justify-between p-3 bg-white rounded-lg border border-purple-200 shadow-sm">
                                     <div class="flex items-center space-x-3">
-                                        <div class="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center shadow-sm">
-                                            <span class="text-red-600 text-sm font-bold">${debtor.avatar}</span>
+                                        <div class="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center">
+                                            <span class="text-red-600 text-xs font-bold">${debtor.avatar}</span>
                                         </div>
-                                        <i class="fas fa-arrow-right text-purple-400"></i>
-                                        <div class="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center shadow-sm">
-                                            <span class="text-purple-600 text-sm font-bold">${creditor.avatar}</span>
+                                        <i class="fas fa-arrow-right text-gray-400"></i>
+                                        <div class="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center">
+                                            <span class="text-purple-600 text-xs font-bold">${creditor.avatar}</span>
                                         </div>
-                                        <div class="ml-1">
-                                            <div class="font-medium text-purple-800">${debtor.name} pays ${creditor.name}</div>
-                                            <div class="text-xs text-purple-600">
+                                        <div class="text-sm">
+                                            <div class="font-medium">${debtor.name} pays ${creditor.name}</div>
+                                            <div class="text-xs text-gray-500">
                                                 Special item settlement
                                             </div>
                                         </div>
                                     </div>
                                     <div class="text-right">
-                                        <div class="font-bold text-xl text-purple-600">₹${paymentAmount.toFixed(2)}</div>
-                                        <div class="text-xs text-gray-500">For special items</div>
+                                        <div class="font-bold text-lg text-purple-600">₹${paymentAmount.toFixed(2)}</div>
                                     </div>
                                 </div>
                             `;
@@ -987,10 +986,10 @@
                     
                     if (!hasPayments) {
                         specialInstructionsHTML += `
-                            <div class="text-center py-6 text-purple-500 bg-purple-50 rounded-lg border border-purple-200">
-                                <i class="fas fa-check-circle text-3xl mb-2"></i>
-                                <div class="font-medium">No Special Item Payments Required</div>
-                                <div class="text-sm text-purple-400">All special item expenses are already balanced</div>
+                            <div class="text-center py-4 text-purple-600">
+                                <i class="fas fa-check-circle text-2xl mb-2"></i>
+                                <div class="font-semibold">All Special Item Expenses Settled!</div>
+                                <div class="text-sm">No special item payments required this month.</div>
                             </div>
                         `;
                     }

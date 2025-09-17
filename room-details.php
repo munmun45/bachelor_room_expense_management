@@ -15,7 +15,7 @@
     <header class="fixed top-0 left-0 right-0 bg-white shadow-md z-10">
         <div class="flex justify-between items-center px-4 py-3">
             <div class="flex items-center">
-                <a href="index.html" class="mr-3">
+                <a href="index.php" class="mr-3">
                     <i class="fas fa-arrow-left text-blue-600 text-xl"></i>
                 </a>
                 <div class="mr-3">

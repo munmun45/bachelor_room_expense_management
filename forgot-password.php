@@ -17,7 +17,7 @@
     <div class="min-h-screen flex items-center justify-center p-4">
         <div class="w-full max-w-md bg-white rounded-xl shadow-lg p-6">
             <div class="flex justify-start mb-6">
-                <a href="login.html" class="text-blue-600 hover:text-blue-800">
+                <a href="login.php" class="text-blue-600 hover:text-blue-800">
                     <i class="fas fa-arrow-left"></i> Back to Login
                 </a>
             </div>
@@ -58,7 +58,7 @@
                 <div class="mt-6">
                     <div class="text-center">
                         <p class="text-sm text-gray-600">
-                            Remember your password? <a href="login.html" class="font-medium text-blue-600 hover:text-blue-500">Sign in</a>
+                            Remember your password? <a href="login.php" class="font-medium text-blue-600 hover:text-blue-500">Sign in</a>
                         </p>
                     </div>
                 </div>
