@@ -28,37 +28,36 @@
             </div>
             
             <form class="space-y-4">
-                <div class="grid grid-cols-2 gap-4">
+                <div >
                     <div>
-                        <label for="first-name" class="block text-sm font-medium text-gray-700 mb-1">First Name</label>
-                        <input type="text" id="first-name" name="first-name" class="block w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" placeholder="First name" required>
+                        <label for="full-name" class="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+                        <input type="text" id="full-name" name="full-name" class="block w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" placeholder="First name" required>
                     </div>
                     
-                    <div>
-                        <label for="last-name" class="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
-                        <input type="text" id="last-name" name="last-name" class="block w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" placeholder="Last name" required>
-                    </div>
+                   
                 </div>
-                
-                <div>
-                    <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                    <div class="relative">
-                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <i class="fas fa-envelope text-gray-400"></i>
-                        </div>
-                        <input type="email" id="email" name="email" class="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" placeholder="Enter your email" required>
-                    </div>
-                </div>
-                
+
                 <div>
                     <label for="phone" class="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
                     <div class="relative">
                         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                             <i class="fas fa-phone text-gray-400"></i>
                         </div>
-                        <input type="tel" id="phone" name="phone" class="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" placeholder="Enter your phone number">
+                        <input type="tel" id="phone" name="phone" class="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" placeholder="Enter your phone number" required>
                     </div>
                 </div>
+                
+                <div>
+                    <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email (optional)</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <i class="fas fa-envelope text-gray-400"></i>
+                        </div>
+                        <input type="email" id="email" name="email" class="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" placeholder="Enter your email">
+                    </div>
+                </div>
+                
+
                 
                 <div>
                     <label for="password" class="block text-sm font-medium text-gray-700 mb-1">Password</label>
