@@ -10,6 +10,7 @@ if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
 
 $user_id = $_SESSION['user_id'];
 $group_id = isset($_GET['group_id']) ? intval($_GET['group_id']) : 0;
+$settlement_id = isset($_GET['settlement_id']) ? intval($_GET['settlement_id']) : 0;
 
 if ($group_id === 0) {
     header("Location: index.php");
@@ -77,9 +78,82 @@ while ($member = $members_result->fetch_assoc()) {
     }
 }
 
-// Calculate settlement data
+// Calculate or load settlement data
 include_once 'includes/settlement_calculator.php';
-$settlement_data = calculateSettlement($conn, $group_id, $room_id, $from_date, $to_date, true, true, array_map(function($m) { return $m['name']; }, $members));
+
+$settlement_source = 'calculated'; // 'calculated' or 'saved'
+$settlement_details = null;
+
+if ($settlement_id > 0) {
+    // Try to load settlement from database
+    $stmt = $conn->prepare("SELECT s.*, u.full_name as creator_name 
+                           FROM settlements s 
+                           JOIN users u ON s.created_by = u.id 
+                           WHERE s.id = ? AND s.group_id = ?");
+    $stmt->bind_param("ii", $settlement_id, $group_id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    
+    if ($result->num_rows > 0) {
+        $settlement_record = $result->fetch_assoc();
+        $settlement_data = json_decode($settlement_record['settlement_data'], true);
+        
+        // Validate the JSON data and provide defaults if needed
+        if (!is_array($settlement_data)) {
+            $settlement_data = [
+                'total_food' => 0,
+                'total_special' => 0,
+                'food_expenses' => [],
+                'special_expenses' => [],
+                'settlements' => []
+            ];
+        }
+        
+        // Ensure required fields exist with defaults
+        $settlement_data['total_food'] = $settlement_data['total_food'] ?? 0;
+        $settlement_data['total_special'] = $settlement_data['total_special'] ?? 0;
+        $settlement_data['food_expenses'] = $settlement_data['food_expenses'] ?? [];
+        $settlement_data['special_expenses'] = $settlement_data['special_expenses'] ?? [];
+        $settlement_data['settlements'] = $settlement_data['settlements'] ?? [];
+        
+        $settlement_source = 'saved';
+        $settlement_details = [
+            'id' => $settlement_record['id'],
+            'creator' => $settlement_record['creator_name'],
+            'created_at' => $settlement_record['created_at'],
+            'from_date' => $settlement_record['from_date'],
+            'to_date' => $settlement_record['to_date'],
+            'include_food' => $settlement_record['include_food'],
+            'include_special' => $settlement_record['include_special'],
+            'message_id' => $settlement_record['message_id']
+        ];
+        
+        // Override the date range from saved settlement
+        $from_date = $settlement_record['from_date'];
+        $to_date = $settlement_record['to_date'];
+    } else {
+        // Invalid settlement ID, redirect to general report
+        header("Location: report.php?group_id=" . $group_id);
+        exit();
+    }
+}
+
+if ($settlement_source === 'calculated') {
+    // Prepare member data for settlement calculation
+    $member_names = [];
+    foreach ($members as $user_id => $member_data) {
+        $member_names[$user_id] = $member_data['name'];
+    }
+
+    $settlement_data = calculateSettlement($conn, $group_id, $room_id, $from_date, $to_date, true, true, $member_names);
+    
+    // Ensure required fields exist with defaults for calculated data too
+    $settlement_data['total_food'] = $settlement_data['total_food'] ?? 0;
+    $settlement_data['total_special'] = $settlement_data['total_special'] ?? 0;
+    $settlement_data['food_expenses'] = $settlement_data['food_expenses'] ?? [];
+    $settlement_data['special_expenses'] = $settlement_data['special_expenses'] ?? [];
+    $settlement_data['settlements'] = $settlement_data['settlements'] ?? [];
+}
 
 // Get user profile image
 $profile_image = 'uploads/profile/default_avatar.png';
@@ -141,7 +215,9 @@ if ($result->num_rows === 1) {
                 </div>
                 <div>
                     <h1 class="text-lg font-bold text-gray-800"><?php echo htmlspecialchars($group['name']); ?></h1>
-                    <p class="text-xs text-gray-500">Settlement Report</p>
+                    <p class="text-xs text-gray-500">
+                        <?php echo $settlement_source === 'saved' ? 'Saved Settlement Report' : 'Settlement Report'; ?>
+                    </p>
                 </div>
             </div>
             <div class="flex items-center">
@@ -159,44 +235,81 @@ if ($result->num_rows === 1) {
             <div class="flex flex-col space-y-3">
                 <h2 class="text-lg font-semibold">📊 <?php echo htmlspecialchars($group['name']); ?> Settlement Report</h2>
                 
-                <!-- Month and Year Filter -->
-                <form method="GET" class="flex justify-between items-center gap-2">
-                    <input type="hidden" name="group_id" value="<?php echo $group_id; ?>">
-                    <div class="flex items-center">
-                        <label for="settlement-month" class="text-sm text-gray-500 mr-2">Month:</label>
-                        <select id="settlement-month" name="month" class="border rounded px-2 py-1 text-sm" onchange="this.form.submit()">
-                            <option value="01" <?php echo $selected_month == '01' ? 'selected' : ''; ?>>January</option>
-                            <option value="02" <?php echo $selected_month == '02' ? 'selected' : ''; ?>>February</option>
-                            <option value="03" <?php echo $selected_month == '03' ? 'selected' : ''; ?>>March</option>
-                            <option value="04" <?php echo $selected_month == '04' ? 'selected' : ''; ?>>April</option>
-                            <option value="05" <?php echo $selected_month == '05' ? 'selected' : ''; ?>>May</option>
-                            <option value="06" <?php echo $selected_month == '06' ? 'selected' : ''; ?>>June</option>
-                            <option value="07" <?php echo $selected_month == '07' ? 'selected' : ''; ?>>July</option>
-                            <option value="08" <?php echo $selected_month == '08' ? 'selected' : ''; ?>>August</option>
-                            <option value="09" <?php echo $selected_month == '09' ? 'selected' : ''; ?>>September</option>
-                            <option value="10" <?php echo $selected_month == '10' ? 'selected' : ''; ?>>October</option>
-                            <option value="11" <?php echo $selected_month == '11' ? 'selected' : ''; ?>>November</option>
-                            <option value="12" <?php echo $selected_month == '12' ? 'selected' : ''; ?>>December</option>
-                        </select>
+                <?php if ($settlement_source === 'saved' && $settlement_details): ?>
+                    <!-- Saved Settlement Details -->
+                    <div class="bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 rounded-lg p-3 mb-3">
+                        <div class="flex items-center mb-2">
+                            <i class="fas fa-save text-green-600 mr-2"></i>
+                            <span class="font-semibold text-green-800">Saved Settlement #<?php echo $settlement_details['id']; ?></span>
+                        </div>
+                        <div class="text-sm text-gray-700 space-y-1">
+                            <div><strong>Created by:</strong> <?php echo htmlspecialchars($settlement_details['creator']); ?></div>
+                            <div><strong>Created on:</strong> <?php echo date('M d, Y \a\t g:i A', strtotime($settlement_details['created_at'])); ?></div>
+                            <?php if ($settlement_details['message_id']): ?>
+                                <div><strong>Message ID:</strong> #<?php echo $settlement_details['message_id']; ?></div>
+                            <?php endif; ?>
+                        </div>
                     </div>
-                    <div class="flex items-center">
-                        <label for="settlement-year" class="text-sm text-gray-500 mr-2">Year:</label>
-                        <select id="settlement-year" name="year" class="border rounded px-2 py-1 text-sm" onchange="this.form.submit()">
-                            <option value="2023" <?php echo $selected_year == '2023' ? 'selected' : ''; ?>>2023</option>
-                            <option value="2024" <?php echo $selected_year == '2024' ? 'selected' : ''; ?>>2024</option>
-                            <option value="2025" <?php echo $selected_year == '2025' ? 'selected' : ''; ?>>2025</option>
-                        </select>
+                <?php endif; ?>
+                
+                <div class="text-sm text-gray-600 bg-blue-50 p-2 rounded">
+                    <strong>Report Period:</strong> <?php echo date('M d, Y', strtotime($from_date)); ?> to <?php echo date('M d, Y', strtotime($to_date)); ?>
+                    <?php if ($settlement_source === 'saved'): ?>
+                        <span class="text-xs text-green-600 block mt-1">
+                            <i class="fas fa-database mr-1"></i>Data loaded from saved settlement
+                        </span>
+                    <?php endif; ?>
+                </div>
+                
+                <?php if ($settlement_source === 'calculated'): ?>
+                    <!-- Month and Year Filter (only for calculated reports) -->
+                    <form method="GET" class="flex justify-between items-center gap-2">
+                        <input type="hidden" name="group_id" value="<?php echo $group_id; ?>">
+                        <div class="flex items-center">
+                            <label for="settlement-month" class="text-sm text-gray-500 mr-2">Month:</label>
+                            <select id="settlement-month" name="month" class="border rounded px-2 py-1 text-sm" onchange="this.form.submit()">
+                                <option value="01" <?php echo $selected_month == '01' ? 'selected' : ''; ?>>January</option>
+                                <option value="02" <?php echo $selected_month == '02' ? 'selected' : ''; ?>>February</option>
+                                <option value="03" <?php echo $selected_month == '03' ? 'selected' : ''; ?>>March</option>
+                                <option value="04" <?php echo $selected_month == '04' ? 'selected' : ''; ?>>April</option>
+                                <option value="05" <?php echo $selected_month == '05' ? 'selected' : ''; ?>>May</option>
+                                <option value="06" <?php echo $selected_month == '06' ? 'selected' : ''; ?>>June</option>
+                                <option value="07" <?php echo $selected_month == '07' ? 'selected' : ''; ?>>July</option>
+                                <option value="08" <?php echo $selected_month == '08' ? 'selected' : ''; ?>>August</option>
+                                <option value="09" <?php echo $selected_month == '09' ? 'selected' : ''; ?>>September</option>
+                                <option value="10" <?php echo $selected_month == '10' ? 'selected' : ''; ?>>October</option>
+                                <option value="11" <?php echo $selected_month == '11' ? 'selected' : ''; ?>>November</option>
+                                <option value="12" <?php echo $selected_month == '12' ? 'selected' : ''; ?>>December</option>
+                            </select>
+                        </div>
+                        <div class="flex items-center">
+                            <label for="settlement-year" class="text-sm text-gray-500 mr-2">Year:</label>
+                            <select id="settlement-year" name="year" class="border rounded px-2 py-1 text-sm" onchange="this.form.submit()">
+                                <option value="2023" <?php echo $selected_year == '2023' ? 'selected' : ''; ?>>2023</option>
+                                <option value="2024" <?php echo $selected_year == '2024' ? 'selected' : ''; ?>>2024</option>
+                                <option value="2025" <?php echo $selected_year == '2025' ? 'selected' : ''; ?>>2025</option>
+                            </select>
+                        </div>
+                    </form>
+                <?php else: ?>
+                    <!-- View General Report Link (for saved settlements) -->
+                    <div class="text-center">
+                        <a href="report.php?group_id=<?php echo $group_id; ?>" class="text-sm text-blue-600 hover:text-blue-800 underline">
+                            <i class="fas fa-calculator mr-1"></i>View Current Month Report
+                        </a>
                     </div>
-                </form>
+                <?php endif; ?>
                 
                 <div class="flex justify-between items-center">
                     <div>
                         <p class="text-sm text-gray-500">Total Food Expenses</p>
                         <p class="text-xl font-bold text-blue-600"><i class="fas fa-rupee-sign"></i><?php echo number_format($settlement_data['total_food'], 2); ?></p>
+                        <p class="text-xs text-gray-400"><?php echo count($settlement_data['food_expenses']); ?> transactions</p>
                     </div>
                     <div>
                         <p class="text-sm text-gray-500">Special Items</p>
                         <p class="text-xl font-bold text-purple-600"><i class="fas fa-rupee-sign"></i><?php echo number_format($settlement_data['total_special'], 2); ?></p>
+                        <p class="text-xs text-gray-400"><?php echo count($settlement_data['special_expenses']); ?> transactions</p>
                     </div>
                 </div>
             </div>
@@ -205,6 +318,14 @@ if ($result->num_rows === 1) {
         <!-- Food Expense Settlement Summary -->
         <div class="bg-white rounded-xl shadow-md p-4 mb-4">
             <h2 class="text-lg font-semibold mb-3">🍽️ Food Expense Settlement</h2>
+            
+            <?php if ($settlement_data['total_food'] == 0): ?>
+                <div class="text-center py-8 text-gray-500">
+                    <i class="fas fa-utensils text-4xl mb-3 text-gray-300"></i>
+                    <p class="font-medium">No food expenses for this period</p>
+                    <p class="text-sm">Food expenses will appear here when added to group chat</p>
+                </div>
+            <?php else: ?>
             
             <!-- Food Expense Breakdown -->
             <div class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-4 mb-4 border border-blue-100">
@@ -228,26 +349,37 @@ if ($result->num_rows === 1) {
                 <?php
                 // Group settlements by user and type
                 $user_settlements = [];
-                foreach ($settlement_data['settlements'] as $settlement) {
-                    if (!isset($user_settlements[$settlement['user_id']])) {
-                        $user_settlements[$settlement['user_id']] = [
-                            'name' => $settlement['name'],
-                            'food' => ['spent' => 0, 'share' => 0, 'net' => 0, 'days_present' => 0, 'total_days' => 0],
-                            'special' => ['spent' => 0, 'share' => 0, 'net' => 0]
-                        ];
-                    }
-                    
-                    if ($settlement['type'] == 'food') {
-                        $user_settlements[$settlement['user_id']]['food'] = $settlement;
-                    } else {
-                        $user_settlements[$settlement['user_id']]['special'] = $settlement;
+                
+                // Ensure settlements array exists and is not empty
+                if (is_array($settlement_data['settlements']) && !empty($settlement_data['settlements'])) {
+                    foreach ($settlement_data['settlements'] as $settlement) {
+                        if (!isset($user_settlements[$settlement['user_id']])) {
+                            $user_settlements[$settlement['user_id']] = [
+                                'name' => $settlement['name'],
+                                'food' => ['spent' => 0, 'share' => 0, 'net' => 0, 'days_present' => 0, 'total_days' => 0],
+                                'special' => ['spent' => 0, 'share' => 0, 'net' => 0]
+                            ];
+                        }
+                        
+                        if ($settlement['type'] == 'food') {
+                            $user_settlements[$settlement['user_id']]['food'] = $settlement;
+                        } else {
+                            $user_settlements[$settlement['user_id']]['special'] = $settlement;
+                        }
                     }
                 }
                 
                 $colors = ['blue', 'green', 'purple', 'yellow', 'red', 'indigo'];
                 $i = 0;
                 
-                foreach ($user_settlements as $user_id => $user_data):
+                if (empty($user_settlements)): ?>
+                    <div class="text-center py-6 text-gray-500">
+                        <i class="fas fa-users text-3xl mb-3 text-gray-300"></i>
+                        <p class="font-medium">No settlement data available</p>
+                        <p class="text-sm">Settlement calculations will appear here when expenses are added</p>
+                    </div>
+                <?php else:
+                    foreach ($user_settlements as $user_id => $user_data):
                     $color = $colors[$i % count($colors)];
                     $food_net = $user_data['food']['net'];
                     $profile_img = $members[$user_id]['profile_image'] ? 'uploads/profile/' . $members[$user_id]['profile_image'] : 'uploads/profile/default_avatar.png';
@@ -301,8 +433,10 @@ if ($result->num_rows === 1) {
                                 </div>
                             </div>
                         </div>
-                <?php endforeach; ?>
+                <?php endforeach; 
+                endif; // End of user settlements check ?>
                         </div>
+            <?php endif; // End of food expenses check ?>
                     </div>
                     
         <!-- Special Item Settlement Summary -->
@@ -334,8 +468,15 @@ if ($result->num_rows === 1) {
                 <!-- Member Settlement Cards for Special Items -->
                 <div class="space-y-3 mb-4">
                     <?php
-                    $i = 0;
-                    foreach ($user_settlements as $user_id => $user_data):
+                    if (empty($user_settlements)): ?>
+                        <div class="text-center py-6 text-gray-500">
+                            <i class="fas fa-users text-3xl mb-3 text-gray-300"></i>
+                            <p class="font-medium">No settlement data available</p>
+                            <p class="text-sm">Special item settlements will appear here when calculated</p>
+                        </div>
+                    <?php else:
+                        $i = 0;
+                        foreach ($user_settlements as $user_id => $user_data):
                         $color = $colors[$i % count($colors)];
                         $special_net = $user_data['special']['net'];
                         $profile_img = $members[$user_id]['profile_image'] ? 'uploads/profile/' . $members[$user_id]['profile_image'] : 'uploads/profile/default_avatar.png';
@@ -386,7 +527,8 @@ if ($result->num_rows === 1) {
                                 </div>
                             </div>
                         </div>
-                    <?php endforeach; ?>
+                    <?php endforeach; 
+                    endif; // End of user settlements check ?>
                 </div>
             <?php else: ?>
                 <div class="text-center py-8 text-gray-500">
@@ -403,7 +545,14 @@ if ($result->num_rows === 1) {
             
             <div class="space-y-3">
                 <?php
-                foreach ($user_settlements as $user_id => $user_data):
+                if (empty($user_settlements)): ?>
+                    <div class="text-center py-6 text-gray-500">
+                        <i class="fas fa-balance-scale text-3xl mb-3 text-gray-300"></i>
+                        <p class="font-medium">No settlement data to summarize</p>
+                        <p class="text-sm">Final settlement summary will appear when settlements are calculated</p>
+                    </div>
+                <?php else:
+                    foreach ($user_settlements as $user_id => $user_data):
                     $total_net = $user_data['food']['net'] + $user_data['special']['net'];
                     $profile_img = $members[$user_id]['profile_image'] ? 'uploads/profile/' . $members[$user_id]['profile_image'] : 'uploads/profile/default_avatar.png';
                 ?>
@@ -427,7 +576,8 @@ if ($result->num_rows === 1) {
                         </div>
                     </div>
                 </div>
-                <?php endforeach; ?>
+                <?php endforeach; 
+                endif; // End of user settlements check ?>
                 </div>
             </div>
             
@@ -441,20 +591,22 @@ if ($result->num_rows === 1) {
             $special_settlements = [];
             $combined_settlements = [];
             
-            foreach ($user_settlements as $user_id => $user_data) {
-                if ($user_data['food']['net'] != 0) {
-                    $food_settlements[$user_id] = $user_data['food'];
-                }
-                if ($user_data['special']['net'] != 0) {
-                    $special_settlements[$user_id] = $user_data['special'];
-                }
-                
-                $total_net = $user_data['food']['net'] + $user_data['special']['net'];
-                if ($total_net != 0) {
-                    $combined_settlements[$user_id] = [
-                        'name' => $user_data['name'],
-                        'net' => $total_net
-                    ];
+            if (!empty($user_settlements)) {
+                foreach ($user_settlements as $user_id => $user_data) {
+                    if ($user_data['food']['net'] != 0) {
+                        $food_settlements[$user_id] = $user_data['food'];
+                    }
+                    if ($user_data['special']['net'] != 0) {
+                        $special_settlements[$user_id] = $user_data['special'];
+                    }
+                    
+                    $total_net = $user_data['food']['net'] + $user_data['special']['net'];
+                    if ($total_net != 0) {
+                        $combined_settlements[$user_id] = [
+                            'name' => $user_data['name'],
+                            'net' => $total_net
+                        ];
+                    }
                 }
             }
             
@@ -570,7 +722,14 @@ if ($result->num_rows === 1) {
         <!-- Settlement Date -->
         <div class="text-center text-sm text-gray-600 bg-white rounded-lg shadow-sm p-3 mb-4">
             <i class="fas fa-calendar mr-2 text-gray-600"></i>
-            Report Generated: <span class="font-semibold"><?php echo date('M d, Y \a\t g:i A'); ?></span>
+            <?php if ($settlement_source === 'saved'): ?>
+                Settlement Created: <span class="font-semibold"><?php echo date('M d, Y \a\t g:i A', strtotime($settlement_details['created_at'])); ?></span>
+                <div class="text-xs text-gray-500 mt-1">
+                    <i class="fas fa-database mr-1"></i>Settlement ID: #<?php echo $settlement_details['id']; ?>
+                </div>
+            <?php else: ?>
+                Report Generated: <span class="font-semibold"><?php echo date('M d, Y \a\t g:i A'); ?></span>
+            <?php endif; ?>
                             </div>
     </main>
 </body>

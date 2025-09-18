@@ -46,6 +46,19 @@ if ($result->num_rows === 1) {
             transform: translateY(-50%);
             box-shadow: 0 0 15px rgba(37, 99, 235, 0.5);
         }
+        
+        .group-option {
+            transition: all 0.2s ease;
+        }
+        
+        .group-option:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .group-option:active {
+            transform: translateY(0);
+        }
     </style>
 </head>
 
@@ -326,13 +339,24 @@ if ($result->num_rows === 1) {
                         ?>
                                 <div class="grid gap-3">
                                     <?php while ($group = $groups_result->fetch_assoc()): ?>
-                                        <a href="group.php?id=<?php echo $group['id']; ?>" class="flex items-center justify-between p-3 border rounded-lg hover:shadow-sm transition-shadow border-blue-200 bg-blue-50 ">
-                                            <div>
-                                                <p class="font-medium"><?php echo htmlspecialchars($group['name']); ?></p>
-                                                <p class="text-xs text-gray-500"><?php echo $group['member_count']; ?> Members</p>
+                                        <div class="flex items-center space-x-2 p-3 border rounded-lg hover:shadow-sm transition-shadow border-blue-200 bg-blue-50">
+                                            <a href="group.php?id=<?php echo $group['id']; ?>" class="flex-1 flex items-center justify-between">
+                                                <div>
+                                                    <p class="font-medium"><?php echo htmlspecialchars($group['name']); ?></p>
+                                                    <p class="text-xs text-gray-500"><?php echo $group['member_count']; ?> Members</p>
+                                                </div>
+                                                <span class="text-sm text-gray-400">›</span>
+                                            </a>
+                                            <!-- Quick Actions -->
+                                            <div class="flex space-x-1">
+                                                <a href="settlement_report.php?group_id=<?php echo $group['id']; ?>" 
+                                                   class="p-2 text-purple-600 hover:bg-purple-100 rounded-full transition-colors" 
+                                                   title="Settlement Reports">
+                                                    <i class="fas fa-file-invoice-dollar text-sm"></i>
+                                                </a>
+                                                
                                             </div>
-                                            <span class="text-sm text-gray-400">›</span>
-                                        </a>
+                                        </div>
                                     <?php endwhile; ?>
                                 </div>
                         <?php
@@ -538,6 +562,77 @@ if ($result->num_rows === 1) {
 
     </main>
 
+    <!-- Group Selector Modal -->
+    <div id="groupSelectorModal" class="fixed inset-0 bg-black bg-opacity-50 z-20 flex items-center justify-center hidden">
+        <div class="bg-white rounded-xl p-5 w-full max-w-md mx-4 max-h-[80vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-semibold text-gray-800">
+                    <i class="fas fa-chart-bar text-blue-600 mr-2"></i>Select Group for Report
+                </h3>
+                <button onclick="toggleModal('groupSelectorModal')" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <p class="text-sm text-gray-600 mb-4">Choose a group to view settlement reports:</p>
+            
+            <div class="space-y-3" id="groupsList">
+                <?php
+                // Get all groups the user is a member of
+                $groups_stmt = $conn->prepare("SELECT rg.id, rg.name, r.name as room_name,
+                                              (SELECT COUNT(*) FROM group_members WHERE group_id = rg.id) as member_count,
+                                              (SELECT COUNT(*) FROM settlements WHERE group_id = rg.id) as settlement_count
+                                              FROM room_groups rg
+                                              JOIN rooms r ON rg.room_id = r.id
+                                              JOIN group_members gm ON rg.id = gm.group_id
+                                              WHERE gm.user_id = ?
+                                              ORDER BY r.name, rg.name");
+                $groups_stmt->bind_param("i", $user_id);
+                $groups_stmt->execute();
+                $groups_result = $groups_stmt->get_result();
+                
+                if ($groups_result->num_rows > 0):
+                    while ($group = $groups_result->fetch_assoc()):
+                ?>
+                    <div class="group-option border border-gray-200 rounded-lg p-3 hover:border-blue-300 hover:bg-blue-50 cursor-pointer transition-all"
+                         onclick="selectGroup(<?php echo $group['id']; ?>, '<?php echo htmlspecialchars($group['name']); ?>')">
+                        <div class="flex items-center justify-between">
+                            <div class="flex-1">
+                                <div class="font-medium text-gray-800"><?php echo htmlspecialchars($group['name']); ?></div>
+                                <div class="text-sm text-gray-500"><?php echo htmlspecialchars($group['room_name']); ?></div>
+                                <div class="text-xs text-gray-400 mt-1">
+                                    <?php echo $group['member_count']; ?> members • 
+                                    <?php echo $group['settlement_count']; ?> settlements
+                                </div>
+                            </div>
+                            <div class="text-blue-600">
+                                <i class="fas fa-chevron-right"></i>
+                            </div>
+                        </div>
+                    </div>
+                <?php 
+                    endwhile;
+                else:
+                ?>
+                    <div class="text-center py-6">
+                        <i class="fas fa-users text-4xl text-gray-300 mb-3"></i>
+                        <p class="text-gray-500 font-medium">No groups found</p>
+                        <p class="text-sm text-gray-400">Join a group to view settlement reports</p>
+                    </div>
+                <?php endif; ?>
+            </div>
+            
+            <?php if ($groups_result->num_rows > 0): ?>
+                <div class="mt-4 pt-4 border-t border-gray-200">
+                    <p class="text-xs text-gray-500 text-center">
+                        <i class="fas fa-info-circle mr-1"></i>
+                        Select a group to view its settlement history and reports
+                    </p>
+                </div>
+            <?php endif; ?>
+        </div>
+    </div>
+
 
     <script>
         function toggleCollapsible(sectionId) {
@@ -611,6 +706,24 @@ if ($result->num_rows === 1) {
                 });
             }
         }
+        
+        function selectGroup(groupId, groupName) {
+            // Add loading animation
+            const clickedOption = event.currentTarget;
+            const chevron = clickedOption.querySelector('.fa-chevron-right');
+            if (chevron) {
+                chevron.className = 'fas fa-spinner fa-spin';
+            }
+            
+            // Add visual feedback
+            clickedOption.style.backgroundColor = '#dbeafe';
+            clickedOption.style.borderColor = '#3b82f6';
+            
+            // Redirect to settlement report page after short delay for visual feedback
+            setTimeout(() => {
+                window.location.href = `settlement_report.php?group_id=${groupId}`;
+            }, 300);
+        }
     </script>
     </main>
 
@@ -634,10 +747,10 @@ if ($result->num_rows === 1) {
                 <!-- Spacer for center button -->
                 <div class="w-14"></div>
 
-                <a href="report.php" class="flex flex-col items-center justify-center text-gray-500">
+                <button onclick="toggleModal('groupSelectorModal')" class="flex flex-col items-center justify-center text-gray-500">
                     <i class="fas fa-chart-bar text-xl"></i>
                     <span class="text-xs mt-1">Report</span>
-                </a>
+                </button>
             </div>
         </div>
     </nav>

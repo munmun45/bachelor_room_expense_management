@@ -40,9 +40,11 @@ if ($direction === 'newer' && $last_message_id > 0) {
     // Get newer messages (for real-time updates)
     // Order ASC to get chronological order (oldest to newest)
     $stmt = $conn->prepare("SELECT gm.*, u.full_name, u.profile_image,
-                            DATE_FORMAT(gm.created_at, '%b %d, %h:%i %p') as formatted_time
+                            DATE_FORMAT(gm.created_at, '%b %d, %h:%i %p') as formatted_time,
+                            s.id as settlement_id
                             FROM group_messages gm
                             JOIN users u ON gm.user_id = u.id
+                            LEFT JOIN settlements s ON s.message_id = gm.id
                             WHERE gm.group_id = ? AND gm.id > ?
                             ORDER BY gm.created_at ASC, gm.id ASC
                             LIMIT ?");
@@ -51,9 +53,11 @@ if ($direction === 'newer' && $last_message_id > 0) {
     // Get older messages (for pagination when scrolling up)
     // Order DESC to get most recent first, then we'll reverse in PHP
     $stmt = $conn->prepare("SELECT gm.*, u.full_name, u.profile_image,
-                            DATE_FORMAT(gm.created_at, '%b %d, %h:%i %p') as formatted_time
+                            DATE_FORMAT(gm.created_at, '%b %d, %h:%i %p') as formatted_time,
+                            s.id as settlement_id
                             FROM group_messages gm
                             JOIN users u ON gm.user_id = u.id
+                            LEFT JOIN settlements s ON s.message_id = gm.id
                             WHERE gm.group_id = ? AND gm.id < ?
                             ORDER BY gm.created_at DESC, gm.id DESC
                             LIMIT ?");
@@ -62,9 +66,11 @@ if ($direction === 'newer' && $last_message_id > 0) {
     // Get recent messages (initial load)
     // Order DESC to get most recent first, then we'll reverse in PHP
     $stmt = $conn->prepare("SELECT gm.*, u.full_name, u.profile_image,
-                            DATE_FORMAT(gm.created_at, '%b %d, %h:%i %p') as formatted_time
+                            DATE_FORMAT(gm.created_at, '%b %d, %h:%i %p') as formatted_time,
+                            s.id as settlement_id
                             FROM group_messages gm
                             JOIN users u ON gm.user_id = u.id
+                            LEFT JOIN settlements s ON s.message_id = gm.id
                             WHERE gm.group_id = ?
                             ORDER BY gm.created_at DESC, gm.id DESC
                             LIMIT ?");

@@ -63,9 +63,11 @@ while ($non_member = $non_members_result->fetch_assoc()) {
 
 // Get recent group messages (only last 7 for initial load)
 $stmt = $conn->prepare("SELECT gm.*, u.full_name, u.profile_image,
-                        DATE_FORMAT(gm.created_at, '%b %d, %h:%i %p') as formatted_time
+                        DATE_FORMAT(gm.created_at, '%b %d, %h:%i %p') as formatted_time,
+                        s.id as settlement_id
                         FROM group_messages gm
                         JOIN users u ON gm.user_id = u.id
+                        LEFT JOIN settlements s ON s.message_id = gm.id
                         WHERE gm.group_id = ?
                         ORDER BY gm.created_at DESC
                         LIMIT 7");
@@ -156,6 +158,7 @@ if ($result->num_rows === 1) {
                 </div>
             </div>
             <div class="flex items-center">
+                
                 <?php if ($is_admin): ?>
                 <button onclick="toggleModal('settlementModal')" class="mr-4 text-green-600" title="Create Settlement">
                     <i class="fas fa-calculator"></i>
@@ -366,9 +369,18 @@ if ($result->num_rows === 1) {
                                         ?>
                                         
                                         <!-- View Report Button -->
-                                        <div class="flex justify-center">
-                                            <a href="report.php?group_id=<?php echo $group_id; ?>" class="inline-block bg-green-600 text-white text-xs px-4 py-2 rounded-full hover:bg-green-700 shadow-md">
-                                                <i class="fas fa-chart-bar mr-1"></i> View Full Report
+                                        <div class="flex justify-center space-x-2">
+                                            <a href="settlement_report.php?group_id=<?php echo $group_id; ?>" class="inline-block bg-purple-600 text-white text-xs px-3 py-2 rounded-full hover:bg-purple-700 shadow-md">
+                                                <i class="fas fa-file-invoice-dollar mr-1"></i> All Settlements
+                                            </a>
+                                            <?php 
+                                            $report_url = "report.php?group_id=" . $group_id;
+                                            if (!empty($message['settlement_id'])) {
+                                                $report_url .= "&settlement_id=" . $message['settlement_id'];
+                                            }
+                                            ?>
+                                            <a href="<?php echo $report_url; ?>" class="inline-block bg-green-600 text-white text-xs px-3 py-2 rounded-full hover:bg-green-700 shadow-md">
+                                                <i class="fas fa-calculator mr-1"></i> <?php echo !empty($message['settlement_id']) ? 'View Report' : 'Current Report'; ?>
                                             </a>
                                         </div>
                                     </div>
@@ -930,10 +942,21 @@ if ($result->num_rows === 1) {
                     }
                 }
                 
-                // Add View Report button
-                paymentHTML += '<div class="flex justify-center">';
-                paymentHTML += '<a href="report.php?group_id=<?php echo $group_id; ?>" class="inline-block bg-green-600 text-white text-xs px-4 py-2 rounded-full hover:bg-green-700 shadow-md">';
-                paymentHTML += '<i class="fas fa-chart-bar mr-1"></i> View Full Report</a>';
+                // Add View Report buttons
+                paymentHTML += '<div class="flex justify-center space-x-2">';
+                paymentHTML += '<a href="settlement_report.php?group_id=<?php echo $group_id; ?>" class="inline-block bg-purple-600 text-white text-xs px-3 py-2 rounded-full hover:bg-purple-700 shadow-md">';
+                paymentHTML += '<i class="fas fa-file-invoice-dollar mr-1"></i> All Settlements</a>';
+                
+                // Build report URL with settlement_id if available
+                let reportUrl = 'report.php?group_id=<?php echo $group_id; ?>';
+                let reportText = 'Current Report';
+                if (message.settlement_id) {
+                    reportUrl += '&settlement_id=' + message.settlement_id;
+                    reportText = 'View Report';
+                }
+                
+                paymentHTML += '<a href="' + reportUrl + '" class="inline-block bg-green-600 text-white text-xs px-3 py-2 rounded-full hover:bg-green-700 shadow-md">';
+                paymentHTML += '<i class="fas fa-calculator mr-1"></i> ' + reportText + '</a>';
                 paymentHTML += '</div>';
                 
                 paymentHTML += '</div>';

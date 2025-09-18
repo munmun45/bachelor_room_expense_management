@@ -104,8 +104,13 @@ try {
     
     $message_id = $conn->insert_id;
     
-    // Store settlement data (you might want to create a settlements table)
-    // For now, we'll store as JSON in a settlement_data column if you add it to group_messages
+    // Store settlement data in settlements table
+    $settlement_json = json_encode($settlement_data);
+    $stmt = $conn->prepare("INSERT INTO settlements (group_id, created_by, from_date, to_date, include_food, include_special, settlement_data, message_id, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())");
+    $stmt->bind_param("iissiisi", $group_id, $user_id, $from_date, $to_date, $include_food, $include_special, $settlement_json, $message_id);
+    $stmt->execute();
+    
+    $settlement_id = $conn->insert_id;
     
     $conn->commit();
     
@@ -114,7 +119,8 @@ try {
         'action' => 'create',
         'message' => 'Settlement created and posted to group chat',
         'settlement' => $settlement_data,
-        'message_id' => $message_id
+        'message_id' => $message_id,
+        'settlement_id' => $settlement_id
     ]);
     
 } catch (Exception $e) {
