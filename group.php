@@ -73,12 +73,14 @@ $stmt->bind_param("i", $group_id);
 $stmt->execute();
 $messages_result = $stmt->get_result();
 
-// Reverse the order to show chronologically (oldest to newest)
-$initial_messages = [];
+// Store messages in an array first
+$temp_messages = [];
 while ($message = $messages_result->fetch_assoc()) {
-    $initial_messages[] = $message;
+    $temp_messages[] = $message;
 }
-$initial_messages = array_reverse($initial_messages);
+
+// Reverse the order to show chronologically (oldest to newest)
+$initial_messages = array_reverse($temp_messages);
 
 // Process success/error messages
 $success_msg = isset($_GET['success']) ? $_GET['success'] : '';
@@ -114,7 +116,7 @@ if ($result->num_rows === 1) {
             background-color: #f0f2f5;
         }
         .message-container {
-            max-height: calc(100vh - 220px);
+            max-height: calc(100vh - 175px);
             overflow-y: auto;
         }
         .recipient-selector {
@@ -183,16 +185,16 @@ if ($result->num_rows === 1) {
     <?php endif; ?>
 
     <!-- Chat Content -->
-    <main class="pt-20 pb-20 px-4 max-w-md mx-auto">
+    <main class="pt-20 pb-20">
         <!-- Load More Button (hidden initially) -->
-        <div id="loadMoreContainer" class="text-center py-2 hidden">
+        <div id="loadMoreContainer" class="text-center hidden">
             <button id="loadMoreBtn" class="text-blue-600 text-sm font-medium">
                 <i class="fas fa-chevron-up mr-1"></i> more messages
             </button>
         </div>
 
         <!-- Messages -->
-        <div id="messagesContainer" class="message-container space-y-2">
+        <div id="messagesContainer" class="message-container space-y-2 px-4">
             <?php if (count($initial_messages) > 0): ?>
                 <?php foreach ($initial_messages as $message): ?>
                     <?php 
@@ -259,7 +261,7 @@ if ($result->num_rows === 1) {
                                                     <?php foreach ($food_lines as $line): 
                                                         $line = trim($line);
                                                         if (strpos($line, '• ') === 0):
-                                                            $payment_text = substr($line, 2);
+                                                            $payment_text = mb_substr($line, 2);
                                                             // Parse "Name pays Name ₹Amount"
                                                             if (preg_match('/(.+?) pays (.+?) ₹(.+)/', $payment_text, $matches)):
                                                                 $payer = trim($matches[1]);
@@ -299,7 +301,7 @@ if ($result->num_rows === 1) {
                                                     <?php foreach ($special_lines as $line): 
                                                         $line = trim($line);
                                                         if (strpos($line, '• ') === 0):
-                                                            $payment_text = substr($line, 2);
+                                                            $payment_text = mb_substr($line, 2);
                                                             if (preg_match('/(.+?) pays (.+?) ₹(.+)/', $payment_text, $matches)):
                                                                 $payer = trim($matches[1]);
                                                                 $receiver = trim($matches[2]);
@@ -338,7 +340,7 @@ if ($result->num_rows === 1) {
                                                     <?php foreach ($final_lines as $line): 
                                                         $line = trim($line);
                                                         if (strpos($line, '• ') === 0):
-                                                            $payment_text = substr($line, 2);
+                                                            $payment_text = mb_substr($line, 2);
                                                             if (preg_match('/(.+?) pays (.+?) ₹(.+)/', $payment_text, $matches)):
                                                                 $payer = trim($matches[1]);
                                                                 $receiver = trim($matches[2]);
@@ -574,7 +576,62 @@ if ($result->num_rows === 1) {
     </div>
 
     <!-- Settlement Modal (Admin Only) -->
-    <?php if ($is_admin): ?>
+    <?php if ($is_admin): 
+        // Get last settlement date for this group
+        $last_settlement_date = null;
+        $debug_info = "Group ID: $group_id | ";
+        
+        $stmt = $conn->prepare("SELECT message FROM group_messages 
+                               WHERE group_id = ? AND message LIKE '%🧮 **Settlement Created**%' 
+                               ORDER BY created_at DESC LIMIT 1");
+        $stmt->bind_param("i", $group_id);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        
+        if ($row = $result->fetch_assoc()) {
+            $debug_info .= "Found settlement | ";
+            // Extract the "to" date from the last settlement message
+            if (preg_match('/📅 Period: .+ - (.+)/', $row['message'], $matches)) {
+                $last_settlement_end_date = trim($matches[1]);
+                $debug_info .= "End date: $last_settlement_end_date | ";
+                // Convert to Y-m-d format
+                $date_obj = DateTime::createFromFormat('M d, Y', $last_settlement_end_date);
+                if ($date_obj) {
+                    // Add one day to start from the day after last settlement
+                    $date_obj->add(new DateInterval('P1D'));
+                    $last_settlement_date = $date_obj->format('Y-m-d');
+                    $debug_info .= "Next start: $last_settlement_date | ";
+                }
+            }
+        } else {
+            $debug_info .= "No settlement found | ";
+        }
+        
+        // If no previous settlement, find the first payment date
+        if (!$last_settlement_date) {
+            $debug_info .= "Getting first payment | ";
+            $stmt = $conn->prepare("SELECT DATE(created_at) as first_payment_date 
+                                   FROM group_messages 
+                                   WHERE group_id = ? AND amount > 0 
+                                   ORDER BY created_at ASC LIMIT 1");
+            $stmt->bind_param("i", $group_id);
+            $stmt->execute();
+            $result = $stmt->get_result();
+            
+            if ($row = $result->fetch_assoc()) {
+                $last_settlement_date = $row['first_payment_date'];
+                $debug_info .= "First payment: $last_settlement_date | ";
+            } else {
+                // If no payments exist, default to 30 days ago
+                $date_obj = new DateTime();
+                $date_obj->sub(new DateInterval('P30D'));
+                $last_settlement_date = $date_obj->format('Y-m-d');
+                $debug_info .= "Default 30 days: $last_settlement_date | ";
+            }
+        }
+        
+        $today_date = date('Y-m-d');
+    ?>
     <div id="settlementModal" class="fixed inset-0 bg-black bg-opacity-50 z-30 flex items-center justify-center hidden">
         <div class="bg-white rounded-xl p-6 w-full max-w-md mx-4 max-h-[80vh] overflow-y-auto">
             <div class="flex justify-between items-center mb-4">
@@ -596,11 +653,20 @@ if ($result->num_rows === 1) {
                         <div class="grid grid-cols-2 gap-3">
                             <div>
                                 <label class="text-xs text-gray-500">From Date</label>
-                                <input type="date" name="from_date" id="fromDate" class="w-full border rounded-lg px-3 py-2 text-sm" required>
+                                <input type="date" name="from_date" id="fromDate" value="<?php echo $last_settlement_date; ?>" class="w-full border rounded-lg px-3 py-2 text-sm bg-gray-100" readonly required>
+                                <p class="text-xs text-gray-600 mt-1">
+                                    📅 Auto-detected from last settlement or first payment
+                                </p>
+                                <p class="text-xs text-blue-600 mt-1">
+                                    🐛 Debug: <?php echo $debug_info; ?>
+                                </p>
                             </div>
                             <div>
                                 <label class="text-xs text-gray-500">To Date</label>
-                                <input type="date" name="to_date" id="toDate" class="w-full border rounded-lg px-3 py-2 text-sm" required readonly>
+                                <input type="date" name="to_date" id="toDate" value="<?php echo $today_date; ?>" class="w-full border rounded-lg px-3 py-2 text-sm" required>
+                                <p class="text-xs text-gray-600 mt-1">
+                                    📅 You can change this date if needed
+                                </p>
                             </div>
                         </div>
                     </div>
@@ -1079,14 +1145,11 @@ if ($result->num_rows === 1) {
 
         // Settlement functionality
         function initializeSettlementModal() {
-            // Set today's date as 'to' date
-            const today = new Date().toISOString().split('T')[0];
-            document.getElementById('toDate').value = today;
+            // Dates are now auto-set via PHP based on last settlement
+            // No need to manually set dates here
             
-            // Set 'from' date to 30 days ago
-            const thirtyDaysAgo = new Date();
-            thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-            document.getElementById('fromDate').value = thirtyDaysAgo.toISOString().split('T')[0];
+            // Focus on the to date field in case user wants to change it
+            document.getElementById('toDate').focus();
         }
 
         function previewSettlement() {
