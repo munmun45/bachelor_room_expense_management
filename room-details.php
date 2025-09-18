@@ -197,6 +197,12 @@ $error_msg = isset($_GET['error']) ? $_GET['error'] : '';
                                 <?php if ($member['is_admin']): ?><span class="text-xs text-gray-500">(Admin)</span><?php endif; ?>
                             </span>
                             <p class="text-xs text-gray-500"><?php echo htmlspecialchars($member['phone']); ?></p>
+                            <p class="text-xs <?php 
+                                echo $member['invitation_status'] == 'accepted' ? 'text-green-600' : 
+                                     ($member['invitation_status'] == 'pending' ? 'text-yellow-600' : 'text-red-600'); 
+                            ?>">
+                                Status: <?php echo ucfirst($member['invitation_status']); ?>
+                            </p>
                         </div>
                     </div>
                     <?php if ($member['is_admin']): ?>

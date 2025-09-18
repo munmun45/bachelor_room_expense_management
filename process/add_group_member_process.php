@@ -1,0 +1,130 @@
+<?php
+session_start();
+require_once '../config/config.php';
+
+// Check if user is logged in
+if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
+    header("Location: ../login.php");
+    exit();
+}
+
+$user_id = $_SESSION['user_id'];
+
+if (isset($_POST['add_members'])) {
+    $group_id = intval($_POST['group_id']);
+    $room_id = intval($_POST['room_id']);
+    $member_ids = isset($_POST['member_ids']) ? $_POST['member_ids'] : [];
+    
+    // Validate inputs
+    if (empty($member_ids)) {
+        header("Location: ../group.php?id=$group_id&error=Please select at least one member to add");
+        exit();
+    }
+    
+    // Check if user is admin of the room
+    $stmt = $conn->prepare("SELECT rm.is_admin FROM room_members rm 
+                           JOIN room_groups rg ON rm.room_id = rg.room_id 
+                           WHERE rg.id = ? AND rm.user_id = ? AND rm.is_admin = 1");
+    $stmt->bind_param("ii", $group_id, $user_id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    
+    if ($result->num_rows === 0) {
+        header("Location: ../group.php?id=$group_id&error=Only room admin can add members to groups");
+        exit();
+    }
+    
+    // Verify that the group belongs to the room
+    $stmt = $conn->prepare("SELECT room_id FROM room_groups WHERE id = ?");
+    $stmt->bind_param("i", $group_id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    
+    if ($result->num_rows === 0) {
+        header("Location: ../index.php?error=Group not found");
+        exit();
+    }
+    
+    $group_data = $result->fetch_assoc();
+    if ($group_data['room_id'] != $room_id) {
+        header("Location: ../group.php?id=$group_id&error=Invalid room or group");
+        exit();
+    }
+    
+    $conn->begin_transaction();
+    
+    try {
+        $added_count = 0;
+        $already_member_count = 0;
+        $invalid_member_count = 0;
+        
+        foreach ($member_ids as $member_id) {
+            $member_id = intval($member_id);
+            
+            // Verify that the member belongs to the room
+            $stmt = $conn->prepare("SELECT id FROM room_members WHERE room_id = ? AND user_id = ? AND invitation_status = 'accepted'");
+            $stmt->bind_param("ii", $room_id, $member_id);
+            $stmt->execute();
+            $result = $stmt->get_result();
+            
+            if ($result->num_rows === 0) {
+                $invalid_member_count++;
+                continue;
+            }
+            
+            // Check if user is already a member of the group
+            $stmt = $conn->prepare("SELECT id FROM group_members WHERE group_id = ? AND user_id = ?");
+            $stmt->bind_param("ii", $group_id, $member_id);
+            $stmt->execute();
+            $result = $stmt->get_result();
+            
+            if ($result->num_rows > 0) {
+                $already_member_count++;
+                continue;
+            }
+            
+            // Add member to the group
+            $stmt = $conn->prepare("INSERT INTO group_members (group_id, user_id, added_by, added_at) VALUES (?, ?, ?, NOW())");
+            $stmt->bind_param("iii", $group_id, $member_id, $user_id);
+            
+            if ($stmt->execute()) {
+                $added_count++;
+            }
+        }
+        
+        $conn->commit();
+        
+        // Create success message based on results
+        $success_msg = "";
+        if ($added_count > 0) {
+            $success_msg .= "$added_count member(s) added successfully";
+        }
+        if ($already_member_count > 0) {
+            if ($success_msg) $success_msg .= ". ";
+            $success_msg .= "$already_member_count member(s) were already in the group";
+        }
+        if ($invalid_member_count > 0) {
+            if ($success_msg) $success_msg .= ". ";
+            $success_msg .= "$invalid_member_count invalid member(s) skipped";
+        }
+        
+        if ($added_count > 0) {
+            header("Location: ../group.php?id=$group_id&success=" . urlencode($success_msg));
+        } else {
+            header("Location: ../group.php?id=$group_id&error=" . urlencode($success_msg ?: "No members were added"));
+        }
+        exit();
+        
+    } catch (Exception $e) {
+        $conn->rollback();
+        error_log("Add group member error: " . $e->getMessage());
+        header("Location: ../group.php?id=$group_id&error=Failed to add members: " . urlencode($e->getMessage()));
+        exit();
+    }
+    
+} else {
+    // If accessed directly without form submission
+    header("Location: ../index.php");
+    exit();
+}
+?>

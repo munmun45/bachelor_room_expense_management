@@ -209,13 +209,13 @@ if ($result->num_rows === 1) {
 
         <!-- My Rooms Section -->
         <?php
-        $stmt = $conn->prepare("SELECT r.*, 
+        $stmt = $conn->prepare("SELECT r.*, rm.invitation_status, rm.is_admin,
                                         (SELECT COUNT(*) FROM room_members WHERE room_id = r.id) as member_count,
                                         (SELECT MAX(last_activity) FROM room_members WHERE room_id = r.id) as last_activity
                                         FROM rooms r 
                                         JOIN room_members rm ON r.id = rm.room_id 
                                         WHERE rm.user_id = ? 
-                                        ORDER BY r.created_at DESC");
+                                        ORDER BY rm.invitation_status ASC, r.created_at DESC");
         $stmt->bind_param("i", $user_id);
         $stmt->execute();
         $result = $stmt->get_result();
@@ -235,51 +235,76 @@ if ($result->num_rows === 1) {
                     $activity_text = $interval->i . 'm ago';
                 }
 
-                // Check if user is admin for this room
-                $is_admin = false;
-                $admin_stmt = $conn->prepare("SELECT is_admin FROM room_members WHERE room_id = ? AND user_id = ?");
-                if ($admin_stmt) {
-                    $admin_stmt->bind_param("ii", $room['id'], $user_id);
-                    $admin_stmt->execute();
-                    $admin_result = $admin_stmt->get_result();
-                    if ($admin_result->num_rows > 0) {
-                        $admin_row = $admin_result->fetch_assoc();
-                        $is_admin = $admin_row['is_admin'] == 1;
-                    }
-                    $admin_stmt->close();
-                }
+                // Get admin status from query result
+                $is_admin = $room['is_admin'] == 1;
+                $invitation_status = $room['invitation_status'];
         ?>
 
-                <div class="bg-white rounded-xl shadow-md p-4 mb-4">
+                <div class="bg-white rounded-xl shadow-md p-4 mb-4 <?php echo $invitation_status == 'pending' ? 'border-l-4 border-yellow-400' : ''; ?>">
                     <div class="flex justify-between items-center mb-4">
                         <div class="flex items-center">
                             <h2 class="text-lg font-semibold"><?php echo htmlspecialchars($room['name']); ?></h2>
+                            
+                            
                             <?php if ($is_admin): ?>
                                 <span class="ml-2 bg-blue-100 text-blue-800 text-xs font-medium px-2 py-1 rounded-full">
                                     <i class="fas fa-crown"></i> Admin
                                 </span>
                             <?php endif; ?>
-                            <a href="room-details.php?id=<?php echo $room['id']; ?>" class="text-sm text-gray-400 ml-2">
-                                <i class="fas fa-chevron-right text-sm text-gray-400 ml-2"></i>
-                            </a>
+                            
+                            <?php if ($invitation_status == 'accepted'): ?>
+                                <a href="room-details.php?id=<?php echo $room['id']; ?>" class="text-sm text-gray-400 ml-2">
+                                    <i class="fas fa-chevron-right text-sm text-gray-400 ml-2"></i>
+                                </a>
+                            <?php endif; ?>
                         </div>
 
-                        <?php if ($is_admin): ?>
+                        <?php if ($invitation_status == 'pending'): ?>
+                            <div class="flex space-x-2">
+                                <button onclick="acceptInvitation(<?php echo $room['id']; ?>)" class="bg-green-600 hover:bg-green-700 text-white text-xs font-medium px-3 py-1 rounded">
+                                    <i class="fas fa-check mr-1"></i> Accept
+                                </button>
+                                <button onclick="rejectInvitation(<?php echo $room['id']; ?>)" class="bg-red-600 hover:bg-red-700 text-white text-xs font-medium px-3 py-1 rounded">
+                                    <i class="fas fa-times mr-1"></i> Reject
+                                </button>
+                            </div>
+                        <?php elseif ($is_admin && $invitation_status == 'accepted'): ?>
                             <button onclick="toggleModal('createGroupModal-<?php echo $room['id']; ?>')" class="h-8 w-8 rounded-full bg-blue-600 text-white flex items-center justify-center shadow-md hover:bg-blue-700 text-sm">
                                 <i class="fas fa-plus"></i>
                             </button>
                         <?php endif; ?>
                     </div>
 
-                    <?php if ($is_admin): ?>
-                        <div class="mb-3">
-                            <a href="room-details.php?id=<?php echo $room['id']; ?>&section=admin" class="inline-flex items-center text-blue-600 text-sm font-medium">
-                                <i class="fas fa-tools mr-1"></i> Manage Room
-                            </a>
+                    <?php if ($invitation_status == 'accepted'): ?>
+                        <div class="mb-3 flex flex-wrap gap-2">
+                            <?php if ($is_admin): ?>
+                                <a href="room-details.php?id=<?php echo $room['id']; ?>&section=admin" class="inline-flex items-center text-blue-600 text-sm font-medium">
+                                    <i class="fas fa-tools mr-1"></i> Manage Room
+                                </a>
+                                
+                                <?php
+                                // Check for pending absence requests
+                                $pending_stmt = $conn->prepare("SELECT COUNT(*) as pending_count FROM absence_requests WHERE room_id = ? AND status = 'pending'");
+                                $pending_stmt->bind_param("i", $room['id']);
+                                $pending_stmt->execute();
+                                $pending_result = $pending_stmt->get_result();
+                                $pending_count = $pending_result->fetch_assoc()['pending_count'];
+                                ?>
+                                
+                                <button onclick="toggleModal('absenceRequestsModal-<?php echo $room['id']; ?>')" class="inline-flex items-center text-orange-600 text-sm font-medium relative">
+                                    <i class="fas fa-calendar-times mr-1"></i> Absence Requests
+                                    <?php if ($pending_count > 0): ?>
+                                        <span class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center"><?php echo $pending_count; ?></span>
+                                    <?php endif; ?>
+                                </button>
+                            <?php endif; ?>
+                            
+                            <button onclick="toggleModal('requestAbsenceModal-<?php echo $room['id']; ?>')" class="inline-flex items-center text-purple-600 text-sm font-medium">
+                                <i class="fas fa-calendar-minus mr-1"></i> Request Absence
+                            </button>
                         </div>
-                    <?php endif; ?>
 
-                    <!-- Groups Section -->
+                        <!-- Groups Section -->
                     <div class="mb-3">
 
 
@@ -318,6 +343,14 @@ if ($result->num_rows === 1) {
                         }
                         ?>
                     </div>
+                    <?php else: ?>
+                        <!-- Pending Invitation Message -->
+                        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-center">
+                            <i class="fas fa-clock text-yellow-600 text-2xl mb-2"></i>
+                            <p class="text-yellow-800 font-medium">Room Invitation Pending</p>
+                            <p class="text-yellow-600 text-sm">Please accept the invitation to access room features.</p>
+                        </div>
+                    <?php endif; ?>
                 </div>
 
                 <!-- Create Group Modal -->
@@ -354,6 +387,145 @@ if ($result->num_rows === 1) {
                         </form>
                     </div>
                 </div>
+
+                <!-- Request Absence Modal -->
+                <div id="requestAbsenceModal-<?php echo $room['id']; ?>" class="fixed inset-0 bg-black bg-opacity-50 z-20 flex items-center justify-center hidden">
+                    <div class="bg-white rounded-xl p-5 w-full max-w-md mx-4 max-h-[80vh] overflow-y-auto">
+                        <h3 class="text-lg font-semibold mb-4 text-purple-800">
+                            <i class="fas fa-calendar-minus mr-2"></i>Request Absence
+                        </h3>
+                        <form action="process/request_absence_process.php" method="post">
+                            <input type="hidden" name="room_id" value="<?php echo $room['id']; ?>">
+
+                            <div class="mb-4">
+                                <label class="block text-gray-700 text-sm font-bold mb-2">
+                                    Absence Period
+                                </label>
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label class="text-xs text-gray-500">From Date</label>
+                                        <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                            name="from_date" type="date" required>
+                                    </div>
+                                    <div>
+                                        <label class="text-xs text-gray-500">To Date</label>
+                                        <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                            name="to_date" type="date" required>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-4">
+                                <label class="block text-gray-700 text-sm font-bold mb-2">
+                                    Reason for Absence
+                                </label>
+                                <textarea class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                    name="reason" placeholder="Enter reason for absence (optional)" rows="3"></textarea>
+                            </div>
+
+                            <div class="bg-purple-50 border border-purple-200 rounded-lg p-3 mb-4">
+                                <p class="text-sm text-purple-700">
+                                    <i class="fas fa-info-circle mr-1"></i>
+                                    <strong>Note:</strong> During settlement, your food expenses will be calculated only for days you were present. Special items will still be split equally among all members.
+                                </p>
+                            </div>
+
+                            <div class="flex justify-end space-x-3">
+                                <button type="button" onclick="toggleModal('requestAbsenceModal-<?php echo $room['id']; ?>')" class="px-4 py-2 text-gray-600 font-medium">
+                                    Cancel
+                                </button>
+                                <button type="submit" name="request_absence" class="px-4 py-2 bg-purple-600 text-white font-medium rounded hover:bg-purple-700">
+                                    Submit Request
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Admin: Manage Absence Requests Modal -->
+                <?php if ($is_admin): ?>
+                <div id="absenceRequestsModal-<?php echo $room['id']; ?>" class="fixed inset-0 bg-black bg-opacity-50 z-20 flex items-center justify-center hidden">
+                    <div class="bg-white rounded-xl p-5 w-full max-w-2xl mx-4 max-h-[80vh] overflow-y-auto">
+                        <h3 class="text-lg font-semibold mb-4 text-orange-800">
+                            <i class="fas fa-calendar-times mr-2"></i>Manage Absence Requests
+                        </h3>
+                        
+                        <div id="absenceRequestsList-<?php echo $room['id']; ?>">
+                            <?php
+                            // Get absence requests for this room
+                            $requests_stmt = $conn->prepare("SELECT ar.*, u.full_name, u.profile_image,
+                                                           r.full_name as reviewer_name
+                                                           FROM absence_requests ar
+                                                           JOIN users u ON ar.user_id = u.id
+                                                           LEFT JOIN users r ON ar.reviewed_by = r.id
+                                                           WHERE ar.room_id = ?
+                                                           ORDER BY ar.status ASC, ar.requested_at DESC");
+                            $requests_stmt->bind_param("i", $room['id']);
+                            $requests_stmt->execute();
+                            $requests_result = $requests_stmt->get_result();
+                            
+                            if ($requests_result->num_rows > 0):
+                                while ($request = $requests_result->fetch_assoc()):
+                            ?>
+                                <div class="border rounded-lg p-4 mb-3 <?php 
+                                    echo $request['status'] == 'pending' ? 'border-yellow-300 bg-yellow-50' : 
+                                        ($request['status'] == 'approved' ? 'border-green-300 bg-green-50' : 'border-red-300 bg-red-50'); 
+                                ?>">
+                                    <div class="flex items-start justify-between">
+                                        <div class="flex items-center space-x-3">
+                                            <img src="uploads/profile/<?php echo $request['profile_image'] ? $request['profile_image'] : 'default_avatar.png'; ?>" 
+                                                 class="h-10 w-10 rounded-full object-cover">
+                                            <div>
+                                                <p class="font-medium"><?php echo htmlspecialchars($request['full_name']); ?></p>
+                                                <p class="text-sm text-gray-600">
+                                                    <?php echo date('M d, Y', strtotime($request['from_date'])); ?> - 
+                                                    <?php echo date('M d, Y', strtotime($request['to_date'])); ?>
+                                                </p>
+                                                <?php if ($request['reason']): ?>
+                                                    <p class="text-sm text-gray-500 mt-1"><?php echo htmlspecialchars($request['reason']); ?></p>
+                                                <?php endif; ?>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="text-right">
+                                            <span class="px-2 py-1 text-xs font-medium rounded-full <?php 
+                                                echo $request['status'] == 'pending' ? 'bg-yellow-100 text-yellow-800' : 
+                                                    ($request['status'] == 'approved' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'); 
+                                            ?>">
+                                                <?php echo ucfirst($request['status']); ?>
+                                            </span>
+                                            
+                                            <?php if ($request['status'] == 'pending'): ?>
+                                                <div class="mt-2 space-x-2">
+                                                    <button onclick="reviewAbsenceRequest(<?php echo $request['id']; ?>, 'approved')" 
+                                                            class="bg-green-600 hover:bg-green-700 text-white text-xs px-3 py-1 rounded">
+                                                        <i class="fas fa-check mr-1"></i>Approve
+                                                    </button>
+                                                    <button onclick="reviewAbsenceRequest(<?php echo $request['id']; ?>, 'rejected')" 
+                                                            class="bg-red-600 hover:bg-red-700 text-white text-xs px-3 py-1 rounded">
+                                                        <i class="fas fa-times mr-1"></i>Reject
+                                                    </button>
+                                                </div>
+                                            <?php endif; ?>
+                                        </div>
+                                    </div>
+                                </div>
+                            <?php 
+                                endwhile;
+                            else:
+                            ?>
+                                <p class="text-center text-gray-500 py-4">No absence requests yet.</p>
+                            <?php endif; ?>
+                        </div>
+                        
+                        <div class="flex justify-end mt-4">
+                            <button type="button" onclick="toggleModal('absenceRequestsModal-<?php echo $room['id']; ?>')" class="px-4 py-2 text-gray-600 font-medium">
+                                Close
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <?php endif; ?>
 
 
         <?php
@@ -400,6 +572,43 @@ if ($result->num_rows === 1) {
             const modal = document.getElementById(modalId);
             if (modal) {
                 modal.classList.toggle('hidden');
+            }
+        }
+        
+        function acceptInvitation(roomId) {
+            if (confirm('Accept room invitation?')) {
+                window.location.href = `process/accept_invitation_process.php?room_id=${roomId}&action=accept`;
+            }
+        }
+        
+        function rejectInvitation(roomId) {
+            if (confirm('Reject room invitation?')) {
+                window.location.href = `process/accept_invitation_process.php?room_id=${roomId}&action=reject`;
+            }
+        }
+        
+        function reviewAbsenceRequest(requestId, action) {
+            const actionText = action === 'approved' ? 'approve' : 'reject';
+            if (confirm(`${actionText.charAt(0).toUpperCase() + actionText.slice(1)} this absence request?`)) {
+                fetch('process/review_absence_request.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `request_id=${requestId}&action=${action}`
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        location.reload(); // Reload to update the UI
+                    } else {
+                        alert('Error: ' + data.error);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Failed to ' + actionText + ' request');
+                });
             }
         }
     </script>
