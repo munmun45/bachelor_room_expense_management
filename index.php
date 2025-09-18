@@ -32,6 +32,7 @@ if ($result->num_rows === 1) {
     <title>Bachelor Room Expense Management</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="js/back-navigation.js"></script>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -59,10 +60,115 @@ if ($result->num_rows === 1) {
         .group-option:active {
             transform: translateY(0);
         }
+        
+        /* Compact Action Cards Styling */
+        .compact-card {
+            transition: all 0.2s ease;
+        }
+        
+        .compact-card:hover {
+            transform: translateY(-1px);
+        }
+        
+        .compact-icon {
+            transition: all 0.2s ease;
+        }
+        
+        .compact-card:hover .compact-icon {
+            transform: scale(1.05);
+        }
+        
+        .notification-badge {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        
+        /* Pull to Refresh Styles */
+        .pull-to-refresh {
+            position: fixed;
+            top: -60px;
+            left: 0;
+            right: 0;
+            height: 60px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            transition: transform 0.3s ease;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .pull-to-refresh.show {
+            transform: translateY(60px);
+        }
+        
+        .pull-to-refresh .refresh-content {
+            display: flex;
+            align-items: center;
+            color: white;
+            font-weight: 500;
+        }
+        
+        .pull-to-refresh .refresh-icon {
+            margin-right: 8px;
+            transition: transform 0.3s ease;
+        }
+        
+        .pull-to-refresh .refresh-icon.spinning {
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        .pull-indicator {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            z-index: 1001;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+        }
+        
+        .pull-indicator.show {
+            opacity: 1;
+        }
+        
+        .pull-indicator .icon {
+            margin-right: 6px;
+        }
     </style>
 </head>
 
 <body class="bg-gray-100">
+    <!-- Pull to Refresh Indicator -->
+    <div class="pull-indicator" id="pullIndicator">
+        <i class="fas fa-arrow-down icon"></i>
+        <span>Pull to refresh</span>
+    </div>
+    
+    <!-- Pull to Refresh Bar -->
+    <div class="pull-to-refresh" id="pullToRefresh">
+        <div class="refresh-content">
+            <i class="fas fa-sync-alt refresh-icon" id="refreshIcon"></i>
+            <span id="refreshText">Release to refresh</span>
+        </div>
+    </div>
+    
     <!-- Top Header with Logo and Profile -->
     <header class="fixed top-0 left-0 right-0 bg-white shadow-md z-10">
         <div class="flex justify-between items-center px-4 py-3">
@@ -289,12 +395,9 @@ if ($result->num_rows === 1) {
                     </div>
 
                     <?php if ($invitation_status == 'accepted'): ?>
-                        <div class="mb-3 flex flex-wrap gap-2">
+                        <!-- Compact Action Cards - Two in One Row -->
+                        <div class="mb-3 grid grid-cols-2 gap-2">
                             <?php if ($is_admin): ?>
-                                <a href="room-details.php?id=<?php echo $room['id']; ?>&section=admin" class="inline-flex items-center text-blue-600 text-sm font-medium">
-                                    <i class="fas fa-tools mr-1"></i> Manage Room
-                                </a>
-                                
                                 <?php
                                 // Check for pending absence requests
                                 $pending_stmt = $conn->prepare("SELECT COUNT(*) as pending_count FROM absence_requests WHERE room_id = ? AND status = 'pending'");
@@ -304,16 +407,30 @@ if ($result->num_rows === 1) {
                                 $pending_count = $pending_result->fetch_assoc()['pending_count'];
                                 ?>
                                 
-                                <button onclick="toggleModal('absenceRequestsModal-<?php echo $room['id']; ?>')" class="inline-flex items-center text-orange-600 text-sm font-medium relative">
-                                    <i class="fas fa-calendar-times mr-1"></i> Absence Requests
-                                    <?php if ($pending_count > 0): ?>
-                                        <span class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center"><?php echo $pending_count; ?></span>
-                                    <?php endif; ?>
+                                <!-- Absence Requests Card -->
+                                <button onclick="toggleModal('absenceRequestsModal-<?php echo $room['id']; ?>')" 
+                                        class="group compact-card bg-gradient-to-r from-orange-50 to-orange-100 border border-orange-200 rounded-lg px-3 py-2 hover:from-orange-100 hover:to-orange-200 transition-all duration-200 hover:shadow-md relative">
+                                    <div class="flex items-center space-x-2">
+                                        <div class="compact-icon w-6 h-6 bg-orange-500 rounded flex items-center justify-center group-hover:bg-orange-600 transition-colors">
+                                            <i class="fas fa-calendar-times text-white text-xs"></i>
+                                        </div>
+                                        <span class="font-medium text-orange-800 text-xs">Absence Requests</span>
+                                        <?php if ($pending_count > 0): ?>
+                                            <span class="bg-red-500 text-white text-xs font-bold rounded-full h-4 w-4 flex items-center justify-center text-[10px]"><?php echo $pending_count; ?></span>
+                                        <?php endif; ?>
+                                    </div>
                                 </button>
                             <?php endif; ?>
                             
-                            <button onclick="toggleModal('requestAbsenceModal-<?php echo $room['id']; ?>')" class="inline-flex items-center text-purple-600 text-sm font-medium">
-                                <i class="fas fa-calendar-minus mr-1"></i> Request Absence
+                            <!-- Request Absence Card -->
+                            <button onclick="toggleModal('requestAbsenceModal-<?php echo $room['id']; ?>')" 
+                                    class="group compact-card bg-gradient-to-r from-purple-50 to-purple-100 border border-purple-200 rounded-lg px-3 py-2 hover:from-purple-100 hover:to-purple-200 transition-all duration-200 hover:shadow-md <?php echo !$is_admin ? 'col-span-2' : ''; ?>">
+                                <div class="flex items-center space-x-2">
+                                    <div class="compact-icon w-6 h-6 bg-purple-500 rounded flex items-center justify-center group-hover:bg-purple-600 transition-colors">
+                                        <i class="fas fa-calendar-minus text-white text-xs"></i>
+                                    </div>
+                                    <span class="font-medium text-purple-800 text-xs">Request Absence</span>
+                                </div>
                             </button>
                         </div>
 
@@ -476,14 +593,14 @@ if ($result->num_rows === 1) {
                         
                         <div id="absenceRequestsList-<?php echo $room['id']; ?>">
                             <?php
-                            // Get absence requests for this room
+                            // Get only pending absence requests for this room
                             $requests_stmt = $conn->prepare("SELECT ar.*, u.full_name, u.profile_image,
                                                            r.full_name as reviewer_name
                                                            FROM absence_requests ar
                                                            JOIN users u ON ar.user_id = u.id
                                                            LEFT JOIN users r ON ar.reviewed_by = r.id
-                                                           WHERE ar.room_id = ?
-                                                           ORDER BY ar.status ASC, ar.requested_at DESC");
+                                                           WHERE ar.room_id = ? AND ar.status = 'pending'
+                                                           ORDER BY ar.requested_at DESC");
                             $requests_stmt->bind_param("i", $room['id']);
                             $requests_stmt->execute();
                             $requests_result = $requests_stmt->get_result();
@@ -538,11 +655,19 @@ if ($result->num_rows === 1) {
                                 endwhile;
                             else:
                             ?>
-                                <p class="text-center text-gray-500 py-4">No absence requests yet.</p>
+                                <div class="text-center py-6">
+                                    <i class="fas fa-calendar-check text-4xl text-gray-300 mb-3"></i>
+                                    <p class="text-gray-500 font-medium">No pending absence requests</p>
+                                    <p class="text-sm text-gray-400">All absence requests have been reviewed</p>
+                                </div>
                             <?php endif; ?>
                         </div>
                         
-                        <div class="flex justify-end mt-4">
+                        <div class="flex justify-between items-center mt-4 pt-4 border-t border-gray-200">
+                            <a href="view_all_absence.php?room_id=<?php echo $room['id']; ?>" 
+                               class="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors">
+                                <i class="fas fa-list mr-2"></i>Show All Requests
+                            </a>
                             <button type="button" onclick="toggleModal('absenceRequestsModal-<?php echo $room['id']; ?>')" class="px-4 py-2 text-gray-600 font-medium">
                                 Close
                             </button>
@@ -724,6 +849,166 @@ if ($result->num_rows === 1) {
                 window.location.href = `settlement_report.php?group_id=${groupId}`;
             }, 300);
         }
+        
+        // Pull to Refresh Functionality
+        let pullToRefresh = {
+            startY: 0,
+            currentY: 0,
+            isPulling: false,
+            isRefreshing: false,
+            threshold: 80,
+            maxPull: 120,
+            
+            init() {
+                this.bindEvents();
+            },
+            
+            bindEvents() {
+                // Touch events for mobile
+                document.addEventListener('touchstart', this.handleTouchStart.bind(this), { passive: false });
+                document.addEventListener('touchmove', this.handleTouchMove.bind(this), { passive: false });
+                document.addEventListener('touchend', this.handleTouchEnd.bind(this), { passive: false });
+                
+                // Mouse events for desktop (for testing)
+                document.addEventListener('mousedown', this.handleMouseDown.bind(this));
+                document.addEventListener('mousemove', this.handleMouseMove.bind(this));
+                document.addEventListener('mouseup', this.handleMouseUp.bind(this));
+            },
+            
+            handleTouchStart(e) {
+                if (window.scrollY === 0 && !this.isRefreshing) {
+                    this.startY = e.touches[0].clientY;
+                    this.isPulling = true;
+                }
+            },
+            
+            handleTouchMove(e) {
+                if (!this.isPulling || this.isRefreshing) return;
+                
+                this.currentY = e.touches[0].clientY;
+                const pullDistance = this.currentY - this.startY;
+                
+                if (pullDistance > 0) {
+                    e.preventDefault();
+                    this.updatePullState(pullDistance);
+                }
+            },
+            
+            handleTouchEnd(e) {
+                if (!this.isPulling || this.isRefreshing) return;
+                
+                const pullDistance = this.currentY - this.startY;
+                this.isPulling = false;
+                
+                if (pullDistance > this.threshold) {
+                    this.triggerRefresh();
+                } else {
+                    this.resetPullState();
+                }
+            },
+            
+            handleMouseDown(e) {
+                if (window.scrollY === 0 && !this.isRefreshing && e.clientY < 50) {
+                    this.startY = e.clientY;
+                    this.isPulling = true;
+                    e.preventDefault();
+                }
+            },
+            
+            handleMouseMove(e) {
+                if (!this.isPulling || this.isRefreshing) return;
+                
+                this.currentY = e.clientY;
+                const pullDistance = this.currentY - this.startY;
+                
+                if (pullDistance > 0) {
+                    e.preventDefault();
+                    this.updatePullState(pullDistance);
+                }
+            },
+            
+            handleMouseUp(e) {
+                if (!this.isPulling || this.isRefreshing) return;
+                
+                const pullDistance = this.currentY - this.startY;
+                this.isPulling = false;
+                
+                if (pullDistance > this.threshold) {
+                    this.triggerRefresh();
+                } else {
+                    this.resetPullState();
+                }
+            },
+            
+            updatePullState(pullDistance) {
+                const progress = Math.min(pullDistance / this.maxPull, 1);
+                const refreshBar = document.getElementById('pullToRefresh');
+                const pullIndicator = document.getElementById('pullIndicator');
+                const refreshText = document.getElementById('refreshText');
+                
+                // Show pull indicator when starting to pull
+                if (pullDistance > 20) {
+                    pullIndicator.classList.add('show');
+                }
+                
+                // Show refresh bar when threshold is reached
+                if (pullDistance > this.threshold) {
+                    refreshBar.classList.add('show');
+                    refreshText.textContent = 'Release to refresh';
+                    pullIndicator.innerHTML = '<i class="fas fa-arrow-up icon"></i><span>Release to refresh</span>';
+                } else {
+                    refreshText.textContent = 'Pull to refresh';
+                    pullIndicator.innerHTML = '<i class="fas fa-arrow-down icon"></i><span>Pull to refresh</span>';
+                }
+                
+                // Add haptic feedback on mobile
+                if (navigator.vibrate && pullDistance > this.threshold && pullDistance < this.threshold + 5) {
+                    navigator.vibrate(50);
+                }
+            },
+            
+            triggerRefresh() {
+                this.isRefreshing = true;
+                const refreshBar = document.getElementById('pullToRefresh');
+                const refreshIcon = document.getElementById('refreshIcon');
+                const refreshText = document.getElementById('refreshText');
+                const pullIndicator = document.getElementById('pullIndicator');
+                
+                // Show refresh bar and start spinning
+                refreshBar.classList.add('show');
+                refreshIcon.classList.add('spinning');
+                refreshText.textContent = 'Refreshing...';
+                pullIndicator.classList.remove('show');
+                
+                // Add haptic feedback
+                if (navigator.vibrate) {
+                    navigator.vibrate([100, 50, 100]);
+                }
+                
+                // Simulate refresh delay and then reload
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1000);
+            },
+            
+            resetPullState() {
+                const refreshBar = document.getElementById('pullToRefresh');
+                const refreshIcon = document.getElementById('refreshIcon');
+                const pullIndicator = document.getElementById('pullIndicator');
+                
+                refreshBar.classList.remove('show');
+                refreshIcon.classList.remove('spinning');
+                pullIndicator.classList.remove('show');
+                
+                this.isPulling = false;
+                this.isRefreshing = false;
+            }
+        };
+        
+        // Initialize pull to refresh when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            pullToRefresh.init();
+        });
     </script>
     </main>
 

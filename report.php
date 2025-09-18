@@ -176,6 +176,7 @@ if ($result->num_rows === 1) {
     <title>Settlement Report - <?php echo htmlspecialchars($group['name']); ?></title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="js/back-navigation.js"></script>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -200,16 +201,95 @@ if ($result->num_rows === 1) {
             transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         }
+        
+        /* Pull to Refresh Styles */
+        .pull-to-refresh {
+            position: fixed;
+            top: -60px;
+            left: 0;
+            right: 0;
+            height: 60px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            transition: transform 0.3s ease;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .pull-to-refresh.show {
+            transform: translateY(60px);
+        }
+        
+        .pull-to-refresh .refresh-content {
+            display: flex;
+            align-items: center;
+            color: white;
+            font-weight: 500;
+        }
+        
+        .pull-to-refresh .refresh-icon {
+            margin-right: 8px;
+            transition: transform 0.3s ease;
+        }
+        
+        .pull-to-refresh .refresh-icon.spinning {
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        .pull-indicator {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            z-index: 1001;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+        }
+        
+        .pull-indicator.show {
+            opacity: 1;
+        }
+        
+        .pull-indicator .icon {
+            margin-right: 6px;
+        }
     </style>
 </head>
 <body class="bg-gray-100">
+    <!-- Pull to Refresh Indicator -->
+    <div class="pull-indicator" id="pullIndicator">
+        <i class="fas fa-arrow-down icon"></i>
+        <span>Pull to refresh</span>
+    </div>
+    
+    <!-- Pull to Refresh Bar -->
+    <div class="pull-to-refresh" id="pullToRefresh">
+        <div class="refresh-content">
+            <i class="fas fa-sync-alt refresh-icon" id="refreshIcon"></i>
+            <span id="refreshText">Release to refresh</span>
+        </div>
+    </div>
+    
     <!-- Header -->
     <header class="fixed top-0 left-0 right-0 bg-white shadow-md z-10">
         <div class="flex justify-between items-center px-4 py-3">
             <div class="flex items-center">
-                <a href="group.php?id=<?php echo $group_id; ?>" class="mr-3">
-                    <i class="fas fa-arrow-left text-blue-600 text-xl"></i>
-                </a>
+                <button onclick="goBack()" class="mr-3 back-button" title="Go Back">
+                    <i class="fas fa-arrow-left text-blue-600 text-xl hover:text-blue-800 transition-colors"></i>
+                </button>
                 <div class="mr-3">
                     <i class="fas fa-calculator text-green-600 text-2xl"></i>
                 </div>
@@ -382,7 +462,15 @@ if ($result->num_rows === 1) {
                     foreach ($user_settlements as $user_id => $user_data):
                     $color = $colors[$i % count($colors)];
                     $food_net = $user_data['food']['net'];
-                    $profile_img = $members[$user_id]['profile_image'] ? 'uploads/profile/' . $members[$user_id]['profile_image'] : 'uploads/profile/default_avatar.png';
+                    // Check if user is still a member of the group
+                    if (isset($members[$user_id])) {
+                        $profile_img = $members[$user_id]['profile_image'] ? 'uploads/profile/' . $members[$user_id]['profile_image'] : 'uploads/profile/default_avatar.png';
+                        $member_name = $members[$user_id]['name'];
+                    } else {
+                        // User was removed from group, use default values
+                        $profile_img = 'uploads/profile/default_avatar.png';
+                        $member_name = 'Former Member';
+                    }
                     $i++;
                 ?>
                     <div class="member-card p-4 bg-white border-2 border-gray-100 rounded-lg shadow-sm">
@@ -479,7 +567,13 @@ if ($result->num_rows === 1) {
                         foreach ($user_settlements as $user_id => $user_data):
                         $color = $colors[$i % count($colors)];
                         $special_net = $user_data['special']['net'];
-                        $profile_img = $members[$user_id]['profile_image'] ? 'uploads/profile/' . $members[$user_id]['profile_image'] : 'uploads/profile/default_avatar.png';
+                        // Check if user is still a member of the group
+                        if (isset($members[$user_id])) {
+                            $profile_img = $members[$user_id]['profile_image'] ? 'uploads/profile/' . $members[$user_id]['profile_image'] : 'uploads/profile/default_avatar.png';
+                        } else {
+                            // User was removed from group, use default values
+                            $profile_img = 'uploads/profile/default_avatar.png';
+                        }
                         $i++;
                     ?>
                         <div class="member-card p-4 bg-white border-2 border-purple-100 rounded-lg shadow-sm">
@@ -554,7 +648,13 @@ if ($result->num_rows === 1) {
                 <?php else:
                     foreach ($user_settlements as $user_id => $user_data):
                     $total_net = $user_data['food']['net'] + $user_data['special']['net'];
-                    $profile_img = $members[$user_id]['profile_image'] ? 'uploads/profile/' . $members[$user_id]['profile_image'] : 'uploads/profile/default_avatar.png';
+                    // Check if user is still a member of the group
+                    if (isset($members[$user_id])) {
+                        $profile_img = $members[$user_id]['profile_image'] ? 'uploads/profile/' . $members[$user_id]['profile_image'] : 'uploads/profile/default_avatar.png';
+                    } else {
+                        // User was removed from group, use default values
+                        $profile_img = 'uploads/profile/default_avatar.png';
+                    }
                 ?>
                     <div class="flex items-center justify-between p-3 <?php echo $total_net >= 0 ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'; ?> rounded-lg">
                         <div class="flex items-center space-x-3">
@@ -732,5 +832,167 @@ if ($result->num_rows === 1) {
             <?php endif; ?>
                             </div>
     </main>
+    
+    <script>
+        // Pull to Refresh Functionality
+        let pullToRefresh = {
+            startY: 0,
+            currentY: 0,
+            isPulling: false,
+            isRefreshing: false,
+            threshold: 80,
+            maxPull: 120,
+            
+            init() {
+                this.bindEvents();
+            },
+            
+            bindEvents() {
+                // Touch events for mobile
+                document.addEventListener('touchstart', this.handleTouchStart.bind(this), { passive: false });
+                document.addEventListener('touchmove', this.handleTouchMove.bind(this), { passive: false });
+                document.addEventListener('touchend', this.handleTouchEnd.bind(this), { passive: false });
+                
+                // Mouse events for desktop (for testing)
+                document.addEventListener('mousedown', this.handleMouseDown.bind(this));
+                document.addEventListener('mousemove', this.handleMouseMove.bind(this));
+                document.addEventListener('mouseup', this.handleMouseUp.bind(this));
+            },
+            
+            handleTouchStart(e) {
+                if (window.scrollY === 0 && !this.isRefreshing) {
+                    this.startY = e.touches[0].clientY;
+                    this.isPulling = true;
+                }
+            },
+            
+            handleTouchMove(e) {
+                if (!this.isPulling || this.isRefreshing) return;
+                
+                this.currentY = e.touches[0].clientY;
+                const pullDistance = this.currentY - this.startY;
+                
+                if (pullDistance > 0) {
+                    e.preventDefault();
+                    this.updatePullState(pullDistance);
+                }
+            },
+            
+            handleTouchEnd(e) {
+                if (!this.isPulling || this.isRefreshing) return;
+                
+                const pullDistance = this.currentY - this.startY;
+                this.isPulling = false;
+                
+                if (pullDistance > this.threshold) {
+                    this.triggerRefresh();
+                } else {
+                    this.resetPullState();
+                }
+            },
+            
+            handleMouseDown(e) {
+                if (window.scrollY === 0 && !this.isRefreshing && e.clientY < 50) {
+                    this.startY = e.clientY;
+                    this.isPulling = true;
+                    e.preventDefault();
+                }
+            },
+            
+            handleMouseMove(e) {
+                if (!this.isPulling || this.isRefreshing) return;
+                
+                this.currentY = e.clientY;
+                const pullDistance = this.currentY - this.startY;
+                
+                if (pullDistance > 0) {
+                    e.preventDefault();
+                    this.updatePullState(pullDistance);
+                }
+            },
+            
+            handleMouseUp(e) {
+                if (!this.isPulling || this.isRefreshing) return;
+                
+                const pullDistance = this.currentY - this.startY;
+                this.isPulling = false;
+                
+                if (pullDistance > this.threshold) {
+                    this.triggerRefresh();
+                } else {
+                    this.resetPullState();
+                }
+            },
+            
+            updatePullState(pullDistance) {
+                const progress = Math.min(pullDistance / this.maxPull, 1);
+                const refreshBar = document.getElementById('pullToRefresh');
+                const pullIndicator = document.getElementById('pullIndicator');
+                const refreshText = document.getElementById('refreshText');
+                
+                // Show pull indicator when starting to pull
+                if (pullDistance > 20) {
+                    pullIndicator.classList.add('show');
+                }
+                
+                // Show refresh bar when threshold is reached
+                if (pullDistance > this.threshold) {
+                    refreshBar.classList.add('show');
+                    refreshText.textContent = 'Release to refresh';
+                    pullIndicator.innerHTML = '<i class="fas fa-arrow-up icon"></i><span>Release to refresh</span>';
+                } else {
+                    refreshText.textContent = 'Pull to refresh';
+                    pullIndicator.innerHTML = '<i class="fas fa-arrow-down icon"></i><span>Pull to refresh</span>';
+                }
+                
+                // Add haptic feedback on mobile
+                if (navigator.vibrate && pullDistance > this.threshold && pullDistance < this.threshold + 5) {
+                    navigator.vibrate(50);
+                }
+            },
+            
+            triggerRefresh() {
+                this.isRefreshing = true;
+                const refreshBar = document.getElementById('pullToRefresh');
+                const refreshIcon = document.getElementById('refreshIcon');
+                const refreshText = document.getElementById('refreshText');
+                const pullIndicator = document.getElementById('pullIndicator');
+                
+                // Show refresh bar and start spinning
+                refreshBar.classList.add('show');
+                refreshIcon.classList.add('spinning');
+                refreshText.textContent = 'Refreshing...';
+                pullIndicator.classList.remove('show');
+                
+                // Add haptic feedback
+                if (navigator.vibrate) {
+                    navigator.vibrate([100, 50, 100]);
+                }
+                
+                // Simulate refresh delay and then reload
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1000);
+            },
+            
+            resetPullState() {
+                const refreshBar = document.getElementById('pullToRefresh');
+                const refreshIcon = document.getElementById('refreshIcon');
+                const pullIndicator = document.getElementById('pullIndicator');
+                
+                refreshBar.classList.remove('show');
+                refreshIcon.classList.remove('spinning');
+                pullIndicator.classList.remove('show');
+                
+                this.isPulling = false;
+                this.isRefreshing = false;
+            }
+        };
+        
+        // Initialize pull to refresh when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            pullToRefresh.init();
+        });
+    </script>
 </body>
 </html>

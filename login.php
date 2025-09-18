@@ -6,6 +6,7 @@
     <title>Login - Bachelor Room Expense Management</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="js/back-navigation.js"></script>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -14,7 +15,9 @@
     </style>
 </head>
 <body class="bg-gray-100">
-    <div class="min-h-screen flex items-center justify-center p-4">
+    
+
+    <div class="min-h-screen flex items-center justify-center p-4 pt-20">
         <div class="w-full max-w-md bg-white rounded-xl shadow-lg p-6">
             
             <div class="text-center mb-8">

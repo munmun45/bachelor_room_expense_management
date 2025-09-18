@@ -123,6 +123,7 @@ if ($result->num_rows === 1) {
         rel="stylesheet"
         href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
     />
+    <script src="js/back-navigation.js"></script>
     <style>
         body {
             font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
@@ -166,9 +167,9 @@ if ($result->num_rows === 1) {
     <header class="fixed top-0 left-0 right-0 bg-white shadow-md z-10">
         <div class="flex justify-between items-center px-4 py-3">
             <div class="flex items-center">
-                <a href="index.php" class="mr-3">
-                    <i class="fas fa-arrow-left text-blue-600 text-xl"></i>
-                </a>
+                <button onclick="goBack()" class="mr-3 back-button" title="Go Back">
+                    <i class="fas fa-arrow-left text-blue-600 text-xl hover:text-blue-800 transition-colors"></i>
+                </button>
                 <div class="mr-3">
                     <i class="fas fa-wallet text-blue-600 text-2xl"></i>
                 </div>

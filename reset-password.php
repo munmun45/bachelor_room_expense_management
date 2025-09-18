@@ -6,6 +6,7 @@
     <title>Reset Password - Bachelor Room Expense Management</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="js/back-navigation.js"></script>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -17,9 +18,9 @@
     <div class="min-h-screen flex items-center justify-center p-4">
         <div class="w-full max-w-md bg-white rounded-xl shadow-lg p-6">
             <div class="flex justify-start mb-6">
-                <a href="login.php" class="text-blue-600 hover:text-blue-800">
+                <button onclick="goBack()" class="text-blue-600 hover:text-blue-800 back-button" title="Go Back">
                     <i class="fas fa-arrow-left"></i> Back to Login
-                </a>
+                </button>
             </div>
             
             <div class="text-center mb-8">
