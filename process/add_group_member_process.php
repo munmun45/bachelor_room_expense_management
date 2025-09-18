@@ -57,6 +57,15 @@ if (isset($_POST['add_members'])) {
         $added_count = 0;
         $already_member_count = 0;
         $invalid_member_count = 0;
+        $added_members = []; // Store added member names for notification
+        
+        // Get admin's name for notification
+        $stmt = $conn->prepare("SELECT full_name FROM users WHERE id = ?");
+        $stmt->bind_param("i", $user_id);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $admin_info = $result->fetch_assoc();
+        $admin_name = $admin_info['full_name'];
         
         foreach ($member_ids as $member_id) {
             $member_id = intval($member_id);
@@ -83,16 +92,43 @@ if (isset($_POST['add_members'])) {
                 continue;
             }
             
+            // Get member's name before adding
+            $stmt = $conn->prepare("SELECT full_name FROM users WHERE id = ?");
+            $stmt->bind_param("i", $member_id);
+            $stmt->execute();
+            $result = $stmt->get_result();
+            $member_info = $result->fetch_assoc();
+            $member_name = $member_info['full_name'];
+            
             // Add member to the group
             $stmt = $conn->prepare("INSERT INTO group_members (group_id, user_id, added_by, added_at) VALUES (?, ?, ?, NOW())");
             $stmt->bind_param("iii", $group_id, $member_id, $user_id);
             
             if ($stmt->execute()) {
                 $added_count++;
+                $added_members[] = $member_name;
             }
         }
         
         $conn->commit();
+        
+        // Create chat notification if members were added
+        if ($added_count > 0 && !empty($added_members)) {
+            $notification_message = "👥 **Members Added to Group**\n\n";
+            $notification_message .= "📋 **Action:** New members added to group\n";
+            $notification_message .= "👨‍💼 **Added by:** {$admin_name}\n";
+            $notification_message .= "👥 **New Members:** " . implode(', ', $added_members) . "\n";
+            $notification_message .= "📅 **Date:** " . date('M d, Y \a\t g:i A') . "\n\n";
+            $notification_message .= "🎉 Welcome the new members to the group!";
+            
+            // Insert the notification message
+            $stmt = $conn->prepare("INSERT INTO group_messages (group_id, user_id, message, created_at) VALUES (?, ?, ?, NOW())");
+            $stmt->bind_param("iis", $group_id, $user_id, $notification_message);
+            $stmt->execute();
+            
+            // Log the action for admin records
+            error_log("Group members added - Admin: {$admin_name} (ID: {$user_id}), Added: " . implode(', ', $added_members) . ", Group ID: {$group_id}");
+        }
         
         // Create success message based on results
         $success_msg = "";

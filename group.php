@@ -2,6 +2,17 @@
 session_start();
 require_once 'config/config.php';
 
+// Function to render basic markdown formatting
+function renderMarkdown($text) {
+    // Convert **text** to <strong>text</strong>
+    $text = preg_replace('/\*\*(.*?)\*\*/', '<strong>$1</strong>', $text);
+    
+    // Convert *text* to <em>text</em>
+    $text = preg_replace('/\*(.*?)\*/', '<em>$1</em>', $text);
+    
+    return $text;
+}
+
 // Check if user is logged in
 if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
     header("Location: login.php");
@@ -118,7 +129,7 @@ if ($result->num_rows === 1) {
             background-color: #f0f2f5;
         }
         .message-container {
-            max-height: calc(100vh - 175px);
+            max-height: calc(100vh - 190px);
             overflow-y: auto;
         }
         .recipient-selector {
@@ -138,6 +149,15 @@ if ($result->num_rows === 1) {
         .payment-instruction-card:hover {
             transform: translateY(-1px);
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* Member removal styling */
+        .member-remove-btn {
+            transition: all 0.2s ease;
+        }
+        
+        .member-remove-btn:hover {
+            transform: scale(1.1);
         }
     </style>
 </head>
@@ -226,7 +246,7 @@ if ($result->num_rows === 1) {
                                 <?php endif; ?>
                             
                             <?php if (!empty($message['message'])): ?>
-                                    <p class="text-sm mb-1"><?php echo nl2br(htmlspecialchars($message['message'])); ?></p>
+                                    <p class="text-sm mb-1"><?php echo nl2br(renderMarkdown(htmlspecialchars($message['message']))); ?></p>
                             <?php endif; ?>
                             
                             <?php if (!empty($message['amount']) && $message['amount'] > 0): ?>
@@ -486,10 +506,22 @@ if ($result->num_rows === 1) {
                                 <?php endif; ?>
                             </div>
                             <div>
-                                <span class="font-medium"><?php echo htmlspecialchars($member['full_name']); ?></span>
+                                <span class="font-medium"><?php echo htmlspecialchars($member['full_name']); ?>
+                                    <?php if ($member['user_id'] == $user_id): ?>
+                                        <span class="text-xs text-blue-600 font-medium">(You)</span>
+                                    <?php endif; ?>
+                                </span>
                                 <p class="text-xs text-gray-500"><?php echo htmlspecialchars($member['phone']); ?></p>
                             </div>
                         </div>
+                        
+                        <?php if ($is_admin && $member['user_id'] != $user_id): ?>
+                            <button onclick="removeMember(<?php echo $member['user_id']; ?>, '<?php echo htmlspecialchars($member['full_name']); ?>')" 
+                                    class="member-remove-btn text-red-600 hover:text-red-800 hover:bg-red-50 p-2 rounded-full transition-colors" 
+                                    title="Remove from group">
+                                <i class="fas fa-user-minus text-sm"></i>
+                            </button>
+                        <?php endif; ?>
                     </li>
                 <?php endforeach; ?>
             </ul>
@@ -839,7 +871,12 @@ if ($result->num_rows === 1) {
             
             let messageContent = '';
             if (message.message) {
-                messageContent += '<p class="text-sm mb-1">' + message.message.replace(/\n/g, '<br>') + '</p>';
+                // Render markdown formatting for AJAX messages
+                let renderedMessage = message.message
+                    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                    .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                    .replace(/\n/g, '<br>');
+                messageContent += '<p class="text-sm mb-1">' + renderedMessage + '</p>';
             }
             if (message.amount && message.amount > 0) {
                 const amountColor = isMyMessage ? 'text-blue-100' : 'text-blue-600';
@@ -1276,6 +1313,56 @@ if ($result->num_rows === 1) {
         document.querySelector('[onclick="toggleModal(\'settlementModal\')"]').addEventListener('click', function() {
             setTimeout(initializeSettlementModal, 100);
         });
+        
+        // Remove member function
+        function removeMember(userId, userName) {
+            if (confirm(`Are you sure you want to remove "${userName}" from this group?\n\nThis action cannot be undone. The member will no longer have access to this group.`)) {
+                // Show loading state
+                const button = event.target.closest('button');
+                const originalHTML = button.innerHTML;
+                button.disabled = true;
+                button.innerHTML = '<i class="fas fa-spinner fa-spin text-sm"></i>';
+                
+                fetch('process/remove_group_member_process.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `group_id=${groupId}&user_id=${userId}&member_name=${encodeURIComponent(userName)}`
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Show success message
+                        alert('Member removed successfully!');
+                        
+                        // Remove the member from the UI
+                        button.closest('li').remove();
+                        
+                        // Reload messages to show the removal notification
+                        loadNewerMessages();
+                        
+                        // Close modal if no more members to manage
+                        const membersList = document.querySelector('#membersModal ul');
+                        if (membersList.children.length === 0) {
+                            toggleModal('membersModal');
+                        }
+                    } else {
+                        alert('Error: ' + data.error);
+                        // Restore button
+                        button.disabled = false;
+                        button.innerHTML = originalHTML;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error removing member:', error);
+                    alert('Failed to remove member. Please try again.');
+                    // Restore button
+                    button.disabled = false;
+                    button.innerHTML = originalHTML;
+                });
+            }
+        }
         
         // Auto-scroll to bottom of messages on page load
         window.onload = function() {
