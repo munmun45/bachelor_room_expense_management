@@ -197,37 +197,7 @@ if ($result->num_rows === 1) {
 
     <!-- Main Content -->
     <main class="pt-20 pb-24 px-4 max-w-md mx-auto">
-        <!-- Dashboard Overview -->
-        <div class="bg-white rounded-xl shadow-md p-4 mb-4">
-            <h2 class="text-lg font-semibold mb-2">Dashboard</h2>
-            <p class="text-sm text-gray-600 mb-4">Welcome to your Bachelor Room Expense Management dashboard.</p>
-
-            <div class="flex justify-between items-center">
-                <div class="text-center">
-                    <div class="h-12 w-12 rounded-full bg-blue-100 flex items-center justify-center mx-auto mb-2">
-                        <i class="fas fa-home text-blue-600"></i>
-                    </div>
-                    <p class="text-xs font-medium">My Rooms</p>
-                    <p class="text-lg font-bold">2</p>
-                </div>
-
-                <div class="text-center">
-                    <div class="h-12 w-12 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-2">
-                        <i class="fas fa-users text-green-600"></i>
-                    </div>
-                    <p class="text-xs font-medium">Groups</p>
-                    <p class="text-lg font-bold">4</p>
-                </div>
-
-                <div class="text-center">
-                    <div class="h-12 w-12 rounded-full bg-purple-100 flex items-center justify-center mx-auto mb-2">
-                        <i class="fas fa-receipt text-purple-600"></i>
-                    </div>
-                    <p class="text-xs font-medium">Expenses</p>
-                    <p class="text-lg font-bold">12</p>
-                </div>
-            </div>
-        </div>
+        
 
         <!-- Create New Room (Collapsible) -->
         <div class="bg-white rounded-xl shadow-md p-4 mb-4">
@@ -1020,33 +990,7 @@ if ($result->num_rows === 1) {
     </script>
     </main>
 
-    <!-- Bottom Navigation -->
-    <nav class="fixed bottom-0 left-0 right-0 bg-white bottom-nav">
-        <div class="relative">
-            <!-- Add Expense Button (More Prominent) -->
-            <div class="absolute left-1/2 transform -translate-x-1/2 -top-1">
-                <button class="h-16 px-6 rounded-full bg-blue-600 text-white flex items-center justify-center add-expense-btn">
-                    <i class="fas fa-plus-circle text-xl mr-2"></i>
-                    <span class="font-medium">Add Expense</span>
-                </button>
-            </div>
 
-            <div class="flex justify-around items-center h-16 px-4">
-                <a href="#" class="flex flex-col items-center justify-center text-blue-600">
-                    <i class="fas fa-home text-xl"></i>
-                    <span class="text-xs mt-1">Home</span>
-                </a>
-
-                <!-- Spacer for center button -->
-                <div class="w-14"></div>
-
-                <button onclick="toggleModal('groupSelectorModal')" class="flex flex-col items-center justify-center text-gray-500">
-                    <i class="fas fa-chart-bar text-xl"></i>
-                    <span class="text-xs mt-1">Report</span>
-                </button>
-            </div>
-        </div>
-    </nav>
 
 
 </body>
