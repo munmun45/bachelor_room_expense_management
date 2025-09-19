@@ -37,6 +37,8 @@ if ($result->num_rows === 1) {
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: #f0f2f5;
+            background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%239ca3af' fill-opacity='0.15' fill-rule='evenodd'/%3E%3C/svg%3E");
+            background-attachment: fixed;
         }
 
         .bottom-nav {
@@ -46,10 +48,17 @@ if ($result->num_rows === 1) {
         .add-expense-btn {
             transform: translateY(-50%);
             box-shadow: 0 0 15px rgba(37, 99, 235, 0.5);
+            transition: all 0.3s ease;
+        }
+        
+        .add-expense-btn:hover {
+            transform: translateY(-50%) scale(1.05);
+            box-shadow: 0 0 20px rgba(37, 99, 235, 0.7);
         }
         
         .group-option {
-            transition: all 0.2s ease;
+            transition: all 0.3s ease;
+            border-radius: 10px;
         }
         
         .group-option:hover {
@@ -63,15 +72,18 @@ if ($result->num_rows === 1) {
         
         /* Compact Action Cards Styling */
         .compact-card {
-            transition: all 0.2s ease;
+            transition: all 0.3s ease;
+            border-radius: 8px;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
         }
         
         .compact-card:hover {
             transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
         }
         
         .compact-icon {
-            transition: all 0.2s ease;
+            transition: all 0.3s ease;
         }
         
         .compact-card:hover .compact-icon {
@@ -101,6 +113,7 @@ if ($result->num_rows === 1) {
             z-index: 1000;
             transition: transform 0.3s ease;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            border-radius: 0 0 5px 5px;
         }
         
         .pull-to-refresh.show {
@@ -112,10 +125,11 @@ if ($result->num_rows === 1) {
             align-items: center;
             color: white;
             font-weight: 500;
+            font-size: 0.875rem;
         }
         
         .pull-to-refresh .refresh-icon {
-            margin-right: 8px;
+            margin-right: 6px;
             transition: transform 0.3s ease;
         }
         
@@ -130,14 +144,14 @@ if ($result->num_rows === 1) {
         
         .pull-indicator {
             position: fixed;
-            top: 20px;
+            top: 15px;
             left: 50%;
             transform: translateX(-50%);
             background: rgba(0, 0, 0, 0.7);
             color: white;
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-size: 14px;
+            padding: 6px 12px;
+            border-radius: 16px;
+            font-size: 12px;
             z-index: 1001;
             opacity: 0;
             transition: opacity 0.3s ease;
@@ -149,12 +163,98 @@ if ($result->num_rows === 1) {
         }
         
         .pull-indicator .icon {
-            margin-right: 6px;
+            margin-right: 4px;
+        }
+        
+        /* Mobile App Design Enhancements */
+        .app-header {
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .card-gradient {
+            background: linear-gradient(135deg, #ffffff 0%, #f9fafb 100%);
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            backdrop-filter: blur(10px);
+        }
+        
+        .action-button {
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .action-button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .action-button:active {
+            transform: translateY(0);
+        }
+        
+        .floating-card {
+            animation: float 3s ease-in-out infinite;
+        }
+        
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-5px); }
+            100% { transform: translateY(0px); }
+        }
+        
+        .room-card {
+            transition: all 0.2s ease;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+        
+        .room-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+        
+        .modal-container {
+            animation: modalSlideIn 0.2s ease-out;
+        }
+        
+        @keyframes modalSlideIn {
+            from { opacity: 0; transform: translateY(15px) scale(0.98); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        
+        .collapsible-section {
+            transition: all 0.2s ease;
+        }
+        
+        .collapsible-content {
+            animation: slideDown 0.2s ease-out;
+        }
+        
+        @keyframes slideDown {
+            from { opacity: 0; max-height: 0; }
+            to { opacity: 1; max-height: 1000px; }
+        }
+        
+        /* Compact form elements */
+        .compact-input {
+            padding: 0.5rem 0.75rem;
+            font-size: 0.875rem;
+        }
+        
+        .compact-button {
+            padding: 0.5rem 1rem;
+            font-size: 0.875rem;
+        }
+        
+        .compact-card-content {
+            padding: 0.75rem;
         }
     </style>
 </head>
 
-<body class="bg-gray-100">
+<body class="bg-gray-100 min-h-screen pb-20">
     <!-- Pull to Refresh Indicator -->
     <div class="pull-indicator" id="pullIndicator">
         <i class="fas fa-arrow-down icon"></i>
@@ -170,24 +270,26 @@ if ($result->num_rows === 1) {
     </div>
     
     <!-- Top Header with Logo and Profile -->
-    <header class="fixed top-0 left-0 right-0 bg-white shadow-md z-10">
-        <div class="flex justify-between items-center px-4 py-3">
-            <div class="flex items-center">
-                <div class="mr-3">
-                    <i class="fas fa-wallet text-blue-600 text-2xl"></i>
+    <header class="app-header fixed top-0 left-0 right-0 z-10 py-2.5 px-3">
+        <div class="flex justify-between items-center">
+            <div class="flex items-center space-x-2.5">
+                <div class="bg-white bg-opacity-20 p-1.5 rounded-lg backdrop-blur-sm" style="width: 35px; height: 35px; display: flex; align-items: center; justify-content: center;" >
+                    <i class="fas fa-wallet text-white text-sm"></i>
                 </div>
                 <div>
-                    <h1 class="text-lg font-bold text-gray-800">Bachelor Room</h1>
-                    <p class="text-xs text-gray-500">Expense Management</p>
+                    <h1 class="text-base font-bold text-white tracking-tight">Bachelor Room</h1>
+                    <p class="text-[10px] text-white text-opacity-80 -mt-0.5">Expense Management</p>
                 </div>
             </div>
-            <div class="flex items-center">
-                <div class="mr-4 relative">
-                    <i class="fas fa-bell text-gray-600 text-xl"></i>
-                    <span class="absolute top-0 right-0 h-2 w-2 bg-red-500 rounded-full"></span>
+            <div class="flex items-center space-x-3">
+                <div class="relative">
+                    <div class="w-7 h-7 rounded-full bg-white bg-opacity-20 flex items-center justify-center backdrop-blur-sm">
+                        <i class="fas fa-bell text-white text-sm"></i>
+                    </div>
+                    <span class="absolute -top-0.5 -right-0.5 h-2.5 w-2.5 bg-red-500 rounded-full border border-white animate-pulse"></span>
                 </div>
-                <a href="profile.php">
-                    <div class="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center overflow-hidden">
+                <a href="profile.php" class="transform transition-transform hover:scale-105">
+                    <div class="h-8 w-8 rounded-full bg-white bg-opacity-20 flex items-center justify-center overflow-hidden border border-white border-opacity-30 backdrop-blur-sm" style="border: 2px solid white; height: 35px; width: 35px;">
                         <img src="<?php echo $profile_image; ?>" alt="Profile" class="h-full w-full object-cover">
                     </div>
                 </a>
@@ -196,97 +298,99 @@ if ($result->num_rows === 1) {
     </header>
 
     <!-- Main Content -->
-    <main class="pt-20 pb-24 px-4 max-w-md mx-auto">
+    <main class="pt-16 px-3 max-w-md mx-auto">
         
 
         <!-- Create New Room (Collapsible) -->
-        <div class="bg-white rounded-xl shadow-md p-4 mb-4">
-            <div class="flex justify-between items-center cursor-pointer" onclick="toggleCollapsible('createRoomSection')">
-                <h2 class="text-lg font-semibold">Create New Room</h2>
-                <i id="createRoomIcon" class="fas fa-chevron-down text-blue-600"></i>
+        <div class="card-gradient p-3.5 mb-3 shadow-sm" style="margin-top: 10px;">
+            <div class="flex justify-between items-center cursor-pointer" onclick="toggleCollapsible('createRoomSection')" >
+                <h2 class="text-sm font-semibold text-gray-800">Create New Room</h2>
+                <button class="h-7 w-7 rounded-full bg-gradient-to-r from-indigo-500 to-purple-600 text-white flex items-center justify-center shadow-sm hover:from-indigo-600 hover:to-purple-700 transition-all transform hover:scale-105">
+                    <i class="fas fa-plus text-xs"></i>
+                </button>
             </div>
 
             <!-- Collapsible Content -->
-            <div id="createRoomSection" class="hidden mt-4 border-t pt-4">
+            <div id="createRoomSection" class="hidden mt-3 border-t border-gray-100 pt-3 collapsible-content">
                 <form action="process/create_room_process.php" method="post">
-                    <div class="mb-4">
-                        <label class="block text-gray-700 text-sm font-bold mb-2" for="room_name">
+                    <div class="mb-3">
+                        <label class="block text-gray-700 text-xs font-bold mb-1.5" for="room_name">
                             Room Name*
                         </label>
-                        <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                        <input class="compact-input shadow-sm appearance-none border border-gray-200 rounded-lg w-full text-gray-700 leading-tight focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-transparent transition-all"
                             id="room_name" name="room_name" type="text" placeholder="Enter room name" required>
                     </div>
 
-                    <div class="mb-4">
-                        <label class="block text-gray-700 text-sm font-bold mb-2" for="room_description">
+                    <div class="mb-3">
+                        <label class="block text-gray-700 text-xs font-bold mb-1.5" for="room_description">
                             Description (Optional)
                         </label>
-                        <textarea class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                        <textarea class="compact-input shadow-sm appearance-none border border-gray-200 rounded-lg w-full text-gray-700 leading-tight focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-transparent transition-all"
                             id="room_description" name="room_description" placeholder="Enter room description" rows="2"></textarea>
                     </div>
 
-                    <div class="mb-4">
-                        <label class="block text-gray-700 text-sm font-bold mb-2" for="room_address">
+                    <div class="mb-3">
+                        <label class="block text-gray-700 text-xs font-bold mb-1.5" for="room_address">
                             Address*
                         </label>
-                        <textarea class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                        <textarea class="compact-input shadow-sm appearance-none border border-gray-200 rounded-lg w-full text-gray-700 leading-tight focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-transparent transition-all"
                             id="room_address" name="room_address" placeholder="Enter room address" rows="2" required></textarea>
                     </div>
 
-                    <div class="mb-4 grid grid-cols-2 gap-3">
+                    <div class="mb-3 grid grid-cols-2 gap-2">
                         <div>
-                            <label class="block text-gray-700 text-sm font-bold mb-2" for="latitude">
+                            <label class="block text-gray-700 text-xs font-bold mb-1.5" for="latitude">
                                 Latitude
                             </label>
-                            <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                            <input class="compact-input shadow-sm appearance-none border border-gray-200 rounded-lg w-full text-gray-700 leading-tight focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-transparent transition-all"
                                 id="latitude" name="latitude" type="text" placeholder="Latitude">
                         </div>
                         <div>
-                            <label class="block text-gray-700 text-sm font-bold mb-2" for="longitude">
+                            <label class="block text-gray-700 text-xs font-bold mb-1.5" for="longitude">
                                 Longitude
                             </label>
-                            <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                            <input class="compact-input shadow-sm appearance-none border border-gray-200 rounded-lg w-full text-gray-700 leading-tight focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-transparent transition-all"
                                 id="longitude" name="longitude" type="text" placeholder="Longitude">
                         </div>
                     </div>
 
-                    <div class="mb-4">
-                        <button type="button" onclick="getCurrentLocation()" class="text-blue-600 text-sm font-medium">
-                            <i class="fas fa-map-marker-alt mr-1"></i> Get Current Location
+                    <div class="mb-3">
+                        <button type="button" onclick="getCurrentLocation()" class="text-indigo-600 text-xs font-medium flex items-center">
+                            <i class="fas fa-map-marker-alt mr-1.5 text-xs"></i> Get Current Location
                         </button>
                     </div>
 
                     <!-- Rental Information -->
-                    <div class="border-t border-gray-200 pt-4 mt-4 mb-4">
-                        <h4 class="font-medium mb-3">Rental Information</h4>
+                    <div class="border-t border-gray-100 pt-3 mt-3 mb-3">
+                        <h4 class="font-medium mb-2.5 text-gray-800 text-sm">Rental Information</h4>
 
-                        <div class="mb-4">
-                            <label class="block text-gray-700 text-sm font-bold mb-2" for="rental_date">
+                        <div class="mb-3">
+                            <label class="block text-gray-700 text-xs font-bold mb-1.5" for="rental_date">
                                 Rental Date
                             </label>
-                            <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                            <input class="compact-input shadow-sm appearance-none border border-gray-200 rounded-lg w-full text-gray-700 leading-tight focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-transparent transition-all"
                                 id="rental_date" name="rental_date" type="date">
                         </div>
 
-                        <div class="mb-4">
-                            <label class="block text-gray-700 text-sm font-bold mb-2" for="monthly_rent">
+                        <div class="mb-3">
+                            <label class="block text-gray-700 text-xs font-bold mb-1.5" for="monthly_rent">
                                 Monthly Rent (₹)
                             </label>
-                            <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                                id="monthly_rent" name="monthly_rent" type="number" step="0.01" min="0" placeholder="Enter monthly rent amount">
+                            <input class="compact-input shadow-sm appearance-none border border-gray-200 rounded-lg w-full text-gray-700 leading-tight focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-transparent transition-all"
+                                id="monthly_rent" name="monthly_rent" type="number" step="0.01" min="0" placeholder="Enter monthly rent">
                         </div>
 
-                        <div class="mb-4">
-                            <label class="block text-gray-700 text-sm font-bold mb-2" for="advance_payment">
+                        <div class="mb-3">
+                            <label class="block text-gray-700 text-xs font-bold mb-1.5" for="advance_payment">
                                 Advance Payment (₹)
                             </label>
-                            <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                                id="advance_payment" name="advance_payment" type="number" step="0.01" min="0" placeholder="Enter advance payment amount">
+                            <input class="compact-input shadow-sm appearance-none border border-gray-200 rounded-lg w-full text-gray-700 leading-tight focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-transparent transition-all"
+                                id="advance_payment" name="advance_payment" type="number" step="0.01" min="0" placeholder="Enter advance payment">
                         </div>
                     </div>
 
                     <div class="flex justify-end">
-                        <button type="submit" name="create_room" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+                        <button type="submit" name="create_room" class="compact-button action-button bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:ring-offset-1 transition-all shadow-sm">
                             Create Room
                         </button>
                     </div>
@@ -329,37 +433,37 @@ if ($result->num_rows === 1) {
                 $invitation_status = $room['invitation_status'];
         ?>
 
-                <div class="bg-white rounded-xl shadow-md p-4 mb-4 <?php echo $invitation_status == 'pending' ? 'border-l-4 border-yellow-400' : ''; ?>">
-                    <div class="flex justify-between items-center mb-4">
+                <div class="room-card card-gradient p-3.5 mb-3 shadow-sm <?php echo $invitation_status == 'pending' ? 'border-l-2 border-yellow-400' : ''; ?>">
+                    <div class="flex justify-between items-center mb-3">
                         <div class="flex items-center">
-                            <h2 class="text-lg font-semibold"><?php echo htmlspecialchars($room['name']); ?></h2>
+                            <h2 class="text-sm font-semibold text-gray-800 truncate max-w-[140px]"><?php echo htmlspecialchars($room['name']); ?></h2>
                             
                             
                             <?php if ($is_admin): ?>
-                                <span class="ml-2 bg-blue-100 text-blue-800 text-xs font-medium px-2 py-1 rounded-full">
-                                    <i class="fas fa-crown"></i> Admin
+                                <span class="ml-1.5 bg-gradient-to-r from-amber-100 to-yellow-100 text-amber-800 text-[10px] font-medium px-1.5 py-0.5 rounded-full shadow-xs">
+                                    <i class="fas fa-crown text-[8px]"></i> Admin
                                 </span>
                             <?php endif; ?>
                             
                             <?php if ($invitation_status == 'accepted'): ?>
-                                <a href="room-details.php?id=<?php echo $room['id']; ?>" class="text-sm text-gray-400 ml-2">
-                                    <i class="fas fa-chevron-right text-sm text-gray-400 ml-2"></i>
+                                <a href="room-details.php?id=<?php echo $room['id']; ?>" class="text-[10px] text-gray-400 ml-1.5">
+                                    <i class="fas fa-chevron-right text-[10px] text-gray-400 ml-1.5"></i>
                                 </a>
                             <?php endif; ?>
                         </div>
 
                         <?php if ($invitation_status == 'pending'): ?>
-                            <div class="flex space-x-2">
-                                <button onclick="acceptInvitation(<?php echo $room['id']; ?>)" class="bg-green-600 hover:bg-green-700 text-white text-xs font-medium px-3 py-1 rounded">
-                                    <i class="fas fa-check mr-1"></i> Accept
+                            <div class="flex space-x-1.5">
+                                <button onclick="acceptInvitation(<?php echo $room['id']; ?>)" class="action-button bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white text-[10px] font-medium px-2 py-1 rounded-md shadow-xs transition-all">
+                                    <i class="fas fa-check mr-1 text-[8px]"></i> Accept
                                 </button>
-                                <button onclick="rejectInvitation(<?php echo $room['id']; ?>)" class="bg-red-600 hover:bg-red-700 text-white text-xs font-medium px-3 py-1 rounded">
-                                    <i class="fas fa-times mr-1"></i> Reject
+                                <button onclick="rejectInvitation(<?php echo $room['id']; ?>)" class="action-button bg-gradient-to-r from-red-500 to-rose-600 hover:from-red-600 hover:to-rose-700 text-white text-[10px] font-medium px-2 py-1 rounded-md shadow-xs transition-all">
+                                    <i class="fas fa-times mr-1 text-[8px]"></i> Reject
                                 </button>
                             </div>
                         <?php elseif ($is_admin && $invitation_status == 'accepted'): ?>
-                            <button onclick="toggleModal('createGroupModal-<?php echo $room['id']; ?>')" class="h-8 w-8 rounded-full bg-blue-600 text-white flex items-center justify-center shadow-md hover:bg-blue-700 text-sm">
-                                <i class="fas fa-plus"></i>
+                            <button onclick="toggleModal('createGroupModal-<?php echo $room['id']; ?>')" class="h-7 w-7 rounded-full bg-gradient-to-r from-indigo-500 to-purple-600 text-white flex items-center justify-center shadow-sm hover:from-indigo-600 hover:to-purple-700 transition-all transform hover:scale-105">
+                                <i class="fas fa-plus text-xs"></i>
                             </button>
                         <?php endif; ?>
                     </div>
@@ -379,33 +483,35 @@ if ($result->num_rows === 1) {
                                 
                                 <!-- Absence Requests Card -->
                                 <button onclick="toggleModal('absenceRequestsModal-<?php echo $room['id']; ?>')" 
-                                        class="group compact-card bg-gradient-to-r from-orange-50 to-orange-100 border border-orange-200 rounded-lg px-3 py-2 hover:from-orange-100 hover:to-orange-200 transition-all duration-200 hover:shadow-md relative">
-                                    <div class="flex items-center space-x-2">
-                                        <div class="compact-icon w-6 h-6 bg-orange-500 rounded flex items-center justify-center group-hover:bg-orange-600 transition-colors">
-                                            <i class="fas fa-calendar-times text-white text-xs"></i>
+                                        class="group compact-card bg-gradient-to-br from-amber-50 to-orange-100 border border-amber-200 rounded-lg px-2.5 py-2 hover:from-amber-100 hover:to-orange-200 transition-all duration-200 hover:shadow-xs relative">
+                                    <div class="flex items-center space-x-1.5">
+                                        <div class="compact-icon w-6 h-6 bg-gradient-to-r from-amber-500 to-orange-600 rounded-md flex items-center justify-center group-hover:from-amber-600 group-hover:to-orange-700 transition-all shadow-xs">
+                                            <i class="fas fa-calendar-times text-white text-[10px]"></i>
                                         </div>
-                                        <span class="font-medium text-orange-800 text-xs">Absence Requests</span>
-                                        <?php if ($pending_count > 0): ?>
-                                            <span class="bg-red-500 text-white text-xs font-bold rounded-full h-4 w-4 flex items-center justify-center text-[10px]"><?php echo $pending_count; ?></span>
-                                        <?php endif; ?>
+                                        <div class="text-left flex">
+                                            <span class="font-medium text-amber-800 text-[10px]">Absence Requests</span>
+                                            <?php if ($pending_count > 0): ?>
+                                                <span class="bg-red-500 text-white text-[8px] font-bold rounded-full h-4 w-4 flex items-center justify-center text-[8px] absolute -top-1 -right-1 animate-pulse"><?php echo $pending_count; ?></span>
+                                            <?php endif; ?>
+                                        </div>
                                     </div>
                                 </button>
                             <?php endif; ?>
                             
                             <!-- Request Absence Card -->
                             <button onclick="toggleModal('requestAbsenceModal-<?php echo $room['id']; ?>')" 
-                                    class="group compact-card bg-gradient-to-r from-purple-50 to-purple-100 border border-purple-200 rounded-lg px-3 py-2 hover:from-purple-100 hover:to-purple-200 transition-all duration-200 hover:shadow-md <?php echo !$is_admin ? 'col-span-2' : ''; ?>">
-                                <div class="flex items-center space-x-2">
-                                    <div class="compact-icon w-6 h-6 bg-purple-500 rounded flex items-center justify-center group-hover:bg-purple-600 transition-colors">
-                                        <i class="fas fa-calendar-minus text-white text-xs"></i>
+                                    class="group compact-card bg-gradient-to-br from-purple-50 to-indigo-100 border border-purple-200 rounded-lg px-2.5 py-2 hover:from-purple-100 hover:to-indigo-200 transition-all duration-200 hover:shadow-xs <?php echo !$is_admin ? 'col-span-2' : ''; ?>">
+                                <div class="flex items-center space-x-1.5">
+                                    <div class="compact-icon w-6 h-6 bg-gradient-to-r from-purple-500 to-indigo-600 rounded-md flex items-center justify-center group-hover:from-purple-600 group-hover:to-indigo-700 transition-all shadow-xs">
+                                        <i class="fas fa-calendar-minus text-white text-[10px]"></i>
                                     </div>
-                                    <span class="font-medium text-purple-800 text-xs">Request Absence</span>
+                                    <span class="font-medium text-purple-800 text-[10px] flex">Request Absence</span>
                                 </div>
                             </button>
                         </div>
 
                         <!-- Groups Section -->
-                    <div class="mb-3">
+                    <div class="mb-2.5">
 
 
                         <?php
@@ -425,29 +531,29 @@ if ($result->num_rows === 1) {
 
                             if ($groups_result->num_rows > 0) {
                         ?>
-                                <div class="grid gap-3">
+                                <div class="grid gap-2 mt-2.5">
                                     <?php while ($group = $groups_result->fetch_assoc()): ?>
-                                        <div class="flex items-center space-x-2 p-3 border rounded-lg hover:shadow-sm transition-shadow border-blue-200 bg-blue-50">
+                                        <div class="flex items-center space-x-2.5 p-2.5 border rounded-lg hover:shadow-xs transition-all border-indigo-200 bg-gradient-to-r from-indigo-50 to-blue-50">
                                             <a href="group.php?id=<?php echo $group['id']; ?>" class="flex-1 flex items-center justify-between">
                                                 <div>
-                                                    <div class="flex items-center space-x-2">
-                                                        <p class="font-medium"><?php echo htmlspecialchars($group['name']); ?></p>
+                                                    <div class="flex items-center space-x-1.5">
+                                                        <p class="font-medium text-gray-800 text-sm truncate max-w-[120px]"><?php echo htmlspecialchars($group['name']); ?></p>
                                                         <?php if ($group['is_leader'] == 1): ?>
-                                                            <span class="text-xs bg-purple-100 text-purple-800 px-2 py-1 rounded-full">
-                                                                <i class="fas fa-crown mr-1"></i>Leader
+                                                            <span class="text-[9px] bg-gradient-to-r from-purple-100 to-pink-100 text-purple-800 px-1.5 py-0.5 rounded-full shadow-xs">
+                                                                <i class="fas fa-crown mr-0.5 text-[8px]"></i>Leader
                                                             </span>
                                                         <?php endif; ?>
                                                     </div>
-                                                    <p class="text-xs text-gray-500"><?php echo $group['member_count']; ?> Members</p>
+                                                    <p class="text-[10px] text-gray-500 mt-0.5"><?php echo $group['member_count']; ?> Members</p>
                                                 </div>
-                                                <span class="text-sm text-gray-400">›</span>
+                                                <span class="text-gray-400">›</span>
                                             </a>
                                             <!-- Quick Actions -->
                                             <div class="flex space-x-1">
                                                 <a href="settlement_report.php?group_id=<?php echo $group['id']; ?>" 
-                                                   class="p-2 text-purple-600 hover:bg-purple-100 rounded-full transition-colors" 
+                                                   class="p-1.5 text-indigo-600 hover:bg-indigo-100 rounded-full transition-colors" 
                                                    title="Settlement Reports">
-                                                    <i class="fas fa-file-invoice-dollar text-sm"></i>
+                                                    <i class="fas fa-file-invoice-dollar"></i>
                                                 </a>
                                                 
                                             </div>
@@ -456,7 +562,7 @@ if ($result->num_rows === 1) {
                                 </div>
                         <?php
                             } else {
-                                echo '<p class="text-center text-gray-500 py-2">You are not a member of any groups in this room.</p>';
+                                echo '<p class="text-center text-gray-500 py-2.5 text-xs">You are not a member of any groups in this room.</p>';
                             }
                             $groups_stmt->close();
                         }
@@ -464,42 +570,47 @@ if ($result->num_rows === 1) {
                     </div>
                     <?php else: ?>
                         <!-- Pending Invitation Message -->
-                        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-center">
-                            <i class="fas fa-clock text-yellow-600 text-2xl mb-2"></i>
-                            <p class="text-yellow-800 font-medium">Room Invitation Pending</p>
-                            <p class="text-yellow-600 text-sm">Please accept the invitation to access room features.</p>
+                        <div class="bg-gradient-to-r from-amber-50 to-yellow-50 border border-amber-200 rounded-lg p-3 text-center shadow-xs">
+                            <i class="fas fa-clock text-amber-500 text-lg mb-1.5"></i>
+                            <p class="text-amber-800 font-medium text-xs">Room Invitation Pending</p>
+                            <p class="text-amber-600 text-[10px] mt-1">Please accept the invitation to access room features.</p>
                         </div>
                     <?php endif; ?>
                 </div>
 
                 <!-- Create Group Modal -->
                 <div id="createGroupModal-<?php echo $room['id']; ?>" class="fixed inset-0 bg-black bg-opacity-50 z-20 flex items-center justify-center hidden">
-                    <div class="bg-white rounded-xl p-5 w-full max-w-md mx-4">
-                        <h3 class="text-lg font-semibold mb-4">Create New Group</h3>
+                    <div class="modal-container bg-white rounded-xl p-4 w-full max-w-md mx-3 shadow-xl">
+                        <div class="flex justify-between items-center mb-3">
+                            <h3 class="text-base font-bold text-gray-800">Create New Group</h3>
+                            <button onclick="toggleModal('createGroupModal-<?php echo $room['id']; ?>')" class="text-gray-500 hover:text-gray-700">
+                                <i class="fas fa-times text-sm"></i>
+                            </button>
+                        </div>
                         <form action="process/create_group_process.php" method="post">
                             <input type="hidden" name="room_id" value="<?php echo $room['id']; ?>">
 
-                            <div class="mb-4">
-                                <label class="block text-gray-700 text-sm font-bold mb-2" for="group_name">
+                            <div class="mb-3">
+                                <label class="block text-gray-700 text-xs font-bold mb-1.5" for="group_name">
                                     Group Name
                                 </label>
-                                <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                <input class="compact-input shadow-sm appearance-none border border-gray-200 rounded-lg w-full text-gray-700 leading-tight focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-transparent transition-all"
                                     id="group_name" name="group_name" type="text" placeholder="Enter group name" required>
                             </div>
 
-                            <div class="mb-4">
-                                <label class="block text-gray-700 text-sm font-bold mb-2" for="group_description">
+                            <div class="mb-3">
+                                <label class="block text-gray-700 text-xs font-bold mb-1.5" for="group_description">
                                     Description
                                 </label>
-                                <textarea class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                                    id="group_description" name="group_description" placeholder="Enter group description" rows="3"></textarea>
+                                <textarea class="compact-input shadow-sm appearance-none border border-gray-200 rounded-lg w-full text-gray-700 leading-tight focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-transparent transition-all"
+                                    id="group_description" name="group_description" placeholder="Enter group description" rows="2"></textarea>
                             </div>
 
-                            <div class="flex justify-end space-x-3">
-                                <button type="button" onclick="toggleModal('createGroupModal-<?php echo $room['id']; ?>')" class="px-4 py-2 text-gray-600 font-medium">
+                            <div class="flex justify-end space-x-2 pt-2">
+                                <button type="button" onclick="toggleModal('createGroupModal-<?php echo $room['id']; ?>')" class="px-3 py-2 text-gray-600 font-medium text-xs rounded-lg hover:bg-gray-100 transition-all">
                                     Cancel
                                 </button>
-                                <button type="submit" name="create_group" class="px-4 py-2 bg-blue-600 text-white font-medium rounded hover:bg-blue-700">
+                                <button type="submit" name="create_group" class="action-button px-3 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-medium text-xs rounded-lg hover:from-indigo-700 hover:to-purple-700 transition-all shadow-xs">
                                     Create Group
                                 </button>
                             </div>
@@ -509,51 +620,56 @@ if ($result->num_rows === 1) {
 
                 <!-- Request Absence Modal -->
                 <div id="requestAbsenceModal-<?php echo $room['id']; ?>" class="fixed inset-0 bg-black bg-opacity-50 z-20 flex items-center justify-center hidden">
-                    <div class="bg-white rounded-xl p-5 w-full max-w-md mx-4 max-h-[80vh] overflow-y-auto">
-                        <h3 class="text-lg font-semibold mb-4 text-purple-800">
-                            <i class="fas fa-calendar-minus mr-2"></i>Request Absence
-                        </h3>
+                    <div class="modal-container bg-white rounded-xl p-4 w-full max-w-md mx-3 max-h-[70vh] overflow-y-auto shadow-xl">
+                        <div class="flex justify-between items-center mb-3">
+                            <h3 class="text-base font-bold text-purple-800">
+                                <i class="fas fa-calendar-minus mr-1.5 text-sm"></i>Request Absence
+                            </h3>
+                            <button onclick="toggleModal('requestAbsenceModal-<?php echo $room['id']; ?>')" class="text-gray-500 hover:text-gray-700">
+                                <i class="fas fa-times text-sm"></i>
+                            </button>
+                        </div>
                         <form action="process/request_absence_process.php" method="post">
                             <input type="hidden" name="room_id" value="<?php echo $room['id']; ?>">
 
-                            <div class="mb-4">
-                                <label class="block text-gray-700 text-sm font-bold mb-2">
+                            <div class="mb-3">
+                                <label class="block text-gray-700 text-xs font-bold mb-1.5">
                                     Absence Period
                                 </label>
-                                <div class="grid grid-cols-2 gap-3">
+                                <div class="grid grid-cols-2 gap-2">
                                     <div>
-                                        <label class="text-xs text-gray-500">From Date</label>
-                                        <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                        <label class="text-[9px] text-gray-500 mb-1 block">From Date</label>
+                                        <input class="compact-input shadow-sm appearance-none border border-gray-200 rounded-lg w-full text-gray-700 leading-tight focus:outline-none focus:ring-1 focus:ring-purple-500 focus:border-transparent transition-all"
                                             name="from_date" type="date" required>
                                     </div>
                                     <div>
-                                        <label class="text-xs text-gray-500">To Date</label>
-                                        <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                        <label class="text-[9px] text-gray-500 mb-1 block">To Date</label>
+                                        <input class="compact-input shadow-sm appearance-none border border-gray-200 rounded-lg w-full text-gray-700 leading-tight focus:outline-none focus:ring-1 focus:ring-purple-500 focus:border-transparent transition-all"
                                             name="to_date" type="date" required>
                                     </div>
                                 </div>
                             </div>
 
-                            <div class="mb-4">
-                                <label class="block text-gray-700 text-sm font-bold mb-2">
+                            <div class="mb-3">
+                                <label class="block text-gray-700 text-xs font-bold mb-1.5">
                                     Reason for Absence
                                 </label>
-                                <textarea class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                                    name="reason" placeholder="Enter reason for absence (optional)" rows="3"></textarea>
+                                <textarea class="compact-input shadow-sm appearance-none border border-gray-200 rounded-lg w-full text-gray-700 leading-tight focus:outline-none focus:ring-1 focus:ring-purple-500 focus:border-transparent transition-all"
+                                    name="reason" placeholder="Enter reason (optional)" rows="2"></textarea>
                             </div>
 
-                            <div class="bg-purple-50 border border-purple-200 rounded-lg p-3 mb-4">
-                                <p class="text-sm text-purple-700">
-                                    <i class="fas fa-info-circle mr-1"></i>
+                            <div class="bg-gradient-to-r from-purple-50 to-indigo-50 border border-purple-200 rounded-lg p-3 mb-4">
+                                <p class="text-[10px] text-purple-700">
+                                    <i class="fas fa-info-circle mr-1.5"></i>
                                     <strong>Note:</strong> During settlement, your food expenses will be calculated only for days you were present. Special items will still be split equally among all members.
                                 </p>
                             </div>
 
-                            <div class="flex justify-end space-x-3">
-                                <button type="button" onclick="toggleModal('requestAbsenceModal-<?php echo $room['id']; ?>')" class="px-4 py-2 text-gray-600 font-medium">
+                            <div class="flex justify-end space-x-2">
+                                <button type="button" onclick="toggleModal('requestAbsenceModal-<?php echo $room['id']; ?>')" class="px-3 py-2 text-gray-600 font-medium text-xs rounded-lg hover:bg-gray-100 transition-all">
                                     Cancel
                                 </button>
-                                <button type="submit" name="request_absence" class="px-4 py-2 bg-purple-600 text-white font-medium rounded hover:bg-purple-700">
+                                <button type="submit" name="request_absence" class="action-button px-3 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-medium text-xs rounded-lg hover:from-purple-700 hover:to-indigo-700 transition-all shadow-xs">
                                     Submit Request
                                 </button>
                             </div>
@@ -564,10 +680,15 @@ if ($result->num_rows === 1) {
                 <!-- Admin: Manage Absence Requests Modal -->
                 <?php if ($is_admin): ?>
                 <div id="absenceRequestsModal-<?php echo $room['id']; ?>" class="fixed inset-0 bg-black bg-opacity-50 z-20 flex items-center justify-center hidden">
-                    <div class="bg-white rounded-xl p-5 w-full max-w-2xl mx-4 max-h-[80vh] overflow-y-auto">
-                        <h3 class="text-lg font-semibold mb-4 text-orange-800">
-                            <i class="fas fa-calendar-times mr-2"></i>Manage Absence Requests
-                        </h3>
+                    <div class="modal-container bg-white rounded-xl p-4 w-full max-w-md mx-3 max-h-[70vh] overflow-y-auto shadow-xl">
+                        <div class="flex justify-between items-center mb-3">
+                            <h3 class="text-base font-bold text-orange-800">
+                                <i class="fas fa-calendar-times mr-1.5 text-sm"></i>Manage Absence Requests
+                            </h3>
+                            <button onclick="toggleModal('absenceRequestsModal-<?php echo $room['id']; ?>')" class="text-gray-500 hover:text-gray-700">
+                                <i class="fas fa-times text-sm"></i>
+                            </button>
+                        </div>
                         
                         <div id="absenceRequestsList-<?php echo $room['id']; ?>">
                             <?php
@@ -586,43 +707,43 @@ if ($result->num_rows === 1) {
                             if ($requests_result->num_rows > 0):
                                 while ($request = $requests_result->fetch_assoc()):
                             ?>
-                                <div class="border rounded-lg p-4 mb-3 <?php 
-                                    echo $request['status'] == 'pending' ? 'border-yellow-300 bg-yellow-50' : 
-                                        ($request['status'] == 'approved' ? 'border-green-300 bg-green-50' : 'border-red-300 bg-red-50'); 
+                                <div class="border rounded-lg p-3 mb-3 <?php 
+                                    echo $request['status'] == 'pending' ? 'border-yellow-300 bg-gradient-to-r from-yellow-50 to-amber-50' : 
+                                        ($request['status'] == 'approved' ? 'border-green-300 bg-gradient-to-r from-green-50 to-emerald-50' : 'border-red-300 bg-gradient-to-r from-red-50 to-rose-50'); 
                                 ?>">
                                     <div class="flex items-start justify-between">
-                                        <div class="flex items-center space-x-3">
+                                        <div class="flex items-center space-x-2.5">
                                             <img src="uploads/profile/<?php echo $request['profile_image'] ? $request['profile_image'] : 'default_avatar.png'; ?>" 
-                                                 class="h-10 w-10 rounded-full object-cover">
+                                                 class="h-8 w-8 rounded-full object-cover border border-white shadow-xs">
                                             <div>
-                                                <p class="font-medium"><?php echo htmlspecialchars($request['full_name']); ?></p>
-                                                <p class="text-sm text-gray-600">
+                                                <p class="font-medium text-gray-800 text-sm"><?php echo htmlspecialchars($request['full_name']); ?></p>
+                                                <p class="text-[10px] text-gray-600">
                                                     <?php echo date('M d, Y', strtotime($request['from_date'])); ?> - 
                                                     <?php echo date('M d, Y', strtotime($request['to_date'])); ?>
                                                 </p>
                                                 <?php if ($request['reason']): ?>
-                                                    <p class="text-sm text-gray-500 mt-1"><?php echo htmlspecialchars($request['reason']); ?></p>
+                                                    <p class="text-[10px] text-gray-500 mt-1 truncate max-w-[120px]"><?php echo htmlspecialchars($request['reason']); ?></p>
                                                 <?php endif; ?>
                                             </div>
                                         </div>
                                         
                                         <div class="text-right">
-                                            <span class="px-2 py-1 text-xs font-medium rounded-full <?php 
-                                                echo $request['status'] == 'pending' ? 'bg-yellow-100 text-yellow-800' : 
-                                                    ($request['status'] == 'approved' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'); 
+                                            <span class="px-2 py-1 text-[9px] font-medium rounded-full <?php 
+                                                echo $request['status'] == 'pending' ? 'bg-gradient-to-r from-yellow-100 to-amber-100 text-yellow-800' : 
+                                                    ($request['status'] == 'approved' ? 'bg-gradient-to-r from-green-100 to-emerald-100 text-green-800' : 'bg-gradient-to-r from-red-100 to-rose-100 text-red-800'); 
                                             ?>">
                                                 <?php echo ucfirst($request['status']); ?>
                                             </span>
                                             
                                             <?php if ($request['status'] == 'pending'): ?>
-                                                <div class="mt-2 space-x-2">
+                                                <div class="mt-2 space-x-1.5 flex">
                                                     <button onclick="reviewAbsenceRequest(<?php echo $request['id']; ?>, 'approved')" 
-                                                            class="bg-green-600 hover:bg-green-700 text-white text-xs px-3 py-1 rounded">
-                                                        <i class="fas fa-check mr-1"></i>Approve
+                                                            class="action-button bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white text-[9px] px-2 py-1 rounded-md shadow-xs transition-all">
+                                                        <i class="fas fa-check mr-1 text-[8px]"></i>Approve
                                                     </button>
                                                     <button onclick="reviewAbsenceRequest(<?php echo $request['id']; ?>, 'rejected')" 
-                                                            class="bg-red-600 hover:bg-red-700 text-white text-xs px-3 py-1 rounded">
-                                                        <i class="fas fa-times mr-1"></i>Reject
+                                                            class="action-button bg-gradient-to-r from-red-500 to-rose-600 hover:from-red-600 hover:to-rose-700 text-white text-[9px] px-2 py-1 rounded-md shadow-xs transition-all">
+                                                        <i class="fas fa-times mr-1 text-[8px]"></i>Reject
                                                     </button>
                                                 </div>
                                             <?php endif; ?>
@@ -634,19 +755,19 @@ if ($result->num_rows === 1) {
                             else:
                             ?>
                                 <div class="text-center py-6">
-                                    <i class="fas fa-calendar-check text-4xl text-gray-300 mb-3"></i>
-                                    <p class="text-gray-500 font-medium">No pending absence requests</p>
-                                    <p class="text-sm text-gray-400">All absence requests have been reviewed</p>
+                                    <i class="fas fa-calendar-check text-3xl text-gray-300 mb-2"></i>
+                                    <p class="text-gray-500 font-medium text-sm">No pending absence requests</p>
+                                    <p class="text-[10px] text-gray-400 mt-1">All absence requests have been reviewed</p>
                                 </div>
                             <?php endif; ?>
                         </div>
                         
-                        <div class="flex justify-between items-center mt-4 pt-4 border-t border-gray-200">
+                        <div class="flex justify-between items-center mt-4 pt-3 border-t border-gray-100">
                             <a href="view_all_absence.php?room_id=<?php echo $room['id']; ?>" 
-                               class="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors">
-                                <i class="fas fa-list mr-2"></i>Show All Requests
+                               class="inline-flex items-center px-3 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-xs font-medium rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all shadow-xs">
+                                <i class="fas fa-list mr-1.5 text-xs"></i>Show All Requests
                             </a>
-                            <button type="button" onclick="toggleModal('absenceRequestsModal-<?php echo $room['id']; ?>')" class="px-4 py-2 text-gray-600 font-medium">
+                            <button type="button" onclick="toggleModal('absenceRequestsModal-<?php echo $room['id']; ?>')" class="px-3 py-2 text-gray-600 font-medium text-xs rounded-lg hover:bg-gray-100 transition-all">
                                 Close
                             </button>
                         </div>
@@ -658,7 +779,7 @@ if ($result->num_rows === 1) {
         <?php
             }
         } else {
-            echo '<p class="text-center text-gray-500 py-4">You haven\'t joined any rooms yet. Create one to get started!</p>';
+            echo '<p class="text-center text-gray-500 py-5 text-sm">You haven\'t joined any rooms yet. Create one to get started!</p>';
         }
         ?>
 
@@ -667,19 +788,19 @@ if ($result->num_rows === 1) {
 
     <!-- Group Selector Modal -->
     <div id="groupSelectorModal" class="fixed inset-0 bg-black bg-opacity-50 z-20 flex items-center justify-center hidden">
-        <div class="bg-white rounded-xl p-5 w-full max-w-md mx-4 max-h-[80vh] overflow-y-auto">
-            <div class="flex justify-between items-center mb-4">
-                <h3 class="text-lg font-semibold text-gray-800">
-                    <i class="fas fa-chart-bar text-blue-600 mr-2"></i>Select Group for Report
+        <div class="modal-container bg-white rounded-xl p-4 w-full max-w-md mx-3 max-h-[70vh] overflow-y-auto shadow-xl">
+            <div class="flex justify-between items-center mb-3">
+                <h3 class="text-base font-bold text-gray-800">
+                    <i class="fas fa-chart-bar text-indigo-600 mr-1.5 text-sm"></i>Select Group for Report
                 </h3>
                 <button onclick="toggleModal('groupSelectorModal')" class="text-gray-500 hover:text-gray-700">
-                    <i class="fas fa-times"></i>
+                    <i class="fas fa-times text-sm"></i>
                 </button>
             </div>
             
-            <p class="text-sm text-gray-600 mb-4">Choose a group to view settlement reports:</p>
+            <p class="text-[10px] text-gray-600 mb-4">Choose a group to view settlement reports:</p>
             
-            <div class="space-y-3" id="groupsList">
+            <div class="space-y-2.5" id="groupsList">
                 <?php
                 // Get all groups the user is a member of
                 $groups_stmt = $conn->prepare("SELECT rg.id, rg.name, r.name as room_name,
@@ -697,19 +818,19 @@ if ($result->num_rows === 1) {
                 if ($groups_result->num_rows > 0):
                     while ($group = $groups_result->fetch_assoc()):
                 ?>
-                    <div class="group-option border border-gray-200 rounded-lg p-3 hover:border-blue-300 hover:bg-blue-50 cursor-pointer transition-all"
+                    <div class="group-option border border-gray-200 rounded-lg p-3 hover:border-indigo-300 hover:bg-gradient-to-r from-indigo-50 to-blue-50 cursor-pointer transition-all shadow-xs"
                          onclick="selectGroup(<?php echo $group['id']; ?>, '<?php echo htmlspecialchars($group['name']); ?>')">
                         <div class="flex items-center justify-between">
                             <div class="flex-1">
-                                <div class="font-medium text-gray-800"><?php echo htmlspecialchars($group['name']); ?></div>
-                                <div class="text-sm text-gray-500"><?php echo htmlspecialchars($group['room_name']); ?></div>
-                                <div class="text-xs text-gray-400 mt-1">
-                                    <?php echo $group['member_count']; ?> members • 
-                                    <?php echo $group['settlement_count']; ?> settlements
+                                <div class="font-medium text-gray-800 text-sm"><?php echo htmlspecialchars($group['name']); ?></div>
+                                <div class="text-[10px] text-gray-500 mt-1"><?php echo htmlspecialchars($group['room_name']); ?></div>
+                                <div class="text-[9px] text-gray-400 mt-1.5 flex items-center">
+                                    <span class="mr-2"><i class="fas fa-users mr-1 text-[8px]"></i> <?php echo $group['member_count']; ?> members</span>
+                                    <span><i class="fas fa-file-invoice mr-1 text-[8px]"></i> <?php echo $group['settlement_count']; ?> settlements</span>
                                 </div>
                             </div>
-                            <div class="text-blue-600">
-                                <i class="fas fa-chevron-right"></i>
+                            <div class="text-indigo-600 ml-2">
+                                <i class="fas fa-chevron-right text-xs"></i>
                             </div>
                         </div>
                     </div>
@@ -718,17 +839,17 @@ if ($result->num_rows === 1) {
                 else:
                 ?>
                     <div class="text-center py-6">
-                        <i class="fas fa-users text-4xl text-gray-300 mb-3"></i>
-                        <p class="text-gray-500 font-medium">No groups found</p>
-                        <p class="text-sm text-gray-400">Join a group to view settlement reports</p>
+                        <i class="fas fa-users text-3xl text-gray-300 mb-2"></i>
+                        <p class="text-gray-500 font-medium text-sm">No groups found</p>
+                        <p class="text-[10px] text-gray-400 mt-1">Join a group to view settlement reports</p>
                     </div>
                 <?php endif; ?>
             </div>
             
             <?php if ($groups_result->num_rows > 0): ?>
-                <div class="mt-4 pt-4 border-t border-gray-200">
-                    <p class="text-xs text-gray-500 text-center">
-                        <i class="fas fa-info-circle mr-1"></i>
+                <div class="mt-4 pt-3 border-t border-gray-100">
+                    <p class="text-[9px] text-gray-500 text-center">
+                        <i class="fas fa-info-circle mr-1 text-[8px]"></i>
                         Select a group to view its settlement history and reports
                     </p>
                 </div>
@@ -815,7 +936,7 @@ if ($result->num_rows === 1) {
             const clickedOption = event.currentTarget;
             const chevron = clickedOption.querySelector('.fa-chevron-right');
             if (chevron) {
-                chevron.className = 'fas fa-spinner fa-spin';
+                chevron.className = 'fas fa-spinner fa-spin text-xs';
             }
             
             // Add visual feedback
@@ -834,8 +955,9 @@ if ($result->num_rows === 1) {
             currentY: 0,
             isPulling: false,
             isRefreshing: false,
-            threshold: 80,
-            maxPull: 120,
+            threshold: 100, // Increased threshold to prevent accidental refresh
+            maxPull: 150,
+            minMovement: 10, // Minimum movement to start pull detection
             
             init() {
                 this.bindEvents();
@@ -854,21 +976,27 @@ if ($result->num_rows === 1) {
             },
             
             handleTouchStart(e) {
+                // Only start pull detection at the top of the page
                 if (window.scrollY === 0 && !this.isRefreshing) {
                     this.startY = e.touches[0].clientY;
-                    this.isPulling = true;
+                    this.isPulling = false; // Don't set to true yet
                 }
             },
             
             handleTouchMove(e) {
-                if (!this.isPulling || this.isRefreshing) return;
+                if (window.scrollY > 0 || this.isRefreshing) return;
                 
                 this.currentY = e.touches[0].clientY;
                 const pullDistance = this.currentY - this.startY;
                 
-                if (pullDistance > 0) {
+                // Only start pulling if moved beyond minimum threshold
+                if (!this.isPulling && pullDistance > this.minMovement) {
+                    this.isPulling = true;
+                }
+                
+                if (this.isPulling && pullDistance > 0) {
                     e.preventDefault();
-                    this.updatePullState(pullDistance);
+                    this.updatePullState(Math.min(pullDistance, this.maxPull));
                 }
             },
             
@@ -878,6 +1006,7 @@ if ($result->num_rows === 1) {
                 const pullDistance = this.currentY - this.startY;
                 this.isPulling = false;
                 
+                // Only refresh if pulled beyond threshold
                 if (pullDistance > this.threshold) {
                     this.triggerRefresh();
                 } else {
@@ -886,22 +1015,28 @@ if ($result->num_rows === 1) {
             },
             
             handleMouseDown(e) {
+                // Only start pull detection at the top of the page
                 if (window.scrollY === 0 && !this.isRefreshing && e.clientY < 50) {
                     this.startY = e.clientY;
-                    this.isPulling = true;
+                    this.isPulling = false; // Don't set to true yet
                     e.preventDefault();
                 }
             },
             
             handleMouseMove(e) {
-                if (!this.isPulling || this.isRefreshing) return;
+                if (window.scrollY > 0 || this.isRefreshing) return;
                 
                 this.currentY = e.clientY;
                 const pullDistance = this.currentY - this.startY;
                 
-                if (pullDistance > 0) {
+                // Only start pulling if moved beyond minimum threshold
+                if (!this.isPulling && pullDistance > this.minMovement) {
+                    this.isPulling = true;
+                }
+                
+                if (this.isPulling && pullDistance > 0) {
                     e.preventDefault();
-                    this.updatePullState(pullDistance);
+                    this.updatePullState(Math.min(pullDistance, this.maxPull));
                 }
             },
             
@@ -911,6 +1046,7 @@ if ($result->num_rows === 1) {
                 const pullDistance = this.currentY - this.startY;
                 this.isPulling = false;
                 
+                // Only refresh if pulled beyond threshold
                 if (pullDistance > this.threshold) {
                     this.triggerRefresh();
                 } else {
@@ -925,7 +1061,7 @@ if ($result->num_rows === 1) {
                 const refreshText = document.getElementById('refreshText');
                 
                 // Show pull indicator when starting to pull
-                if (pullDistance > 20) {
+                if (pullDistance > this.minMovement) {
                     pullIndicator.classList.add('show');
                 }
                 
@@ -939,7 +1075,7 @@ if ($result->num_rows === 1) {
                     pullIndicator.innerHTML = '<i class="fas fa-arrow-down icon"></i><span>Pull to refresh</span>';
                 }
                 
-                // Add haptic feedback on mobile
+                // Add haptic feedback on mobile when threshold is reached
                 if (navigator.vibrate && pullDistance > this.threshold && pullDistance < this.threshold + 5) {
                     navigator.vibrate(50);
                 }
@@ -988,11 +1124,6 @@ if ($result->num_rows === 1) {
             pullToRefresh.init();
         });
     </script>
-    </main>
-
-
-
-
 </body>
 
 </html>
