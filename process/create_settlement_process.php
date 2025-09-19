@@ -38,16 +38,27 @@ if ($group_id === 0 || empty($from_date) || empty($to_date)) {
     exit();
 }
 
-// Check if user is admin of the group
-$stmt = $conn->prepare("SELECT rm.is_admin FROM room_members rm 
+// Check if user is admin of the room OR is a group leader
+$stmt = $conn->prepare("SELECT rm.is_admin, gm.is_leader FROM room_members rm 
                        JOIN room_groups rg ON rm.room_id = rg.room_id 
-                       WHERE rg.id = ? AND rm.user_id = ? AND rm.is_admin = 1");
-$stmt->bind_param("ii", $group_id, $user_id);
+                       JOIN group_members gm ON rg.id = gm.group_id
+                       WHERE rg.id = ? AND rm.user_id = ? AND gm.user_id = ?");
+$stmt->bind_param("iii", $group_id, $user_id, $user_id);
 $stmt->execute();
 $result = $stmt->get_result();
 
 if ($result->num_rows === 0) {
-    echo json_encode(['error' => 'Only admins can create settlements']);
+    echo json_encode(['error' => 'Only room admins or group leaders can create settlements']);
+    exit();
+}
+
+$user_info = $result->fetch_assoc();
+$is_admin = $user_info['is_admin'] == 1;
+$is_leader = $user_info['is_leader'] == 1;
+
+// Check if user has permission (admin OR group leader)
+if (!$is_admin && !$is_leader) {
+    echo json_encode(['error' => 'Only room admins or group leaders can create settlements']);
     exit();
 }
 

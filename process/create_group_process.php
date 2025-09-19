@@ -43,8 +43,8 @@ if (isset($_POST['create_group'])) {
         
         $group_id = $conn->insert_id;
         
-        // Add creator to the group
-        $stmt = $conn->prepare("INSERT INTO group_members (group_id, user_id, added_by, added_at) VALUES (?, ?, ?, NOW())");
+        // Add creator to the group as leader (since they are admin)
+        $stmt = $conn->prepare("INSERT INTO group_members (group_id, user_id, is_leader, added_by, added_at) VALUES (?, ?, 1, ?, NOW())");
         $stmt->bind_param("iii", $group_id, $user_id, $user_id);
         $stmt->execute();
         

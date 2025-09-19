@@ -46,17 +46,19 @@ $stmt->bind_param("i", $room_id);
 $stmt->execute();
 $members_result = $stmt->get_result();
 
-// Get room groups
+// Get room groups with leader info
 $stmt = $conn->prepare("SELECT rg.*, 
                        (SELECT COUNT(*) FROM group_members WHERE group_id = rg.id) as member_count,
-                       (SELECT COUNT(*) FROM group_members WHERE group_id = rg.id AND user_id = ?) as is_member
+                       (SELECT COUNT(*) FROM group_members WHERE group_id = rg.id AND user_id = ?) as is_member,
+                       (SELECT gm.is_leader FROM group_members gm WHERE gm.group_id = rg.id AND gm.user_id = ?) as is_leader,
+                       (SELECT u.full_name FROM group_members gm JOIN users u ON gm.user_id = u.id WHERE gm.group_id = rg.id AND gm.is_leader = 1) as leader_name
                        FROM room_groups rg 
                        WHERE rg.room_id = ?
                        ORDER BY rg.created_at ASC");
 if ($stmt === false) {
     die("Prepare failed for room groups: " . $conn->error);
 }
-$stmt->bind_param("ii", $user_id, $room_id);
+$stmt->bind_param("iii", $user_id, $user_id, $room_id);
 $stmt->execute();
 $groups_result = $stmt->get_result();
 
@@ -318,25 +320,47 @@ $error_msg = isset($_GET['error']) ? $_GET['error'] : '';
             <ul class="space-y-3">
                 <?php while ($group = $groups_result->fetch_assoc()): ?>
                 <li class="flex items-center justify-between p-3 border rounded-lg <?php echo $group['is_member'] ? 'border-blue-200 bg-blue-50' : 'border-gray-200'; ?>">
-                    <div>
-                        <div class="font-medium"><?php echo htmlspecialchars($group['name']); ?></div>
-                        <p class="text-xs text-gray-500"><?php echo $group['member_count']; ?> members</p>
+                    <div class="flex-1">
+                        <div class="flex items-center space-x-2">
+                            <div class="font-medium"><?php echo htmlspecialchars($group['name']); ?></div>
+                            <?php if ($group['is_leader'] == 1): ?>
+                                <span class="text-xs bg-purple-100 text-purple-800 px-2 py-1 rounded-full">
+                                    <i class="fas fa-crown mr-1"></i>Leader
+                                </span>
+                            <?php endif; ?>
+                        </div>
+                        <p class="text-xs text-gray-500">
+                            <?php echo $group['member_count']; ?> members
+                            <?php if ($group['leader_name']): ?>
+                                • Leader: <?php echo htmlspecialchars($group['leader_name']); ?>
+                            <?php endif; ?>
+                        </p>
                     </div>
-                    <div class="flex items-center">
+                    <div class="flex items-center space-x-1">
                         <?php if ($group['is_member']): ?>
-                        <a href="group-details.php?id=<?php echo $group['id']; ?>" class="text-blue-600 text-sm mr-2">
+                        <a href="group.php?id=<?php echo $group['id']; ?>" class="text-blue-600 text-sm p-2 hover:bg-blue-100 rounded-full" title="Open Group">
                             <i class="fas fa-arrow-right"></i>
                         </a>
                         <?php elseif ($is_admin): ?>
-                        <button onclick="joinGroup(<?php echo $group['id']; ?>)" class="text-green-600 text-sm mr-2">
+                        <button onclick="joinGroup(<?php echo $group['id']; ?>)" class="text-green-600 text-sm p-2 hover:bg-green-100 rounded-full" title="Join Group">
                             <i class="fas fa-user-plus"></i>
                         </button>
                         <?php endif; ?>
                         
                         <?php if ($is_admin): ?>
-                        <button onclick="manageGroupMembers(<?php echo $group['id']; ?>, '<?php echo htmlspecialchars($group['name']); ?>')" class="text-gray-600 text-sm">
-                            <i class="fas fa-cog"></i>
-                        </button>
+                            <?php if ($group['is_leader'] == 1): ?>
+                                <!-- Admin is leader - can delete directly -->
+                                <button onclick="deleteGroupDirectly(<?php echo $group['id']; ?>, '<?php echo htmlspecialchars($group['name']); ?>')" 
+                                        class="text-red-600 text-sm p-2 hover:bg-red-100 rounded-full" title="Delete Group">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            <?php else: ?>
+                                <!-- Admin is not leader - request deletion -->
+                                <button onclick="requestGroupDeletion(<?php echo $group['id']; ?>, '<?php echo htmlspecialchars($group['name']); ?>', '<?php echo htmlspecialchars($group['leader_name']); ?>')" 
+                                        class="text-orange-600 text-sm p-2 hover:bg-orange-100 rounded-full" title="Request Deletion">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            <?php endif; ?>
                         <?php endif; ?>
                     </div>
                 </li>
@@ -445,6 +469,76 @@ $error_msg = isset($_GET['error']) ? $_GET['error'] : '';
         
         function manageGroupMembers(groupId, groupName) {
             window.location.href = `manage-group-members.php?group_id=${groupId}&room_id=<?php echo $room_id; ?>`;
+        }
+        
+        function deleteGroupDirectly(groupId, groupName) {
+            if (confirm(`🗑️ **Delete Group Permanently**\n\nAre you sure you want to delete the group "${groupName}"?\n\n⚠️ **This action cannot be undone!**\n\nThis will:\n• Delete all group messages\n• Delete all settlements\n• Remove all members from the group\n• Delete the group permanently`)) {
+                // Show loading state
+                const button = event.target.closest('button');
+                const originalHTML = button.innerHTML;
+                button.disabled = true;
+                button.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+                
+                fetch('process/delete_group_process.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `group_id=${groupId}&action=delete_direct&room_id=<?php echo $room_id; ?>`
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Group deleted successfully!');
+                        location.reload();
+                    } else {
+                        alert('Error: ' + data.error);
+                        button.disabled = false;
+                        button.innerHTML = originalHTML;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error deleting group:', error);
+                    alert('Failed to delete group. Please try again.');
+                    button.disabled = false;
+                    button.innerHTML = originalHTML;
+                });
+            }
+        }
+        
+        function requestGroupDeletion(groupId, groupName, leaderName) {
+            if (confirm(`📝 **Request Group Deletion**\n\nAre you sure you want to request deletion of the group "${groupName}"?\n\nThis will send a deletion request to the group leader: **${leaderName}**\n\nThe leader will need to approve this request before the group is deleted.`)) {
+                // Show loading state
+                const button = event.target.closest('button');
+                const originalHTML = button.innerHTML;
+                button.disabled = true;
+                button.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+                
+                fetch('process/delete_group_process.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `group_id=${groupId}&action=request_deletion&room_id=<?php echo $room_id; ?>&group_name=${encodeURIComponent(groupName)}&leader_name=${encodeURIComponent(leaderName)}`
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Deletion request sent to group leader successfully!');
+                        location.reload();
+                    } else {
+                        alert('Error: ' + data.error);
+                        button.disabled = false;
+                        button.innerHTML = originalHTML;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error requesting deletion:', error);
+                    alert('Failed to send deletion request. Please try again.');
+                    button.disabled = false;
+                    button.innerHTML = originalHTML;
+                });
+            }
         }
         
         // Pull to Refresh Functionality

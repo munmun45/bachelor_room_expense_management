@@ -25,12 +25,13 @@ $group_id = isset($_GET['id']) ? intval($_GET['id']) : 0;
 // Check if group exists and user is a member
 $stmt = $conn->prepare("SELECT rg.*, r.id as room_id, r.name as room_name,
                         (SELECT COUNT(*) FROM group_members WHERE group_id = rg.id) as member_count,
-                        (SELECT is_admin FROM room_members WHERE room_id = r.id AND user_id = ?) as is_admin
+                        (SELECT is_admin FROM room_members WHERE room_id = r.id AND user_id = ?) as is_admin,
+                        (SELECT is_leader FROM group_members WHERE group_id = rg.id AND user_id = ?) as is_leader
                         FROM room_groups rg 
                         JOIN rooms r ON rg.room_id = r.id
                         JOIN group_members gm ON rg.id = gm.group_id AND gm.user_id = ?
                         WHERE rg.id = ?");
-$stmt->bind_param("iii", $user_id, $user_id, $group_id);
+$stmt->bind_param("iiii", $user_id, $user_id, $user_id, $group_id);
 $stmt->execute();
 $result = $stmt->get_result();
 
@@ -41,6 +42,7 @@ if ($result->num_rows === 0) {
 
 $group = $result->fetch_assoc();
 $is_admin = $group['is_admin'] == 1;
+$is_leader = $group['is_leader'] == 1;
 $room_id = $group['room_id'];
 
 // Get group members
@@ -48,7 +50,7 @@ $stmt = $conn->prepare("SELECT gm.*, u.id as user_id, u.full_name, u.phone, u.em
                         FROM group_members gm 
                         JOIN users u ON gm.user_id = u.id 
                         WHERE gm.group_id = ?
-                        ORDER BY u.full_name ASC");
+                        ORDER BY gm.is_leader DESC, u.full_name ASC");
 $stmt->bind_param("i", $group_id);
 $stmt->execute();
 $members_result = $stmt->get_result();
@@ -85,6 +87,21 @@ $stmt = $conn->prepare("SELECT gm.*, u.full_name, u.profile_image,
 $stmt->bind_param("i", $group_id);
 $stmt->execute();
 $messages_result = $stmt->get_result();
+
+// Check for pending deletion requests (for group leaders)
+$has_deletion_request = false;
+if ($is_leader) {
+    $stmt = $conn->prepare("SELECT COUNT(*) as request_count FROM group_messages 
+                           WHERE group_id = ? 
+                           AND message LIKE '%Group Deletion Request%' 
+                           AND message NOT LIKE '%Group Deletion Request Rejected%'
+                           AND message NOT LIKE '%Group Deletion Request Approved%'
+                           AND created_at > DATE_SUB(NOW(), INTERVAL 7 DAY)");
+    $stmt->bind_param("i", $group_id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $has_deletion_request = $result->fetch_assoc()['request_count'] > 0;
+}
 
 // Store messages in an array first
 $temp_messages = [];
@@ -124,6 +141,9 @@ if ($result->num_rows === 1) {
         href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
     />
     <script src="js/back-navigation.js"></script>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <style>
         body {
             font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
@@ -160,6 +180,29 @@ if ($result->num_rows === 1) {
         .member-remove-btn:hover {
             transform: scale(1.1);
         }
+        
+        /* Member action buttons styling */
+        .member-action-btn {
+            transition: all 0.2s ease;
+        }
+        
+        .member-action-btn:hover {
+            transform: scale(1.1);
+        }
+        
+        /* Leader badge styling */
+        .leader-badge {
+            background: linear-gradient(135deg, #8b5cf6, #a855f7);
+            color: white;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
+        
+        /* Admin badge styling */
+        .admin-badge {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
     </style>
 </head>
 <body class="bg-gray-100">
@@ -180,11 +223,19 @@ if ($result->num_rows === 1) {
             </div>
             <div class="flex items-center">
                 
-                <?php if ($is_admin): ?>
+                <?php if ($is_admin || $is_leader): ?>
                 <button onclick="toggleModal('settlementModal')" class="mr-4 text-green-600" title="Create Settlement">
                     <i class="fas fa-calculator"></i>
                 </button>
                 <?php endif; ?>
+                
+                <?php if ($is_leader && $has_deletion_request): ?>
+                <button onclick="showDeletionRequests()" class="mr-4 text-red-600 relative" title="Deletion Requests">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <span class="absolute -top-1 -right-1 h-3 w-3 bg-red-500 rounded-full animate-pulse"></span>
+                </button>
+                <?php endif; ?>
+                
                 <button onclick="toggleModal('membersModal')" class="mr-4 text-gray-600">
                     <i class="fas fa-users"></i>
                 </button>
@@ -205,6 +256,16 @@ if ($result->num_rows === 1) {
     <?php if ($error_msg): ?>
     <div class="fixed top-16 left-0 right-0 bg-red-100 border-l-4 border-red-500 text-red-700 p-4 z-10" role="alert">
         <p><?php echo htmlspecialchars($error_msg); ?></p>
+    </div>
+    <?php endif; ?>
+    
+    <!-- Debug Info (only show if debug=1 in URL) -->
+    <?php if (isset($_GET['debug']) && $_GET['debug'] == '1'): ?>
+    <div class="fixed top-20 left-0 right-0 bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 z-10" role="alert">
+        <p><strong>DEBUG INFO:</strong></p>
+        <p>User ID: <?php echo $user_id; ?> | Group ID: <?php echo $group_id; ?></p>
+        <p>Is Admin: <?php echo $is_admin ? 'YES' : 'NO'; ?> | Is Leader: <?php echo $is_leader ? 'YES' : 'NO'; ?></p>
+        <p>Can Manage: <?php echo ($is_admin || $is_leader) ? 'YES' : 'NO'; ?></p>
     </div>
     <?php endif; ?>
 
@@ -484,7 +545,7 @@ if ($result->num_rows === 1) {
             <div class="flex justify-between items-center mb-4">
                 <h3 class="text-lg font-semibold">Group Members</h3>
                 <div class="flex items-center space-x-2">
-                    <?php if ($is_admin): ?>
+                    <?php if ($is_admin || $is_leader): ?>
                     <button onclick="toggleModal('membersModal'); toggleModal('addMemberModal')" class="text-blue-600 hover:text-blue-700" title="Add Member">
                         <i class="fas fa-user-plus"></i>
                     </button>
@@ -511,26 +572,85 @@ if ($result->num_rows === 1) {
                                     <?php if ($member['user_id'] == $user_id): ?>
                                         <span class="text-xs text-blue-600 font-medium">(You)</span>
                                     <?php endif; ?>
+                                    <?php if ($member['is_leader'] == 1): ?>
+                                        <span class="text-xs font-medium px-2 py-1 rounded-full ml-1 leader-badge">
+                                            <i class="fas fa-crown mr-1"></i>Leader
+                                        </span>
+                                    <?php endif; ?>
+                                    <?php 
+                                    // Check if this member is a room admin
+                                    $stmt_check_admin_display = $conn->prepare("SELECT rm.is_admin FROM room_members rm 
+                                                                              JOIN room_groups rg ON rm.room_id = rg.room_id 
+                                                                              WHERE rg.id = ? AND rm.user_id = ?");
+                                    $stmt_check_admin_display->bind_param("ii", $group_id, $member['user_id']);
+                                    $stmt_check_admin_display->execute();
+                                    $admin_result_display = $stmt_check_admin_display->get_result();
+                                    $is_room_admin_display = $admin_result_display->num_rows > 0 && $admin_result_display->fetch_assoc()['is_admin'] == 1;
+                                    ?>
+                                    <?php if ($is_room_admin_display): ?>
+                                        <span class="text-xs font-medium px-2 py-1 rounded-full ml-1 admin-badge" style="text-wrap-mode: nowrap;">
+                                            <i class="fas fa-user-shield mr-1"></i>Admin
+                                        </span>
+                                    <?php endif; ?>
                                 </span>
                                 <p class="text-xs text-gray-500"><?php echo htmlspecialchars($member['phone']); ?></p>
                             </div>
                         </div>
                         
-                        <?php if ($is_admin && $member['user_id'] != $user_id): ?>
-                            <button onclick="removeMember(<?php echo $member['user_id']; ?>, '<?php echo htmlspecialchars($member['full_name']); ?>')" 
-                                    class="member-remove-btn text-red-600 hover:text-red-800 hover:bg-red-50 p-2 rounded-full transition-colors" 
-                                    title="Remove from group">
-                                <i class="fas fa-user-minus text-sm"></i>
-                            </button>
-                        <?php endif; ?>
+                        <div class="flex items-center space-x-1">
+                            <?php if (($is_admin || $is_leader) && $member['user_id'] != $user_id): ?>
+                                <?php if (!$member['is_leader']): ?>
+                                    <button onclick="assignLeader(<?php echo $member['user_id']; ?>, '<?php echo htmlspecialchars($member['full_name']); ?>')" 
+                                            class="member-action-btn text-purple-600 hover:text-purple-800 hover:bg-purple-50 p-2 rounded-full transition-colors" 
+                                            title="Make Group Leader (Only one leader allowed)">
+                                        <i class="fas fa-crown text-sm"></i>
+                                    </button>
+                                <?php else: ?>
+                                    <?php if ($is_admin): ?>
+                                        <button onclick="removeLeader(<?php echo $member['user_id']; ?>, '<?php echo htmlspecialchars($member['full_name']); ?>')" 
+                                                class="member-action-btn text-orange-600 hover:text-orange-800 hover:bg-orange-50 p-2 rounded-full transition-colors" 
+                                                title="Remove Leadership & Become New Leader">
+                                            <i class="fas fa-user-minus text-sm"></i>
+                                        </button>
+                                    <?php endif; ?>
+                                <?php endif; ?>
+                                
+                                <?php if (($is_admin || $is_leader) && $member['user_id'] != $user_id): ?>
+                                    <?php 
+                                    // Check if this member is a room admin
+                                    $stmt_check_admin = $conn->prepare("SELECT rm.is_admin FROM room_members rm 
+                                                                      JOIN room_groups rg ON rm.room_id = rg.room_id 
+                                                                      WHERE rg.id = ? AND rm.user_id = ?");
+                                    $stmt_check_admin->bind_param("ii", $group_id, $member['user_id']);
+                                    $stmt_check_admin->execute();
+                                    $admin_result = $stmt_check_admin->get_result();
+                                    $is_room_admin = $admin_result->num_rows > 0 && $admin_result->fetch_assoc()['is_admin'] == 1;
+                                    ?>
+                                    
+                                    <?php if ($is_room_admin): ?>
+                                        <button onclick="removeAdmin(<?php echo $member['user_id']; ?>, '<?php echo htmlspecialchars($member['full_name']); ?>')" 
+                                                class="member-remove-btn text-red-600 hover:text-red-800 hover:bg-red-50 p-2 rounded-full transition-colors" 
+                                                title="Remove Admin from Group">
+                                            <i class="fas fa-user-shield text-sm"></i>
+                                        </button>
+                                    <?php else: ?>
+                                        <button onclick="removeMember(<?php echo $member['user_id']; ?>, '<?php echo htmlspecialchars($member['full_name']); ?>')" 
+                                                class="member-remove-btn text-red-600 hover:text-red-800 hover:bg-red-50 p-2 rounded-full transition-colors" 
+                                                title="Remove from group">
+                                            <i class="fas fa-user-minus text-sm"></i>
+                                        </button>
+                                    <?php endif; ?>
+                                <?php endif; ?>
+                            <?php endif; ?>
+                        </div>
                     </li>
                 <?php endforeach; ?>
             </ul>
         </div>
     </div>
 
-    <!-- Add Member Modal (Admin Only) -->
-    <?php if ($is_admin): ?>
+    <!-- Add Member Modal (Admin/Leader Only) -->
+    <?php if ($is_admin || $is_leader): ?>
     <div id="addMemberModal" class="fixed inset-0 bg-black bg-opacity-50 z-20 flex items-center justify-center hidden">
         <div class="bg-white rounded-xl p-5 w-full max-w-md mx-4 max-h-[80vh] overflow-y-auto">
             <div class="flex justify-between items-center mb-4">
@@ -620,8 +740,8 @@ if ($result->num_rows === 1) {
         </div>
     </div>
 
-    <!-- Settlement Modal (Admin Only) -->
-    <?php if ($is_admin): 
+    <!-- Settlement Modal (Admin/Leader Only) -->
+    <?php if ($is_admin || $is_leader): 
         // Get last settlement date for this group
         $last_settlement_date = null;
         $debug_info = "Group ID: $group_id | ";
@@ -702,9 +822,7 @@ if ($result->num_rows === 1) {
                                 <p class="text-xs text-gray-600 mt-1">
                                     📅 Auto-detected from last settlement or first payment
                                 </p>
-                                <p class="text-xs text-blue-600 mt-1">
-                                    🐛 Debug: <?php echo $debug_info; ?>
-                                </p>
+                                
                             </div>
                             <div>
                                 <label class="text-xs text-gray-500">To Date</label>
@@ -713,7 +831,13 @@ if ($result->num_rows === 1) {
                                     📅 You can change this date if needed
                                 </p>
                             </div>
+
+                            
                         </div>
+
+                        <p class="text-xs text-blue-600 mt-1">
+                                    🐛 Debug: <?php echo $debug_info; ?>
+                                </p>
                     </div>
                     
                     <!-- Settlement Type -->
@@ -741,9 +865,7 @@ if ($result->num_rows === 1) {
                 </div>
                 
                 <div class="flex justify-end space-x-3 mt-6">
-                    <button type="button" onclick="previewSettlement()" class="px-4 py-2 text-blue-600 font-medium border border-blue-600 rounded hover:bg-blue-50">
-                        Preview
-                    </button>
+                    
                     <button type="button" onclick="toggleModal('settlementModal')" class="px-4 py-2 text-gray-600 font-medium">
                         Cancel
                     </button>
@@ -752,6 +874,29 @@ if ($result->num_rows === 1) {
                     </button>
                 </div>
             </form>
+        </div>
+    </div>
+    <?php endif; ?>
+
+    <!-- Deletion Request Modal (Leader Only) -->
+    <?php if ($is_leader): ?>
+    <div id="deletionRequestModal" class="fixed inset-0 bg-black bg-opacity-50 z-30 flex items-center justify-center hidden">
+        <div class="bg-white rounded-xl p-6 w-full max-w-md mx-4 max-h-[80vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-semibold text-red-800">
+                    <i class="fas fa-exclamation-triangle mr-2"></i>Group Deletion Request
+                </h3>
+                <button onclick="toggleModal('deletionRequestModal')" class="text-gray-500">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div id="deletionRequestContent">
+                <div class="text-center py-4">
+                    <i class="fas fa-spinner fa-spin text-gray-400 text-2xl"></i>
+                    <p class="text-gray-500 mt-2">Loading deletion requests...</p>
+                </div>
+            </div>
         </div>
     </div>
     <?php endif; ?>
@@ -1214,6 +1359,11 @@ if ($result->num_rows === 1) {
         }
 
         function previewSettlement() {
+            // Check date validation first
+            if (!validateSettlementDates()) {
+                return;
+            }
+            
             const formData = new FormData(document.getElementById('settlementForm'));
             formData.append('action', 'preview');
             formData.append('include_food', document.getElementById('includeFood').checked);
@@ -1240,6 +1390,7 @@ if ($result->num_rows === 1) {
         function showSettlementPreview(settlement) {
             const previewDiv = document.getElementById('settlementPreview');
             const contentDiv = document.getElementById('previewContent');
+            const createBtn = document.querySelector('#settlementForm button[type="submit"]');
             
             let html = `
                 <div class="space-y-3">
@@ -1257,6 +1408,8 @@ if ($result->num_rows === 1) {
             
             // Group settlements by user
             const userNets = {};
+            let hasNonZeroBalance = false;
+            
             settlement.settlements.forEach(s => {
                 if (!userNets[s.user_id]) {
                     userNets[s.user_id] = { name: s.name, net: 0 };
@@ -1267,8 +1420,10 @@ if ($result->num_rows === 1) {
             Object.values(userNets).forEach(user => {
                 if (user.net > 0.01) {
                     html += `<div class="text-green-600 text-sm">• ${user.name}: +₹${user.net.toFixed(2)} (to receive)</div>`;
+                    hasNonZeroBalance = true;
                 } else if (user.net < -0.01) {
                     html += `<div class="text-red-600 text-sm">• ${user.name}: -₹${Math.abs(user.net).toFixed(2)} (to pay)</div>`;
+                    hasNonZeroBalance = true;
                 } else {
                     html += `<div class="text-gray-600 text-sm">• ${user.name}: ₹0.00 (settled)</div>`;
                 }
@@ -1278,11 +1433,56 @@ if ($result->num_rows === 1) {
             
             contentDiv.innerHTML = html;
             previewDiv.classList.remove('hidden');
+            
+            // Disable/enable create button based on balances
+            if (settlement.total_food === 0 && settlement.total_special === 0) {
+                createBtn.disabled = true;
+                createBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                createBtn.innerHTML = 'No Expenses to Settle';
+                
+                // Show warning message
+                html += `<div class="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                    <div class="flex items-center">
+                        <i class="fas fa-exclamation-triangle text-yellow-600 mr-2"></i>
+                        <span class="text-yellow-800 text-sm font-medium">No expenses found for the selected period</span>
+                    </div>
+                </div>`;
+                contentDiv.innerHTML = html;
+            } else if (!hasNonZeroBalance) {
+                createBtn.disabled = true;
+                createBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                createBtn.innerHTML = 'All Balances Settled';
+                
+                // Show info message
+                html += `<div class="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                    <div class="flex items-center">
+                        <i class="fas fa-info-circle text-blue-600 mr-2"></i>
+                        <span class="text-blue-800 text-sm font-medium">All members are already settled</span>
+                    </div>
+                </div>`;
+                contentDiv.innerHTML = html;
+            } else {
+                createBtn.disabled = false;
+                createBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                createBtn.innerHTML = 'Create Settlement';
+            }
         }
 
         // Settlement form submission
         document.getElementById('settlementForm').addEventListener('submit', function(e) {
             e.preventDefault();
+            
+            const createBtn = document.querySelector('#settlementForm button[type="submit"]');
+            
+            // Prevent submission if button is disabled
+            if (createBtn.disabled) {
+                return false;
+            }
+            
+            // Check date validation
+            if (!validateSettlementDates()) {
+                return false;
+            }
             
             const formData = new FormData(this);
             formData.append('action', 'create');
@@ -1315,8 +1515,198 @@ if ($result->num_rows === 1) {
             setTimeout(initializeSettlementModal, 100);
         });
         
+        // Reset button state when settlement type checkboxes change
+        document.getElementById('includeFood').addEventListener('change', function() {
+            resetSettlementButton();
+        });
+        
+        document.getElementById('includeSpecial').addEventListener('change', function() {
+            resetSettlementButton();
+        });
+        
+        // Add date validation listeners
+        document.getElementById('fromDate').addEventListener('change', function() {
+            validateSettlementDates();
+        });
+        
+        document.getElementById('toDate').addEventListener('change', function() {
+            validateSettlementDates();
+        });
+        
+        function resetSettlementButton() {
+            const createBtn = document.querySelector('#settlementForm button[type="submit"]');
+            createBtn.disabled = false;
+            createBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            createBtn.innerHTML = 'Create Settlement';
+            
+            // Hide preview if it's showing
+            document.getElementById('settlementPreview').classList.add('hidden');
+        }
+        
+        // Date validation function
+        function validateSettlementDates() {
+            const fromDate = document.getElementById('fromDate').value;
+            const toDate = document.getElementById('toDate').value;
+            const createBtn = document.querySelector('#settlementForm button[type="submit"]');
+            
+            if (fromDate && toDate) {
+                const fromDateObj = new Date(fromDate);
+                const toDateObj = new Date(toDate);
+                
+                if (fromDateObj >= toDateObj) {
+                    createBtn.disabled = true;
+                    createBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                    createBtn.innerHTML = 'Invalid Date Range';
+                    
+                    // Show error message
+                    const previewDiv = document.getElementById('settlementPreview');
+                    const contentDiv = document.getElementById('previewContent');
+                    
+                    let html = `<div class="p-3 bg-red-50 border border-red-200 rounded-lg">
+                        <div class="flex items-center">
+                            <i class="fas fa-exclamation-triangle text-red-600 mr-2"></i>
+                            <span class="text-red-800 text-sm font-medium">From Date must be before To Date</span>
+                        </div>
+                    </div>`;
+                    
+                    contentDiv.innerHTML = html;
+                    previewDiv.classList.remove('hidden');
+                    return false;
+                } else {
+                    // Reset button if dates are valid
+                    resetSettlementButton();
+                    return true;
+                }
+            }
+            return true;
+        }
+        
+        // Assign leader function
+        function assignLeader(userId, userName) {
+            if (confirm(`👑 **Make Group Leader**\n\nAre you sure you want to make "${userName}" the group leader?\n\n⚠️ **Important:**\n• Only ONE member can be group leader at a time\n• Current leader will lose leadership automatically\n• New leader will have full group control\n\nLeaders can:\n• Add/remove group members\n• Create settlements\n• Remove room admins from group`)) {
+                // Show loading state
+                const button = event.target.closest('button');
+                const originalHTML = button.innerHTML;
+                button.disabled = true;
+                button.innerHTML = '<i class="fas fa-spinner fa-spin text-sm"></i>';
+                
+                fetch('process/assign_group_leader_process.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `group_id=${groupId}&user_id=${userId}&action=assign&member_name=${encodeURIComponent(userName)}`
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Show success message
+                        alert('Leader assigned successfully!');
+                        
+                        // Reload the page to show updated leader status
+                        location.reload();
+                    } else {
+                        alert('Error: ' + data.error);
+                        // Restore button
+                        button.disabled = false;
+                        button.innerHTML = originalHTML;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error assigning leader:', error);
+                    alert('Failed to assign leader. Please try again.');
+                    // Restore button
+                    button.disabled = false;
+                    button.innerHTML = originalHTML;
+                });
+            }
+        }
+        
+        // Remove leader function
+        function removeLeader(userId, userName) {
+            if (confirm(`👑 **Remove Leadership & Become New Leader**\n\nAre you sure you want to remove leadership from "${userName}"?\n\n⚠️ **This will:**\n• Remove their leadership privileges\n• Automatically make you the new group leader\n• They will remain in the group as a regular member\n\nYou will gain full control of the group.`)) {
+                // Show loading state
+                const button = event.target.closest('button');
+                const originalHTML = button.innerHTML;
+                button.disabled = true;
+                button.innerHTML = '<i class="fas fa-spinner fa-spin text-sm"></i>';
+                
+                fetch('process/assign_group_leader_process.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `group_id=${groupId}&user_id=${userId}&action=remove_and_assign_admin&member_name=${encodeURIComponent(userName)}`
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Show success message
+                        alert('Leadership transferred successfully! You are now the group leader.');
+                        
+                        // Reload the page to show updated leader status
+                        location.reload();
+                    } else {
+                        alert('Error: ' + data.error);
+                        // Restore button
+                        button.disabled = false;
+                        button.innerHTML = originalHTML;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error removing leader:', error);
+                    alert('Failed to remove leadership. Please try again.');
+                    // Restore button
+                    button.disabled = false;
+                    button.innerHTML = originalHTML;
+                });
+            }
+        }
+        
+        // Remove admin function (for leaders to remove room admins from group)
+        function removeAdmin(adminId, adminName) {
+            if (confirm(`⚠️ **WARNING: Remove Room Admin from Group**\n\nAre you sure you want to remove "${adminName}" (Room Admin) from this group?\n\nThis will:\n• Remove their access to this group\n• They will lose group leader privileges (if any)\n• They will retain their room admin status\n• This action cannot be undone\n\nOnly group leaders can perform this action.`)) {
+                // Show loading state
+                const button = event.target.closest('button');
+                const originalHTML = button.innerHTML;
+                button.disabled = true;
+                button.innerHTML = '<i class="fas fa-spinner fa-spin text-sm"></i>';
+                
+                fetch('process/remove_admin_process.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `group_id=${groupId}&admin_id=${adminId}&admin_name=${encodeURIComponent(adminName)}`
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Show success message
+                        alert('Admin removed from group successfully!');
+                        
+                        // Reload the page to show updated member list
+                        location.reload();
+                    } else {
+                        alert('Error: ' + data.error);
+                        // Restore button
+                        button.disabled = false;
+                        button.innerHTML = originalHTML;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error removing admin:', error);
+                    alert('Failed to remove admin. Please try again.');
+                    // Restore button
+                    button.disabled = false;
+                    button.innerHTML = originalHTML;
+                });
+            }
+        }
+        
         // Remove member function
         function removeMember(userId, userName) {
+            console.log('removeMember called with:', userId, userName, 'groupId:', groupId);
             if (confirm(`Are you sure you want to remove "${userName}" from this group?\n\nThis action cannot be undone. The member will no longer have access to this group.`)) {
                 // Show loading state
                 const button = event.target.closest('button');
@@ -1324,6 +1714,7 @@ if ($result->num_rows === 1) {
                 button.disabled = true;
                 button.innerHTML = '<i class="fas fa-spinner fa-spin text-sm"></i>';
                 
+                console.log('Sending request to remove member:', `group_id=${groupId}&user_id=${userId}&member_name=${encodeURIComponent(userName)}`);
                 fetch('process/remove_group_member_process.php', {
                     method: 'POST',
                     headers: {
@@ -1331,8 +1722,12 @@ if ($result->num_rows === 1) {
                     },
                     body: `group_id=${groupId}&user_id=${userId}&member_name=${encodeURIComponent(userName)}`
                 })
-                .then(response => response.json())
+                .then(response => {
+                    console.log('Response status:', response.status);
+                    return response.json();
+                })
                 .then(data => {
+                    console.log('Response data:', data);
                     if (data.success) {
                         // Show success message
                         alert('Member removed successfully!');
@@ -1372,6 +1767,139 @@ if ($result->num_rows === 1) {
                 messageContainer.scrollTop = messageContainer.scrollHeight;
             }
         };
+        
+        // Show deletion requests (Leader only)
+        function showDeletionRequests() {
+            document.getElementById('deletionRequestModal').classList.remove('hidden');
+            
+            // Fetch deletion requests
+            fetch(`process/get_deletion_requests_ajax.php?group_id=${groupId}`)
+                .then(response => response.json())
+                .then(data => {
+                    const contentDiv = document.getElementById('deletionRequestContent');
+                    
+                    if (data.success && data.requests.length > 0) {
+                        let html = '<div class="space-y-4">';
+                        
+                        data.requests.forEach(request => {
+                            html += `
+                                <div class="border border-red-200 rounded-lg p-4 bg-red-50">
+                                    <div class="flex items-start justify-between mb-3">
+                                        <div>
+                                            <h4 class="font-semibold text-red-800">${request.group_name}</h4>
+                                            <p class="text-sm text-red-600">Requested by: ${request.requested_by}</p>
+                                            <p class="text-xs text-gray-500">${request.requested_at}</p>
+                                        </div>
+                                        <span class="px-2 py-1 bg-red-100 text-red-800 text-xs rounded-full">Pending</span>
+                                    </div>
+                                    
+                                    <div class="bg-white rounded p-3 mb-3">
+                                        <p class="text-sm text-gray-700">${request.message}</p>
+                                    </div>
+                                    
+                                    <div class="flex justify-end space-x-2">
+                                        <button onclick="approveDeletion(${request.group_id}, '${request.group_name}')" 
+                                                class="px-3 py-1 bg-red-600 text-white text-sm rounded hover:bg-red-700">
+                                            <i class="fas fa-check mr-1"></i>Approve Deletion
+                                        </button>
+                                        <button onclick="rejectDeletion(${request.group_id}, '${request.group_name}')" 
+                                                class="px-3 py-1 bg-gray-600 text-white text-sm rounded hover:bg-gray-700">
+                                            <i class="fas fa-times mr-1"></i>Reject
+                                        </button>
+                                    </div>
+                                </div>
+                            `;
+                        });
+                        
+                        html += '</div>';
+                        contentDiv.innerHTML = html;
+                    } else {
+                        contentDiv.innerHTML = `
+                            <div class="text-center py-6">
+                                <i class="fas fa-check-circle text-green-500 text-4xl mb-3"></i>
+                                <p class="text-gray-500 font-medium">No pending deletion requests</p>
+                                <p class="text-sm text-gray-400">All requests have been processed</p>
+                            </div>
+                        `;
+                        // Hide the notification badge since no pending requests
+                        hideDeletionNotification();
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching deletion requests:', error);
+                    document.getElementById('deletionRequestContent').innerHTML = `
+                        <div class="text-center py-6">
+                            <i class="fas fa-exclamation-triangle text-red-500 text-4xl mb-3"></i>
+                            <p class="text-red-500 font-medium">Error loading requests</p>
+                            <p class="text-sm text-gray-400">Please try again later</p>
+                        </div>
+                    `;
+                });
+        }
+        
+        // Hide deletion notification badge
+        function hideDeletionNotification() {
+            const notificationBtn = document.querySelector('[onclick="showDeletionRequests()"]');
+            if (notificationBtn) {
+                notificationBtn.style.display = 'none';
+            }
+        }
+        
+        // Approve group deletion
+        function approveDeletion(groupId, groupName) {
+            if (confirm(`🗑️ **APPROVE GROUP DELETION**\n\nAre you sure you want to approve the deletion of "${groupName}"?\n\n⚠️ **THIS ACTION CANNOT BE UNDONE!**\n\nThis will permanently delete:\n• All group messages\n• All settlements\n• All member data\n• The group itself`)) {
+                fetch('process/approve_deletion_process.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `group_id=${groupId}&action=approve`
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Group deletion approved! The group will be deleted.');
+                        // Redirect to room details or home
+                        window.location.href = 'index.php?success=Group deleted successfully';
+                    } else {
+                        alert('Error: ' + data.error);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error approving deletion:', error);
+                    alert('Failed to approve deletion. Please try again.');
+                });
+            }
+        }
+        
+        // Reject group deletion
+        function rejectDeletion(groupId, groupName) {
+            if (confirm(`❌ **REJECT GROUP DELETION**\n\nAre you sure you want to reject the deletion request for "${groupName}"?\n\nThe group will remain active and the deletion request will be cancelled.`)) {
+                fetch('process/approve_deletion_process.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `group_id=${groupId}&action=reject`
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Deletion request rejected successfully!');
+                        // Close modal and refresh the page to show updated messages
+                        toggleModal('deletionRequestModal');
+                        // Reload newer messages to show the rejection message
+                        loadNewerMessages();
+                    } else {
+                        alert('Error: ' + data.error);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error rejecting deletion:', error);
+                    alert('Failed to reject deletion. Please try again.');
+                });
+            }
+        }
     </script>
 </body>
 </html>

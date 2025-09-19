@@ -439,16 +439,17 @@ if ($result->num_rows === 1) {
 
 
                         <?php
-                        // Get room groups
+                        // Get only groups where user is a member
                         $groups_stmt = $conn->prepare("SELECT rg.*, 
                                                  (SELECT COUNT(*) FROM group_members WHERE group_id = rg.id) as member_count,
-                                                 (SELECT COUNT(*) FROM group_members WHERE group_id = rg.id AND user_id = ?) as is_member
+                                                 gm.is_leader
                                                  FROM room_groups rg 
-                                                 WHERE rg.room_id = ?
+                                                 JOIN group_members gm ON rg.id = gm.group_id
+                                                 WHERE rg.room_id = ? AND gm.user_id = ?
                                                  ORDER BY rg.created_at ASC
                                                  ");
                         if ($groups_stmt) {
-                            $groups_stmt->bind_param("ii", $user_id, $room['id']);
+                            $groups_stmt->bind_param("ii", $room['id'], $user_id);
                             $groups_stmt->execute();
                             $groups_result = $groups_stmt->get_result();
 
@@ -459,7 +460,14 @@ if ($result->num_rows === 1) {
                                         <div class="flex items-center space-x-2 p-3 border rounded-lg hover:shadow-sm transition-shadow border-blue-200 bg-blue-50">
                                             <a href="group.php?id=<?php echo $group['id']; ?>" class="flex-1 flex items-center justify-between">
                                                 <div>
-                                                    <p class="font-medium"><?php echo htmlspecialchars($group['name']); ?></p>
+                                                    <div class="flex items-center space-x-2">
+                                                        <p class="font-medium"><?php echo htmlspecialchars($group['name']); ?></p>
+                                                        <?php if ($group['is_leader'] == 1): ?>
+                                                            <span class="text-xs bg-purple-100 text-purple-800 px-2 py-1 rounded-full">
+                                                                <i class="fas fa-crown mr-1"></i>Leader
+                                                            </span>
+                                                        <?php endif; ?>
+                                                    </div>
                                                     <p class="text-xs text-gray-500"><?php echo $group['member_count']; ?> Members</p>
                                                 </div>
                                                 <span class="text-sm text-gray-400">›</span>
@@ -478,7 +486,7 @@ if ($result->num_rows === 1) {
                                 </div>
                         <?php
                             } else {
-                                echo '<p class="text-center text-gray-500 py-2">No groups created yet.</p>';
+                                echo '<p class="text-center text-gray-500 py-2">You are not a member of any groups in this room.</p>';
                             }
                             $groups_stmt->close();
                         }

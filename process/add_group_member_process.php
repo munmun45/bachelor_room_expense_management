@@ -21,16 +21,27 @@ if (isset($_POST['add_members'])) {
         exit();
     }
     
-    // Check if user is admin of the room
-    $stmt = $conn->prepare("SELECT rm.is_admin FROM room_members rm 
+    // Check if user is admin of the room OR is a group leader
+    $stmt = $conn->prepare("SELECT rm.is_admin, gm.is_leader FROM room_members rm 
                            JOIN room_groups rg ON rm.room_id = rg.room_id 
-                           WHERE rg.id = ? AND rm.user_id = ? AND rm.is_admin = 1");
-    $stmt->bind_param("ii", $group_id, $user_id);
+                           JOIN group_members gm ON rg.id = gm.group_id
+                           WHERE rg.id = ? AND rm.user_id = ? AND gm.user_id = ?");
+    $stmt->bind_param("iii", $group_id, $user_id, $user_id);
     $stmt->execute();
     $result = $stmt->get_result();
     
     if ($result->num_rows === 0) {
-        header("Location: ../group.php?id=$group_id&error=Only room admin can add members to groups");
+        header("Location: ../group.php?id=$group_id&error=Only room admin or group leader can add members to groups");
+        exit();
+    }
+    
+    $user_info = $result->fetch_assoc();
+    $is_admin = $user_info['is_admin'] == 1;
+    $is_leader = $user_info['is_leader'] == 1;
+    
+    // Check if user has permission (admin OR group leader)
+    if (!$is_admin && !$is_leader) {
+        header("Location: ../group.php?id=$group_id&error=Only room admin or group leader can add members to groups");
         exit();
     }
     
@@ -100,13 +111,28 @@ if (isset($_POST['add_members'])) {
             $member_info = $result->fetch_assoc();
             $member_name = $member_info['full_name'];
             
-            // Add member to the group
-            $stmt = $conn->prepare("INSERT INTO group_members (group_id, user_id, added_by, added_at) VALUES (?, ?, ?, NOW())");
-            $stmt->bind_param("iii", $group_id, $member_id, $user_id);
+            // Check if the member being added is a room admin
+            $stmt = $conn->prepare("SELECT is_admin FROM room_members WHERE room_id = ? AND user_id = ?");
+            $stmt->bind_param("ii", $room_id, $member_id);
+            $stmt->execute();
+            $result = $stmt->get_result();
+            $is_admin_member = $result->num_rows > 0 && $result->fetch_assoc()['is_admin'] == 1;
+            
+            // Add member to the group (with leadership if they are admin)
+            $is_leader = $is_admin_member ? 1 : 0;
+            $stmt = $conn->prepare("INSERT INTO group_members (group_id, user_id, is_leader, added_by, added_at) VALUES (?, ?, ?, ?, NOW())");
+            $stmt->bind_param("iiii", $group_id, $member_id, $is_leader, $user_id);
             
             if ($stmt->execute()) {
                 $added_count++;
                 $added_members[] = $member_name;
+                
+                // If admin was added as leader, remove leadership from current leader
+                if ($is_admin_member) {
+                    $stmt = $conn->prepare("UPDATE group_members SET is_leader = 0 WHERE group_id = ? AND user_id != ? AND is_leader = 1");
+                    $stmt->bind_param("ii", $group_id, $member_id);
+                    $stmt->execute();
+                }
             }
         }
         
@@ -119,6 +145,26 @@ if (isset($_POST['add_members'])) {
             $notification_message .= "👨‍💼 **Added by:** {$admin_name}\n";
             $notification_message .= "👥 **New Members:** " . implode(', ', $added_members) . "\n";
             $notification_message .= "📅 **Date:** " . date('M d, Y \a\t g:i A') . "\n\n";
+            
+            // Check if any admin was added (they would become leader)
+            $admin_added = false;
+            foreach ($member_ids as $member_id) {
+                $member_id_int = intval($member_id);
+                $stmt = $conn->prepare("SELECT is_admin FROM room_members WHERE room_id = ? AND user_id = ?");
+                $stmt->bind_param("ii", $room_id, $member_id_int);
+                $stmt->execute();
+                $result = $stmt->get_result();
+                if ($result->num_rows > 0 && $result->fetch_assoc()['is_admin'] == 1) {
+                    $admin_added = true;
+                    break;
+                }
+            }
+            
+            if ($admin_added) {
+                $notification_message .= "👑 **Note:** Room admin automatically becomes group leader!\n";
+                $notification_message .= "⚠️ Only one member can be group leader at a time.\n\n";
+            }
+            
             $notification_message .= "🎉 Welcome the new members to the group!";
             
             // Insert the notification message
