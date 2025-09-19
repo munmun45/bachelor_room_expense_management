@@ -248,24 +248,41 @@ if ($result->num_rows === 1) {
 
     <!-- Success/Error Messages -->
     <?php if ($success_msg): ?>
-    <div class="fixed top-16 left-0 right-0 bg-green-100 border-l-4 border-green-500 text-green-700 p-4 z-10" role="alert">
-        <p><?php echo htmlspecialchars($success_msg); ?></p>
+    <div id="successAlert" class="fixed top-16 left-0 right-0 bg-green-100 border-l-4 border-green-500 text-green-700 p-4 z-10 transition-all duration-300" role="alert">
+        <div class="flex justify-between items-center">
+            <p><?php echo htmlspecialchars($success_msg); ?></p>
+            <button onclick="closeAlert('successAlert')" class="ml-4 text-green-600 hover:text-green-800">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
     </div>
     <?php endif; ?>
     
     <?php if ($error_msg): ?>
-    <div class="fixed top-16 left-0 right-0 bg-red-100 border-l-4 border-red-500 text-red-700 p-4 z-10" role="alert">
-        <p><?php echo htmlspecialchars($error_msg); ?></p>
+    <div id="errorAlert" class="fixed top-16 left-0 right-0 bg-red-100 border-l-4 border-red-500 text-red-700 p-4 z-10 transition-all duration-300" role="alert">
+        <div class="flex justify-between items-center">
+            <p><?php echo htmlspecialchars($error_msg); ?></p>
+            <button onclick="closeAlert('errorAlert')" class="ml-4 text-red-600 hover:text-red-800">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
     </div>
     <?php endif; ?>
     
     <!-- Debug Info (only show if debug=1 in URL) -->
     <?php if (isset($_GET['debug']) && $_GET['debug'] == '1'): ?>
-    <div class="fixed top-20 left-0 right-0 bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 z-10" role="alert">
-        <p><strong>DEBUG INFO:</strong></p>
-        <p>User ID: <?php echo $user_id; ?> | Group ID: <?php echo $group_id; ?></p>
-        <p>Is Admin: <?php echo $is_admin ? 'YES' : 'NO'; ?> | Is Leader: <?php echo $is_leader ? 'YES' : 'NO'; ?></p>
-        <p>Can Manage: <?php echo ($is_admin || $is_leader) ? 'YES' : 'NO'; ?></p>
+    <div id="debugAlert" class="fixed top-20 left-0 right-0 bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 z-10 transition-all duration-300" role="alert">
+        <div class="flex justify-between items-center">
+            <div>
+                <p><strong>DEBUG INFO:</strong></p>
+                <p>User ID: <?php echo $user_id; ?> | Group ID: <?php echo $group_id; ?></p>
+                <p>Is Admin: <?php echo $is_admin ? 'YES' : 'NO'; ?> | Is Leader: <?php echo $is_leader ? 'YES' : 'NO'; ?></p>
+                <p>Can Manage: <?php echo ($is_admin || $is_leader) ? 'YES' : 'NO'; ?></p>
+            </div>
+            <button onclick="closeAlert('debugAlert')" class="ml-4 text-yellow-600 hover:text-yellow-800">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
     </div>
     <?php endif; ?>
 
@@ -606,7 +623,7 @@ if ($result->num_rows === 1) {
                                         <i class="fas fa-crown text-sm"></i>
                                     </button>
                                 <?php else: ?>
-                                    <?php if ($is_admin): ?>
+                                    <?php if ($is_admin && $member['user_id'] != $user_id): ?>
                                         <button onclick="removeLeader(<?php echo $member['user_id']; ?>, '<?php echo htmlspecialchars($member['full_name']); ?>')" 
                                                 class="member-action-btn text-orange-600 hover:text-orange-800 hover:bg-orange-50 p-2 rounded-full transition-colors" 
                                                 title="Remove Leadership & Become New Leader">
@@ -1766,7 +1783,40 @@ if ($result->num_rows === 1) {
             if (messageContainer) {
                 messageContainer.scrollTop = messageContainer.scrollHeight;
             }
+            
+            // Auto-close alerts after 5 seconds
+            autoCloseAlerts();
         };
+        
+        // Auto-close alerts function
+        function autoCloseAlerts() {
+            const alerts = ['successAlert', 'errorAlert', 'debugAlert'];
+            
+            alerts.forEach(alertId => {
+                const alert = document.getElementById(alertId);
+                if (alert) {
+                    // Auto-close after 5 seconds
+                    setTimeout(() => {
+                        closeAlert(alertId);
+                    }, 5000);
+                }
+            });
+        }
+        
+        // Close alert function
+        function closeAlert(alertId) {
+            const alert = document.getElementById(alertId);
+            if (alert) {
+                // Add slide-up animation
+                alert.style.transform = 'translateY(-100%)';
+                alert.style.opacity = '0';
+                
+                // Remove element after animation
+                setTimeout(() => {
+                    alert.remove();
+                }, 300);
+            }
+        }
         
         // Show deletion requests (Leader only)
         function showDeletionRequests() {
