@@ -144,66 +144,7 @@ if ($result->num_rows === 1) {
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <style>
-        body {
-            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f0f2f5;
-        }
-        .message-container {
-            max-height: calc(100vh - 190px);
-            overflow-y: auto;
-        }
-        .recipient-selector {
-            max-height: 200px;
-            overflow-y: auto;
-        }
-        
-        /* Settlement payment instructions styling */
-        .settlement-message .message-content {
-            max-width: 100% !important;
-        }
-        
-        .payment-instruction-card {
-            transition: all 0.2s ease;
-        }
-        
-        .payment-instruction-card:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        }
-        
-        /* Member removal styling */
-        .member-remove-btn {
-            transition: all 0.2s ease;
-        }
-        
-        .member-remove-btn:hover {
-            transform: scale(1.1);
-        }
-        
-        /* Member action buttons styling */
-        .member-action-btn {
-            transition: all 0.2s ease;
-        }
-        
-        .member-action-btn:hover {
-            transform: scale(1.1);
-        }
-        
-        /* Leader badge styling */
-        .leader-badge {
-            background: linear-gradient(135deg, #8b5cf6, #a855f7);
-            color: white;
-            text-shadow: 0 1px 2px rgba(0,0,0,0.1);
-        }
-        
-        /* Admin badge styling */
-        .admin-badge {
-            background: linear-gradient(135deg, #10b981, #059669);
-            color: white;
-            text-shadow: 0 1px 2px rgba(0,0,0,0.1);
-        }
-    </style>
+    
 </head>
 <body class="bg-gray-100">
     <!-- Header -->
