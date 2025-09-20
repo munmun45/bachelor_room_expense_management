@@ -229,241 +229,141 @@ $form_action = 'process/profile_update_process.php';
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="js/back-navigation.js"></script>
-    <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f0f2f5;
-        }
-        .bottom-nav {
-            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
-        }
-        .add-expense-btn {
-            transform: translateY(-50%);
-            box-shadow: 0 0 15px rgba(37, 99, 235, 0.5);
-        }
-        .profile-header {
-            background: linear-gradient(to right, #3b82f6, #2563eb);
-        }
-        .kyc-badge {
-            background-color: #fef3c7;
-            color: #92400e;
-        }
-        .kyc-verified {
-            background-color: #dcfce7;
-            color: #166534;
-        }
-        .profile-image-container {
-            position: relative;
-            display: inline-block;
-        }
-        .profile-image-edit {
-            position: absolute;
-            bottom: 0;
-            right: 0;
-            background: #3b82f6;
-            color: white;
-            border-radius: 50%;
-            width: 32px;
-            height: 32px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            border: 2px solid white;
-        }
-        
-        /* Pull to Refresh Styles */
-        .pull-to-refresh {
-            position: fixed;
-            top: -60px;
-            left: 0;
-            right: 0;
-            height: 60px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-            transition: transform 0.3s ease;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-        }
-        
-        .pull-to-refresh.show {
-            transform: translateY(60px);
-        }
-        
-        .pull-to-refresh .refresh-content {
-            display: flex;
-            align-items: center;
-            color: white;
-            font-weight: 500;
-        }
-        
-        .pull-to-refresh .refresh-icon {
-            margin-right: 8px;
-            transition: transform 0.3s ease;
-        }
-        
-        .pull-to-refresh .refresh-icon.spinning {
-            animation: spin 1s linear infinite;
-        }
-        
-        @keyframes spin {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
-        
-        .pull-indicator {
-            position: fixed;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(0, 0, 0, 0.7);
-            color: white;
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-size: 14px;
-            z-index: 1001;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-            pointer-events: none;
-        }
-        
-        .pull-indicator.show {
-            opacity: 1;
-        }
-        
-        .pull-indicator .icon {
-            margin-right: 6px;
-        }
-    </style>
+
+        <link rel="stylesheet" href="./css/style.css">
+    
 </head>
-<body class="bg-gray-100">
-    <!-- Pull to Refresh Indicator -->
-    <div class="pull-indicator" id="pullIndicator">
-        <i class="fas fa-arrow-down icon"></i>
-        <span>Pull to refresh</span>
-    </div>
+<body >
     
-    <!-- Pull to Refresh Bar -->
-    <div class="pull-to-refresh" id="pullToRefresh">
-        <div class="refresh-content">
-            <i class="fas fa-sync-alt refresh-icon" id="refreshIcon"></i>
-            <span id="refreshText">Release to refresh</span>
-        </div>
-    </div>
-    
-    <!-- Top Header with Logo, Back Button and Profile -->
-    <header class="fixed top-0 left-0 right-0 bg-white shadow-md z-10">
-        <div class="flex justify-between items-center px-4 py-3">
-            <div class="flex items-center">
-                <button onclick="goBack()" class="mr-3 back-button" title="Go Back">
-                    <i class="fas fa-arrow-left text-blue-600 text-xl hover:text-blue-800 transition-colors"></i>
+
+<header class="app-header fixed top-0 left-0 right-0 z-10 py-2.5 px-3">
+        <div class="flex justify-between items-center">
+            <div class="flex items-center space-x-2.5">
+                <button onclick="goBack()" class="mr-3 back-button" title="Go Back" style="margin-left: 15px;">
+                    <i class="fas fa-arrow-left text-white text-xl"></i>
                 </button>
-                <div class="mr-3">
-                    <i class="fas fa-wallet text-blue-600 text-2xl"></i>
-                </div>
+                
                 <div>
-                    <h1 class="text-lg font-bold text-gray-800">Bachelor Room</h1>
-                    <p class="text-xs text-gray-500">Expense Management</p>
+                    <h1 class="text-base font-bold text-white tracking-tight">Profile Manager</h1>
+                    <p class="text-[12px] text-white text-opacity-80 -mt-0.5">Manage Your Profile</p>
                 </div>
             </div>
-            <div class="flex items-center">
-                <div class="mr-4 relative">
-                    <i class="fas fa-bell text-gray-600 text-xl"></i>
-                    <span class="absolute top-0 right-0 h-2 w-2 bg-red-500 rounded-full"></span>
+            <div class="flex items-center space-x-3">
+                <div class="relative">
+                    <div class="w-7 h-7 rounded-full bg-white bg-opacity-20 flex items-center justify-center backdrop-blur-sm cursor-pointer hover:bg-opacity-30 transition-all duration-200" onclick="location.reload()" id="refreshButton">
+                        <i class="fas fa-sync-alt text-white text-sm"></i>
+                    </div>
+                    
                 </div>
-                <div>
-                    <img src="<?php echo $profile_image; ?>" alt="Profile" class="h-8 w-8 rounded-full border-2 border-blue-500 object-cover">
-                </div>
+                <a href="profile.php" class="transform transition-transform hover:scale-105">
+                    <div class="h-8 w-8 rounded-full bg-white bg-opacity-20 flex items-center justify-center overflow-hidden border border-white border-opacity-30 backdrop-blur-sm" style="border: 2px solid white; height: 35px; width: 35px;">
+                        <img src="<?php echo $profile_image; ?>" alt="Profile" class="h-full w-full object-cover">
+                    </div>
+                </a>
             </div>
         </div>
     </header>
+    
+
 
     <!-- Main Content -->
     <main class="container mx-auto px-4 pt-20 pb-6 max-w-md">
         <?php echo $update_message; ?>
         
         <!-- Profile Header -->
-        <div class="profile-header rounded-xl shadow-md p-6 mb-4 text-white text-center">
-            <form id="profile_image_form" action="" method="post" enctype="multipart/form-data" class="mb-4">
-                <div class="flex justify-center">
-                    <div class="profile-image-container">
-                        <img src="<?php echo $profile_image; ?>" alt="Profile" class="h-24 w-24 rounded-full border-4 border-white shadow-lg object-cover">
-                        <label for="profile_image" class="profile-image-edit">
-                            <i class="fas fa-camera"></i>
-                        </label>
-                        <input type="file" id="profile_image" name="profile_image" class="hidden" onchange="document.getElementById('profile_image_form').submit()">
-                        <input type="hidden" name="update_profile" value="1">
-                    </div>
-                </div>
-            </form>
-            <h2 class="text-2xl font-bold"><?php echo htmlspecialchars($user['full_name']); ?></h2>
-            <p class="text-blue-100"><?php echo htmlspecialchars($user['email'] ?? 'Email not set'); ?></p>
-            <p class="text-blue-100 text-sm"><?php echo htmlspecialchars($user['phone']); ?></p>
-            <div class="mt-4 flex justify-center">
-                <span class="<?php echo $kyc_badge_class; ?> text-xs px-3 py-1 rounded-full font-medium">KYC <?php echo $kyc_badge_text; ?></span>
+        <div class="profile-header p-5 mb-4 mt-3 rounded-3xl relative text-white text-center shadow-md bg-gradient-to-tr from-indigo-600 to-purple-600">
+    <form id="profile_image_form" action="" method="post" enctype="multipart/form-data" class="mb-4">
+        <div class="flex justify-center">
+            <div class="profile-image-container relative">
+                <img src="<?php echo $profile_image; ?>" alt="Profile" class="h-24 w-24 rounded-full border-4 border-white shadow-lg object-cover">
+                <label for="profile_image" class="profile-image-edit absolute bottom-2 right-2 bg-white text-indigo-600 rounded-full p-2 cursor-pointer shadow-md hover:bg-indigo-100" style="left: 61px; bottom: -10px; right: -4px;" >
+                    <i class="fas fa-camera"></i>
+                </label>
+                <input type="file" id="profile_image" name="profile_image" class="hidden" onchange="document.getElementById('profile_image_form').submit()">
+                <input type="hidden" name="update_profile" value="1">
             </div>
         </div>
+    </form>
+
+    <h2 class="text-2xl font-bold"><?php echo htmlspecialchars($user['full_name']); ?></h2>
+    <p class="text-indigo-100"><?php echo htmlspecialchars($user['email'] ?? 'Email not set'); ?></p>
+    <p class="text-indigo-100 text-sm"><?php echo htmlspecialchars($user['phone']); ?></p>
+
+    <div class="mt-4 flex justify-center">
+        <span class="<?php echo $kyc_badge_class; ?> text-xs px-3 py-1 rounded-full font-medium bg-white/20 backdrop-blur-sm">
+            KYC <?php echo $kyc_badge_text; ?>
+        </span>
+    </div>
+</div>
+
 
         <!-- Profile Information -->
-        <div class="bg-white rounded-xl shadow-md p-4 mb-4">
-            <div class="flex justify-between items-center mb-4">
-                <h3 class="text-lg font-semibold">Personal Information</h3>
-                <button id="edit-profile-btn" class="text-blue-600 text-sm font-medium">
-                    <i class="fas fa-edit mr-1"></i> Edit
-                </button>
-            </div>
-            
-            <!-- View Mode -->
-            <div id="profile-view" class="space-y-3">
-                <div class="flex justify-between items-center">
-                    <p class="text-gray-500">Full Name</p>
-                    <p class="font-medium"><?php echo htmlspecialchars($user['full_name']); ?></p>
-                </div>
-                
-                <div class="flex justify-between items-center">
-                    <p class="text-gray-500">Joined Date</p>
-                    <p class="font-medium"><?php echo $joined_date; ?></p>
-                </div>
-                <div class="flex justify-between items-center">
-                    <p class="text-gray-500">Occupation</p>
-                    <p class="font-medium"><?php echo htmlspecialchars($user['occupation'] ?? 'Not set'); ?></p>
-                </div>
-                <div class="flex justify-between items-center">
-                    <p class="text-gray-500">Emergency Contact</p>
-                    <p class="font-medium"><?php echo htmlspecialchars($user['emergency_contact'] ?? 'Not set'); ?></p>
-                </div>
-            </div>
-            
-            <!-- Edit Mode -->
-            <form id="profile-edit" action="<?php echo $form_action; ?>" method="post" enctype="multipart/form-data" class="space-y-4 hidden">
-                <div>
-                    <label for="full_name" class="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
-                    <input type="text" id="full_name" name="full_name" value="<?php echo htmlspecialchars($user['full_name']); ?>" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500" required>
-                </div>
-                <div>
-                    <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email (optional)</label>
-                    <input type="email" id="email" name="email" value="<?php echo htmlspecialchars($user['email'] ?? ''); ?>" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                </div>
-                
-                <div>
-                    <label for="occupation" class="block text-sm font-medium text-gray-700 mb-1">Occupation (optional)</label>
-                    <input type="text" id="occupation" name="occupation" value="<?php echo htmlspecialchars($user['occupation'] ?? ''); ?>" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                </div>
-                <div>
-                    <label for="emergency_contact" class="block text-sm font-medium text-gray-700 mb-1">Emergency Contact</label>
-                    <input type="text" id="emergency_contact" name="emergency_contact" value="<?php echo htmlspecialchars($user['emergency_contact'] ?? ''); ?>" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500" required>
-                </div>
-                <div class="flex space-x-3">
-                    <button type="submit" name="update_profile" class="flex-1 bg-blue-600 text-white py-2 rounded-lg font-medium">Save Changes</button>
-                    <button type="button" id="cancel-edit" class="flex-1 bg-gray-300 text-gray-700 py-2 rounded-lg font-medium">Cancel</button>
-                </div>
-            </form>
+        <div class="p-6 mb-5 mt-3 rounded-3xl relative bg-gradient-to-br from-white via-gray-50 to-gray-100 ">
+    
+    <!-- Header -->
+    <div class="flex justify-between items-center mb-6">
+        <h3 class="text-lg font-semibold text-gray-800">Personal Information</h3>
+        <button id="edit-profile-btn" class="flex items-center gap-1 text-sm font-medium text-indigo-600 hover:text-indigo-700 transition">
+            <i class="fas fa-edit"></i> Edit
+        </button>
+    </div>
+    
+    <!-- View Mode -->
+    <div id="profile-view" class="space-y-4">
+        <div class="flex justify-between items-center border-b pb-2">
+            <p class="text-gray-500">Full Name</p>
+            <p class="font-medium text-gray-800"><?php echo htmlspecialchars($user['full_name']); ?></p>
         </div>
+        
+        <div class="flex justify-between items-center border-b pb-2">
+            <p class="text-gray-500">Joined Date</p>
+            <p class="font-medium text-gray-800"><?php echo $joined_date; ?></p>
+        </div>
+        
+        <div class="flex justify-between items-center border-b pb-2">
+            <p class="text-gray-500">Occupation</p>
+            <p class="font-medium text-gray-800"><?php echo htmlspecialchars($user['occupation'] ?? 'Not set'); ?></p>
+        </div>
+        
+        <div class="flex justify-between items-center">
+            <p class="text-gray-500">Emergency Contact</p>
+            <p class="font-medium text-gray-800"><?php echo htmlspecialchars($user['emergency_contact'] ?? 'Not set'); ?></p>
+        </div>
+    </div>
+    
+    <!-- Edit Mode -->
+    <form id="profile-edit" action="<?php echo $form_action; ?>" method="post" enctype="multipart/form-data" class="space-y-4 hidden mt-4">
+        
+        <div>
+            <label for="full_name" class="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+            <input type="text" id="full_name" name="full_name" value="<?php echo htmlspecialchars($user['full_name']); ?>" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" required>
+        </div>
+        
+        <div>
+            <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email (optional)</label>
+            <input type="email" id="email" name="email" value="<?php echo htmlspecialchars($user['email'] ?? ''); ?>" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+        </div>
+        
+        <div>
+            <label for="occupation" class="block text-sm font-medium text-gray-700 mb-1">Occupation (optional)</label>
+            <input type="text" id="occupation" name="occupation" value="<?php echo htmlspecialchars($user['occupation'] ?? ''); ?>" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+        </div>
+        
+        <div>
+            <label for="emergency_contact" class="block text-sm font-medium text-gray-700 mb-1">Emergency Contact</label>
+            <input type="text" id="emergency_contact" name="emergency_contact" value="<?php echo htmlspecialchars($user['emergency_contact'] ?? ''); ?>" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" required>
+        </div>
+        
+        <div class="flex space-x-3 pt-2">
+            <button type="submit" name="update_profile" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white py-2 rounded-lg font-medium transition">Save Changes</button>
+            <button type="button" id="cancel-edit" class="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 py-2 rounded-lg font-medium transition">Cancel</button>
+        </div>
+    </form>
+</div>
+
 
         <!-- KYC Section -->
-        <div class="bg-white rounded-xl shadow-md p-4 mb-4">
+        <div class="p-5 mb-4 mt-3 rounded-3xl  relative bg-gradient-to-br from-gray-50 via-white to-gray-100  border-gray-200">
             <h3 class="text-lg font-semibold mb-4">KYC Verification</h3>
             
             <div class="space-y-4">
@@ -553,7 +453,7 @@ $form_action = 'process/profile_update_process.php';
         </div>
 
         <!-- Logout Button -->
-        <div class="bg-white rounded-xl shadow-md p-4 mb-4">
+        <div class="p-5 mb-4 mt-3 rounded-3xl  relative bg-gradient-to-br from-gray-50 via-white to-gray-100  border-gray-200">
             <a href="process/logout_process.php" class="block w-full bg-red-600 text-white py-3 rounded-lg font-medium text-center">
                 <i class="fas fa-sign-out-alt mr-2"></i>Logout
             </a>
@@ -572,165 +472,7 @@ $form_action = 'process/profile_update_process.php';
             document.getElementById('profile-view').classList.remove('hidden');
         });
         
-        // Pull to Refresh Functionality
-        let pullToRefresh = {
-            startY: 0,
-            currentY: 0,
-            isPulling: false,
-            isRefreshing: false,
-            threshold: 80,
-            maxPull: 120,
-            
-            init() {
-                this.bindEvents();
-            },
-            
-            bindEvents() {
-                // Touch events for mobile
-                document.addEventListener('touchstart', this.handleTouchStart.bind(this), { passive: false });
-                document.addEventListener('touchmove', this.handleTouchMove.bind(this), { passive: false });
-                document.addEventListener('touchend', this.handleTouchEnd.bind(this), { passive: false });
-                
-                // Mouse events for desktop (for testing)
-                document.addEventListener('mousedown', this.handleMouseDown.bind(this));
-                document.addEventListener('mousemove', this.handleMouseMove.bind(this));
-                document.addEventListener('mouseup', this.handleMouseUp.bind(this));
-            },
-            
-            handleTouchStart(e) {
-                if (window.scrollY === 0 && !this.isRefreshing) {
-                    this.startY = e.touches[0].clientY;
-                    this.isPulling = true;
-                }
-            },
-            
-            handleTouchMove(e) {
-                if (!this.isPulling || this.isRefreshing) return;
-                
-                this.currentY = e.touches[0].clientY;
-                const pullDistance = this.currentY - this.startY;
-                
-                if (pullDistance > 0) {
-                    e.preventDefault();
-                    this.updatePullState(pullDistance);
-                }
-            },
-            
-            handleTouchEnd(e) {
-                if (!this.isPulling || this.isRefreshing) return;
-                
-                const pullDistance = this.currentY - this.startY;
-                this.isPulling = false;
-                
-                if (pullDistance > this.threshold) {
-                    this.triggerRefresh();
-                } else {
-                    this.resetPullState();
-                }
-            },
-            
-            handleMouseDown(e) {
-                if (window.scrollY === 0 && !this.isRefreshing && e.clientY < 50) {
-                    this.startY = e.clientY;
-                    this.isPulling = true;
-                    e.preventDefault();
-                }
-            },
-            
-            handleMouseMove(e) {
-                if (!this.isPulling || this.isRefreshing) return;
-                
-                this.currentY = e.clientY;
-                const pullDistance = this.currentY - this.startY;
-                
-                if (pullDistance > 0) {
-                    e.preventDefault();
-                    this.updatePullState(pullDistance);
-                }
-            },
-            
-            handleMouseUp(e) {
-                if (!this.isPulling || this.isRefreshing) return;
-                
-                const pullDistance = this.currentY - this.startY;
-                this.isPulling = false;
-                
-                if (pullDistance > this.threshold) {
-                    this.triggerRefresh();
-                } else {
-                    this.resetPullState();
-                }
-            },
-            
-            updatePullState(pullDistance) {
-                const progress = Math.min(pullDistance / this.maxPull, 1);
-                const refreshBar = document.getElementById('pullToRefresh');
-                const pullIndicator = document.getElementById('pullIndicator');
-                const refreshText = document.getElementById('refreshText');
-                
-                // Show pull indicator when starting to pull
-                if (pullDistance > 20) {
-                    pullIndicator.classList.add('show');
-                }
-                
-                // Show refresh bar when threshold is reached
-                if (pullDistance > this.threshold) {
-                    refreshBar.classList.add('show');
-                    refreshText.textContent = 'Release to refresh';
-                    pullIndicator.innerHTML = '<i class="fas fa-arrow-up icon"></i><span>Release to refresh</span>';
-                } else {
-                    refreshText.textContent = 'Pull to refresh';
-                    pullIndicator.innerHTML = '<i class="fas fa-arrow-down icon"></i><span>Pull to refresh</span>';
-                }
-                
-                // Add haptic feedback on mobile
-                if (navigator.vibrate && pullDistance > this.threshold && pullDistance < this.threshold + 5) {
-                    navigator.vibrate(50);
-                }
-            },
-            
-            triggerRefresh() {
-                this.isRefreshing = true;
-                const refreshBar = document.getElementById('pullToRefresh');
-                const refreshIcon = document.getElementById('refreshIcon');
-                const refreshText = document.getElementById('refreshText');
-                const pullIndicator = document.getElementById('pullIndicator');
-                
-                // Show refresh bar and start spinning
-                refreshBar.classList.add('show');
-                refreshIcon.classList.add('spinning');
-                refreshText.textContent = 'Refreshing...';
-                pullIndicator.classList.remove('show');
-                
-                // Add haptic feedback
-                if (navigator.vibrate) {
-                    navigator.vibrate([100, 50, 100]);
-                }
-                
-                // Simulate refresh delay and then reload
-                setTimeout(() => {
-                    window.location.reload();
-                }, 1000);
-            },
-            
-            resetPullState() {
-                const refreshBar = document.getElementById('pullToRefresh');
-                const refreshIcon = document.getElementById('refreshIcon');
-                const pullIndicator = document.getElementById('pullIndicator');
-                
-                refreshBar.classList.remove('show');
-                refreshIcon.classList.remove('spinning');
-                pullIndicator.classList.remove('show');
-                
-                this.isPulling = false;
-                this.isRefreshing = false;
-            }
-        };
         
-        // Initialize pull to refresh when page loads
-        document.addEventListener('DOMContentLoaded', function() {
-            pullToRefresh.init();
-        });
     </script>
 </body>
 </html>
