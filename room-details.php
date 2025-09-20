@@ -472,7 +472,17 @@ $error_msg = isset($_GET['error']) ? $_GET['error'] : '';
         }
         
         function deleteGroupDirectly(groupId, groupName) {
-            if (confirm(`🗑️ **Delete Group Permanently**\n\nAre you sure you want to delete the group "${groupName}"?\n\n⚠️ **This action cannot be undone!**\n\nThis will:\n• Delete all group messages\n• Delete all settlements\n• Remove all members from the group\n• Delete the group permanently`)) {
+            if (confirm(`🗑️ **Delete Group Permanently**
+
+Are you sure you want to delete the group "${groupName}"?
+
+⚠️ **This action cannot be undone!**
+
+This will:
+• Delete all group messages
+• Delete all settlements
+• Remove all members from the group
+• Delete the group permanently`)) {
                 // Show loading state
                 const button = event.target.closest('button');
                 const originalHTML = button.innerHTML;
@@ -507,7 +517,13 @@ $error_msg = isset($_GET['error']) ? $_GET['error'] : '';
         }
         
         function requestGroupDeletion(groupId, groupName, leaderName) {
-            if (confirm(`📝 **Request Group Deletion**\n\nAre you sure you want to request deletion of the group "${groupName}"?\n\nThis will send a deletion request to the group leader: **${leaderName}**\n\nThe leader will need to approve this request before the group is deleted.`)) {
+            if (confirm(`📝 **Request Group Deletion**
+
+Are you sure you want to request deletion of the group "${groupName}"?
+
+This will send a deletion request to the group leader: **${leaderName}**
+
+The leader will need to approve this request before the group is deleted.`)) {
                 // Show loading state
                 const button = event.target.closest('button');
                 const originalHTML = button.innerHTML;

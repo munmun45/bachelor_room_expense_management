@@ -98,6 +98,11 @@ if (isset($_POST['create_room'])) {
             throw new Exception("Failed to execute group member insertion: " . $stmt->error);
         }
         
+        // Set the creator as the leader of the group
+        $stmt = $conn->prepare("UPDATE group_members SET is_leader = 1 WHERE group_id = ? AND user_id = ?");
+        $stmt->bind_param("ii", $group_id, $user_id);
+        $stmt->execute();
+        
         $conn->commit();
         
         // Redirect to room details page
