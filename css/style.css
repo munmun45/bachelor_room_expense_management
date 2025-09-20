@@ -247,3 +247,7 @@
      color: white;
      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
  }
+
+ .bg-blue-my{
+    background: linear-gradient(135deg, #4f46e5, #7c3aed);
+ }
