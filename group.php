@@ -150,7 +150,7 @@ if ($result->num_rows === 1) {
 
 </head>
 
-<body class="bg-gray-100">
+<body>
     <!-- Header -->
 
     <header class="app-header fixed top-0 left-0 right-0 z-10 py-2.5 px-3">

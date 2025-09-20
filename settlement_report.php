@@ -82,6 +82,7 @@ if ($result->num_rows === 1) {
 ?>
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -89,191 +90,115 @@ if ($result->num_rows === 1) {
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="js/back-navigation.js"></script>
-    <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f0f2f5;
-        }
-        .settlement-card {
-            transition: all 0.2s ease;
-        }
-        .settlement-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        }
-        .status-badge {
-            font-size: 0.75rem;
-            padding: 2px 8px;
-            border-radius: 12px;
-            font-weight: 600;
-        }
-        .animate-fade-in {
-            animation: fadeIn 0.3s ease-in;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        
-        /* Pull to Refresh Styles */
-        .pull-to-refresh {
-            position: fixed;
-            top: -60px;
-            left: 0;
-            right: 0;
-            height: 60px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-            transition: transform 0.3s ease;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-        }
-        
-        .pull-to-refresh.show {
-            transform: translateY(60px);
-        }
-        
-        .pull-to-refresh .refresh-content {
-            display: flex;
-            align-items: center;
-            color: white;
-            font-weight: 500;
-        }
-        
-        .pull-to-refresh .refresh-icon {
-            margin-right: 8px;
-            transition: transform 0.3s ease;
-        }
-        
-        .pull-to-refresh .refresh-icon.spinning {
-            animation: spin 1s linear infinite;
-        }
-        
-        @keyframes spin {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
-        
-        .pull-indicator {
-            position: fixed;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(0, 0, 0, 0.7);
-            color: white;
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-size: 14px;
-            z-index: 1001;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-            pointer-events: none;
-        }
-        
-        .pull-indicator.show {
-            opacity: 1;
-        }
-        
-        .pull-indicator .icon {
-            margin-right: 6px;
-        }
-    </style>
+
+    <link rel="stylesheet" href="css/style.css">
+
 </head>
+
 <body class="bg-gray-100">
-    <!-- Pull to Refresh Indicator -->
-    <div class="pull-indicator" id="pullIndicator">
-        <i class="fas fa-arrow-down icon"></i>
-        <span>Pull to refresh</span>
-    </div>
-    
-    <!-- Pull to Refresh Bar -->
-    <div class="pull-to-refresh" id="pullToRefresh">
-        <div class="refresh-content">
-            <i class="fas fa-sync-alt refresh-icon" id="refreshIcon"></i>
-            <span id="refreshText">Release to refresh</span>
-        </div>
-    </div>
-    
+
+
     <!-- Header -->
-    <header class="fixed top-0 left-0 right-0 bg-white shadow-md z-10">
-        <div class="flex justify-between items-center px-4 py-3">
-            <div class="flex items-center">
-                <button onclick="goBack()" class="mr-3 back-button" title="Go Back">
-                    <i class="fas fa-arrow-left text-blue-600 text-xl hover:text-blue-800 transition-colors"></i>
+
+    <header class="app-header fixed top-0 left-0 right-0 z-10 py-2.5 px-3">
+        <div class="flex justify-between items-center">
+            <div class="flex items-center space-x-2.5">
+                <button onclick="goBack()" class="mr-3 back-button" title="Go Back" style="margin-left: 15px;">
+                    <i class="fas fa-arrow-left text-white text-xl"></i>
                 </button>
-                <div class="mr-3">
-                    <i class="fas fa-file-invoice-dollar text-purple-600 text-2xl"></i>
-                </div>
+
                 <div>
-                    <h1 class="text-lg font-bold text-gray-800"><?php echo htmlspecialchars($group['name']); ?></h1>
-                    <p class="text-xs text-gray-500">Settlement Reports</p>
+                    <h1 class="text-base font-bold text-white tracking-tight"><?php echo htmlspecialchars($group['name']); ?></h1>
+                    <p class="text-[12px] text-white text-opacity-80 -mt-0.5">Settlement Reports</p>
                 </div>
             </div>
             <div class="flex items-center space-x-3">
-                
-                <a href="profile.php">
-                    <img src="<?php echo $profile_image; ?>" alt="Profile" class="h-8 w-8 rounded-full border-2 border-blue-500 object-cover">
+                <div class="relative">
+                    <div class="w-7 h-7 rounded-full bg-white bg-opacity-20 flex items-center justify-center backdrop-blur-sm cursor-pointer hover:bg-opacity-30 transition-all duration-200" onclick="location.reload()" id="refreshButton">
+                        <i class="fas fa-sync-alt text-white text-sm"></i>
+                    </div>
+
+                </div>
+                <a href="profile.php" class="transform transition-transform hover:scale-105">
+                    <div class="h-8 w-8 rounded-full bg-white bg-opacity-20 flex items-center justify-center overflow-hidden border border-white border-opacity-30 backdrop-blur-sm" style="border: 2px solid white; height: 35px; width: 35px;">
+                        <img src="<?php echo $profile_image; ?>" alt="Profile" class="h-full w-full object-cover">
+                    </div>
                 </a>
             </div>
         </div>
     </header>
 
+
+
     <!-- Main Content -->
     <main class="pt-20 pb-24 px-4 max-w-md mx-auto">
+
+
+
+
         <!-- Summary Card -->
-        <div class="bg-white rounded-xl shadow-md p-4 mb-4">
-            <div class="flex items-center justify-between mb-3">
-                <h2 class="text-lg font-semibold">📋 Settlement History</h2>
-                <span class="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
+        <div class="p-5 mb-4 mt-3 rounded-3xl  relative bg-gradient-to-br from-gray-50 via-white to-gray-100  border-gray-200">
+            <!-- Header -->
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-base font-semibold text-gray-800 flex items-center gap-2">
+                    📋 Settlement History
+                </h2>
+                <span class="bg-blue-50 text-blue-700 text-[12px] font-medium px-3 py-1 rounded-full border border-blue-100">
                     <?php echo count($settlements); ?> Reports
                 </span>
             </div>
-            
+
             <?php if (count($settlements) > 0): ?>
-                <div class="grid grid-cols-2 gap-4 text-center">
-                    <div>
-                        <p class="text-sm text-gray-500">Latest Settlement</p>
-                        <p class="text-lg font-bold text-green-600">
+                <!-- Stats Section -->
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="bg-green-50 rounded-lg p-3 border border-green-100">
+                        <p class="text-[12px] text-green-700 mb-1">Latest Settlement</p>
+                        <p class="text-[15px] font-semibold text-green-800">
                             <?php echo date('M d, Y', strtotime($settlements[0]['created_at'])); ?>
                         </p>
                     </div>
-                    <div>
-                        <p class="text-sm text-gray-500">Total Settlements</p>
-                        <p class="text-lg font-bold text-purple-600"><?php echo count($settlements); ?></p>
+
+                    <div class="bg-purple-50 rounded-lg p-3 border border-purple-100">
+                        <p class="text-[12px] text-purple-700 mb-1">Total Settlements</p>
+                        <p class="text-[15px] font-semibold text-purple-800">
+                            <?php echo count($settlements); ?>
+                        </p>
                     </div>
                 </div>
-                
-                
+
+
+
             <?php else: ?>
+                <!-- Empty State -->
                 <div class="text-center py-6">
-                    <i class="fas fa-file-invoice text-4xl text-gray-300 mb-3"></i>
-                    <p class="text-gray-500 font-medium">No settlements created yet</p>
-                    <p class="text-sm text-gray-400 mb-4">Create your first settlement to track expenses</p>
-                    <a href="report.php?group_id=<?php echo $group_id; ?>" 
-                       class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors">
-                        <i class="fas fa-plus mr-1"></i>Create Settlement
-                    </a>
+                    <div class="flex justify-center mb-3">
+                        <div class="bg-gray-100 w-16 h-16 flex items-center justify-center rounded-full">
+                            <i class="fas fa-file-invoice text-2xl text-gray-400"></i>
+                        </div>
+                    </div>
+                    <p class="text-gray-600 font-medium">No settlements created yet</p>
+                    <p class="text-[12px] text-gray-400 mb-4">Create your first settlement to track expenses</p>
+
+
                 </div>
             <?php endif; ?>
         </div>
 
+
         <!-- Settlements List -->
         <?php if (count($settlements) > 0): ?>
             <div class="space-y-3">
-                <?php foreach ($settlements as $index => $settlement): 
+                <?php foreach ($settlements as $index => $settlement):
                     $creator_img = $settlement['creator_image'] ? 'uploads/profile/' . $settlement['creator_image'] : 'uploads/profile/default_avatar.png';
                     $days_span = (strtotime($settlement['to_date']) - strtotime($settlement['from_date'])) / (60 * 60 * 24) + 1;
                 ?>
-                    <div class="settlement-card bg-white rounded-xl shadow-md p-4 animate-fade-in" 
-                         style="animation-delay: <?php echo $index * 0.1; ?>s">
-                        
+                    <div class="p-5 mb-4 mt-3 rounded-3xl  relative bg-gradient-to-br from-gray-50 via-white to-gray-100  border-gray-200">
+
                         <!-- Settlement Header -->
                         <div class="flex items-center justify-between mb-3">
                             <div class="flex items-center space-x-3">
-                                <img src="<?php echo $creator_img; ?>" alt="Creator" 
-                                     class="w-10 h-10 rounded-full object-cover border-2 border-purple-200">
+                                <img src="<?php echo $creator_img; ?>" alt="Creator"
+                                    class="w-10 h-10 rounded-full object-cover border-2 border-purple-200">
                                 <div>
                                     <div class="font-semibold text-gray-800">Settlement #<?php echo $settlement['id']; ?></div>
                                     <div class="text-xs text-gray-500">
@@ -295,7 +220,7 @@ if ($result->num_rows === 1) {
                                 <div>
                                     <span class="text-gray-500">Period:</span>
                                     <div class="font-medium">
-                                        <?php echo date('M d', strtotime($settlement['from_date'])); ?> - 
+                                        <?php echo date('M d', strtotime($settlement['from_date'])); ?> -
                                         <?php echo date('M d, Y', strtotime($settlement['to_date'])); ?>
                                     </div>
                                     <div class="text-xs text-gray-400"><?php echo $days_span; ?> days</div>
@@ -326,19 +251,19 @@ if ($result->num_rows === 1) {
 
                         <!-- Action Buttons -->
                         <div class="flex space-x-2">
-                            <a href="report.php?group_id=<?php echo $group_id; ?>&settlement_id=<?php echo $settlement['id']; ?>" 
-                               class="flex-1 bg-gradient-to-r from-blue-500 to-purple-600 text-white px-4 py-2 rounded-lg text-sm font-medium text-center hover:from-blue-600 hover:to-purple-700 transition-all">
+                            <a href="report.php?group_id=<?php echo $group_id; ?>&settlement_id=<?php echo $settlement['id']; ?>"
+                                class="flex-1 bg-gradient-to-r from-blue-500 to-purple-600 text-white px-4 py-2 rounded-lg text-sm font-medium text-center hover:from-blue-600 hover:to-purple-700 transition-all">
                                 <i class="fas fa-eye mr-1"></i>View Report
                             </a>
                             <?php if ($settlement['message_id']): ?>
-                                <a href="group.php?id=<?php echo $group_id; ?>&highlight=<?php echo $settlement['message_id']; ?>" 
-                                   class="bg-gray-100 text-gray-700 px-3 py-2 rounded-lg text-sm hover:bg-gray-200 transition-colors">
+                                <a href="group.php?id=<?php echo $group_id; ?>&highlight=<?php echo $settlement['message_id']; ?>"
+                                    class="bg-gray-100 text-gray-700 px-3 py-2 rounded-lg text-sm hover:bg-gray-200 transition-colors">
                                     <i class="fas fa-comment" title="View in Chat"></i>
                                 </a>
                             <?php endif; ?>
                         </div>
 
-                        
+
                     </div>
                 <?php endforeach; ?>
             </div>
@@ -387,7 +312,7 @@ if ($result->num_rows === 1) {
                 });
             });
         });
-        
+
         // Pull to Refresh Functionality
         let pullToRefresh = {
             startY: 0,
@@ -396,55 +321,61 @@ if ($result->num_rows === 1) {
             isRefreshing: false,
             threshold: 80,
             maxPull: 120,
-            
+
             init() {
                 this.bindEvents();
             },
-            
+
             bindEvents() {
                 // Touch events for mobile
-                document.addEventListener('touchstart', this.handleTouchStart.bind(this), { passive: false });
-                document.addEventListener('touchmove', this.handleTouchMove.bind(this), { passive: false });
-                document.addEventListener('touchend', this.handleTouchEnd.bind(this), { passive: false });
-                
+                document.addEventListener('touchstart', this.handleTouchStart.bind(this), {
+                    passive: false
+                });
+                document.addEventListener('touchmove', this.handleTouchMove.bind(this), {
+                    passive: false
+                });
+                document.addEventListener('touchend', this.handleTouchEnd.bind(this), {
+                    passive: false
+                });
+
                 // Mouse events for desktop (for testing)
                 document.addEventListener('mousedown', this.handleMouseDown.bind(this));
                 document.addEventListener('mousemove', this.handleMouseMove.bind(this));
                 document.addEventListener('mouseup', this.handleMouseUp.bind(this));
             },
-            
+
             handleTouchStart(e) {
                 if (window.scrollY === 0 && !this.isRefreshing) {
                     this.startY = e.touches[0].clientY;
                     this.isPulling = true;
                 }
             },
-            
+
             handleTouchMove(e) {
                 if (!this.isPulling || this.isRefreshing) return;
-                
+
                 this.currentY = e.touches[0].clientY;
                 const pullDistance = this.currentY - this.startY;
-                
+
                 if (pullDistance > 0) {
                     e.preventDefault();
                     this.updatePullState(pullDistance);
                 }
             },
-            
+
             handleTouchEnd(e) {
                 if (!this.isPulling || this.isRefreshing) return;
-                
+
                 const pullDistance = this.currentY - this.startY;
                 this.isPulling = false;
-                
+
                 if (pullDistance > this.threshold) {
                     this.triggerRefresh();
                 } else {
                     this.resetPullState();
                 }
             },
-            
+
             handleMouseDown(e) {
                 if (window.scrollY === 0 && !this.isRefreshing && e.clientY < 50) {
                     this.startY = e.clientY;
@@ -452,43 +383,43 @@ if ($result->num_rows === 1) {
                     e.preventDefault();
                 }
             },
-            
+
             handleMouseMove(e) {
                 if (!this.isPulling || this.isRefreshing) return;
-                
+
                 this.currentY = e.clientY;
                 const pullDistance = this.currentY - this.startY;
-                
+
                 if (pullDistance > 0) {
                     e.preventDefault();
                     this.updatePullState(pullDistance);
                 }
             },
-            
+
             handleMouseUp(e) {
                 if (!this.isPulling || this.isRefreshing) return;
-                
+
                 const pullDistance = this.currentY - this.startY;
                 this.isPulling = false;
-                
+
                 if (pullDistance > this.threshold) {
                     this.triggerRefresh();
                 } else {
                     this.resetPullState();
                 }
             },
-            
+
             updatePullState(pullDistance) {
                 const progress = Math.min(pullDistance / this.maxPull, 1);
                 const refreshBar = document.getElementById('pullToRefresh');
                 const pullIndicator = document.getElementById('pullIndicator');
                 const refreshText = document.getElementById('refreshText');
-                
+
                 // Show pull indicator when starting to pull
                 if (pullDistance > 20) {
                     pullIndicator.classList.add('show');
                 }
-                
+
                 // Show refresh bar when threshold is reached
                 if (pullDistance > this.threshold) {
                     refreshBar.classList.add('show');
@@ -498,55 +429,56 @@ if ($result->num_rows === 1) {
                     refreshText.textContent = 'Pull to refresh';
                     pullIndicator.innerHTML = '<i class="fas fa-arrow-down icon"></i><span>Pull to refresh</span>';
                 }
-                
+
                 // Add haptic feedback on mobile
                 if (navigator.vibrate && pullDistance > this.threshold && pullDistance < this.threshold + 5) {
                     navigator.vibrate(50);
                 }
             },
-            
+
             triggerRefresh() {
                 this.isRefreshing = true;
                 const refreshBar = document.getElementById('pullToRefresh');
                 const refreshIcon = document.getElementById('refreshIcon');
                 const refreshText = document.getElementById('refreshText');
                 const pullIndicator = document.getElementById('pullIndicator');
-                
+
                 // Show refresh bar and start spinning
                 refreshBar.classList.add('show');
                 refreshIcon.classList.add('spinning');
                 refreshText.textContent = 'Refreshing...';
                 pullIndicator.classList.remove('show');
-                
+
                 // Add haptic feedback
                 if (navigator.vibrate) {
                     navigator.vibrate([100, 50, 100]);
                 }
-                
+
                 // Simulate refresh delay and then reload
                 setTimeout(() => {
                     window.location.reload();
                 }, 1000);
             },
-            
+
             resetPullState() {
                 const refreshBar = document.getElementById('pullToRefresh');
                 const refreshIcon = document.getElementById('refreshIcon');
                 const pullIndicator = document.getElementById('pullIndicator');
-                
+
                 refreshBar.classList.remove('show');
                 refreshIcon.classList.remove('spinning');
                 pullIndicator.classList.remove('show');
-                
+
                 this.isPulling = false;
                 this.isRefreshing = false;
             }
         };
-        
+
         // Initialize pull to refresh when page loads
         document.addEventListener('DOMContentLoaded', function() {
             pullToRefresh.init();
         });
     </script>
 </body>
+
 </html>
