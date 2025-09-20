@@ -192,6 +192,7 @@ $total_spending = $total_spending_result->fetch_assoc()['total_spending'] ?? 0;
         .app-header {
             background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            
         }
 
         .card-gradient {
@@ -346,7 +347,7 @@ $total_spending = $total_spending_result->fetch_assoc()['total_spending'] ?? 0;
 
         <!-- Dashboard Section -->
 
-        <div class="p-5 mb-4 mt-3 rounded-3xl shadow-md relative bg-gradient-to-br from-gray-50 via-white to-gray-100 border border-gray-200">
+        <div class="p-5 mb-4 mt-3 rounded-3xl  relative bg-gradient-to-br from-gray-50 via-white to-gray-100  border-gray-200">
             <!-- Header -->
             <div class="flex justify-between items-center mb-4">
                 <h2 class="text-sm font-semibold text-gray-700">This Month's Spending</h2>
@@ -380,10 +381,8 @@ $total_spending = $total_spending_result->fetch_assoc()['total_spending'] ?? 0;
             </div>
         </div>
 
-
-
         <!-- Create New Room (Collapsible) -->
-        <div class="p-4 mb-4 rounded-2xl shadow-md relative bg-gradient-to-br from-indigo-50 via-white to-purple-50 border border-gray-200" style="margin-top: 10px;">
+        <div class="p-4 mb-4 rounded-2xl  relative bg-gradient-to-br from-indigo-50 via-white to-purple-50  border-gray-200" style="margin-top: 10px;">
             <!-- Header -->
             <div class="flex justify-between items-center cursor-pointer" onclick="toggleCollapsible('createRoomSection')">
                 <div class="flex items-center">
@@ -518,10 +517,12 @@ $total_spending = $total_spending_result->fetch_assoc()['total_spending'] ?? 0;
                 $invitation_status = $room['invitation_status'];
         ?>
 
-                <div class="p-5 mb-4 rounded-3xl shadow-md relative bg-gradient-to-br from-gray-50 via-white to-gray-100 border border-gray-200 ">
+                <div class="p-5 mb-4 rounded-3xl relative border-gray-200 " style="background: linear-gradient(135deg, #E9D5FF, #FECACA);">
+
+                
                     <div class="flex justify-between items-center mb-3">
                         <div class="flex items-center">
-                            <h2 class="text-sm font-semibold text-gray-800 truncate max-w-[140px]"><?php echo htmlspecialchars($room['name']); ?></h2>
+                            <h2 class="text-sm font-semibold truncate max-w-[140px]" style=" color: #E91E63; font-weight: bold;" ><?php echo htmlspecialchars($room['name']); ?></h2>
 
 
                             <?php if ($is_admin): ?>
@@ -532,7 +533,7 @@ $total_spending = $total_spending_result->fetch_assoc()['total_spending'] ?? 0;
 
                             <?php if ($invitation_status == 'accepted'): ?>
                                 <a href="room-details.php?id=<?php echo $room['id']; ?>" class="text-[12px] text-gray-400 ml-1.5">
-                                    <i class="fas fa-chevron-right text-[12px] text-gray-400 ml-1.5"></i>
+                                    <i class="fas fa-chevron-right text-[12px]  ml-1.5" style=" color: #E91E63; font-weight: bold;"></i>
                                 </a>
                             <?php endif; ?>
                         </div>
@@ -547,7 +548,7 @@ $total_spending = $total_spending_result->fetch_assoc()['total_spending'] ?? 0;
                                 </button>
                             </div>
                         <?php elseif ($is_admin && $invitation_status == 'accepted'): ?>
-                            <button onclick="toggleModal('createGroupModal-<?php echo $room['id']; ?>')" class="h-7 w-7 rounded-full bg-gradient-to-r from-indigo-500 to-purple-600 text-white flex items-center justify-center shadow-sm hover:from-indigo-600 hover:to-purple-700 transition-all transform hover:scale-105">
+                            <button onclick="toggleModal('createGroupModal-<?php echo $room['id']; ?>')" class="h-7 w-7 rounded-full bg-gradient-to-r from-pink-400 to-red-500 text-white flex items-center justify-center transition-all transform hover:scale-105">
                                 <i class="fas fa-plus text-xs"></i>
                             </button>
                         <?php else: ?>
@@ -566,7 +567,7 @@ $total_spending = $total_spending_result->fetch_assoc()['total_spending'] ?? 0;
 
                     <?php if ($invitation_status == 'accepted'): ?>
                         <!-- Compact Action Cards - Two in One Row -->
-                        <div class="mb-3 grid grid-cols-2 gap-2">
+                        <div class="mb-3 grid grid-cols-2 gap-2 ">
                             <?php if ($is_admin): ?>
                                 <?php
                                 // Check for pending absence requests
@@ -630,7 +631,7 @@ $total_spending = $total_spending_result->fetch_assoc()['total_spending'] ?? 0;
                             ?>
                                     <div class="grid gap-2 mt-2.5">
                                         <?php while ($group = $groups_result->fetch_assoc()): ?>
-                                            <div class="flex items-center space-x-2.5 p-2.5 border rounded-lg hover:shadow-xs transition-all border-indigo-200 bg-gradient-to-r from-indigo-50 to-blue-50">
+                                            <div class="flex items-center space-x-2.5 p-2.5  rounded-lg bg-white">
                                                 <a href="group.php?id=<?php echo $group['id']; ?>" class="flex-1 flex items-center justify-between">
                                                     <div>
                                                         <div class="flex items-center space-x-1.5">
@@ -879,7 +880,125 @@ $total_spending = $total_spending_result->fetch_assoc()['total_spending'] ?? 0;
         ?>
 
 
+        <div class="max-w-sm mx-auto mt-6">
+            <div class="relative bg-gradient-to-br from-indigo-50 via-white rounded-3xl  overflow-hidden hover:scale-105 transform transition duration-300 cursor-pointer">
+
+                
+                <!-- Floating YouTube Icon -->
+                <div class="absolute top-4 right-4 w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-lg">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-red-600" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M23.498 6.186a2.996 2.996 0 00-2.115-2.122C19.418 3.5 12 3.5 12 3.5s-7.418 0-9.383.564a2.996 2.996 0 00-2.115 2.122A31.222 31.222 0 000 12a31.222 31.222 0 00.502 5.814 2.996 2.996 0 002.115 2.122C4.582 20.5 12 20.5 12 20.5s7.418 0 9.383-.564a2.996 2.996 0 002.115-2.122A31.222 31.222 0 0024 12a31.222 31.222 0 00-.502-5.814zM9.75 15.02V8.98l6.5 3.02-6.5 3.02z"/>
+                </svg>
+                </div>
+
+                <!-- Content -->
+                <div class="p-6 relative z-10">
+                <h3 class="text-xl font-bold text-gray-800 mb-2">How to Use the App</h3>
+                <p class="text-gray-600 text-sm mb-4">
+                    Step-by-step video tutorials to help you get started and use all features efficiently.
+                </p>
+                <a href="https://www.youtube.com/watch?v=dQw4w9WgXcQ" target="_blank" 
+                    class="inline-block bg-red-600 text-white px-5 py-2 rounded-full font-semibold hover:bg-red-700 transition">
+                    Watch Now
+                </a>
+                </div>
+
+            </div>
+        </div>
+
+
+
+
+<div class="max-w-md mx-auto mt-6 bg-gradient-to-br from-indigo-50 via-white rounded-2xl p-5 space-y-4">
+    <h2 class="text-lg font-semibold text-gray-800 mb-3">Help Center</h2>
+
+    <!-- Phone -->
+    <div class="flex items-center justify-between bg-gray-50 rounded-xl p-3 shadow-sm">
+        <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 rounded-2xl flex items-center justify-center 
+                bg-gradient-to-r from-green-400 to-teal-500 shadow-md">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5h2l3 7-3 7H3l3-7-3-7z" />
+                </svg>
+            </div>
+            <div>
+                <p class="text-xs text-gray-500 font-medium">Phone Support</p>
+                <p class="text-sm font-bold text-gray-800">+91 63705 00903</p>
+            </div>
+        </div>
+        <a href="tel:+916370500903" class="text-xs font-semibold text-white bg-green-500 px-3 py-1 rounded-full hover:bg-green-600 transition">
+            Call
+        </a>
+    </div>
+
+    <!-- Email -->
+    <div class="flex items-center justify-between bg-gray-50 rounded-xl p-3 shadow-sm">
+        <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 rounded-2xl flex items-center justify-center 
+                bg-gradient-to-r from-blue-400 to-indigo-500 shadow-md">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12H8m0 0l4-4m0 0l4 4M12 16v-8" />
+                </svg>
+            </div>
+            <div>
+                <p class="text-xs text-gray-500 font-medium">Email Support</p>
+                <p class="text-sm font-bold text-gray-800">help@example.com</p>
+            </div>
+        </div>
+        <a href="mailto:help@example.com" class="text-xs font-semibold text-white bg-blue-500 px-3 py-1 rounded-full hover:bg-blue-600 transition">
+            Mail
+        </a>
+    </div>
+
+    <!-- WhatsApp -->
+    <div class="flex items-center justify-between bg-gray-50 rounded-xl p-3 shadow-sm">
+        <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 rounded-2xl flex items-center justify-center 
+                bg-gradient-to-r from-green-500 to-green-700 shadow-md">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-white" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.272-.099-.47-.148-.668.15-.198.297-.767.967-.94 1.165-.173.198-.347.223-.644.075-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.52.149-.173.198-.297.297-.495.099-.198.05-.372-.025-.52-.075-.149-.668-1.611-.915-2.21-.242-.579-.487-.5-.668-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.1 3.2 5.077 4.487.709.306 1.262.489 1.693.625.712.227 1.36.195 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.29.173-1.413-.074-.124-.272-.198-.57-.347z"/>
+                </svg>
+            </div>
+            <div>
+                <p class="text-xs text-gray-500 font-medium">WhatsApp Support</p>
+                <p class="text-sm font-bold text-gray-800">+91 63705 00903</p>
+            </div>
+        </div>
+        <a href="https://wa.me/916370500903" target="_blank" class="text-xs font-semibold text-white bg-green-600 px-3 py-1 rounded-full hover:bg-green-700 transition">
+            Chat
+        </a>
+    </div>
+
+</div>
+
+
+
+
     </main>
+
+    <div class="fixed bottom-0 left-0 right-0 bg-white shadow-lg border-t border-gray-200 z-10 h-[70px]">
+        <div class="flex justify-between items-center max-w-md mx-auto h-full relative">
+            <!-- Home -->
+            <a href="index.php" class="flex flex-col items-center justify-center flex-1 text-indigo-600 h-full">
+                <i class="fas fa-home text-lg mb-1"></i>
+                <span class="text-xs font-medium">Home</span>
+            </a>
+            
+            <!-- Add Expense Button (Floating Style) -->
+            <button onclick="openAddExpenseModal()" class="flex flex-col items-center justify-center w-16 h-16 bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-xl transform -translate-y-4 hover:scale-105 transition-all z-20" style="width: 150px; border-radius: 10px;">
+                <i class="fas fa-plus-circle text-2xl mb-1"></i>
+                <span class="text-[10px] font-bold">Add Expense</span>
+            </button>
+            
+            <!-- Donate -->
+            <a href="#" class="flex flex-col items-center justify-center flex-1 text-gray-600 h-full">
+                <i class="fas fa-donate text-lg mb-1"></i>
+                <span class="text-xs font-medium">Donate</span>
+            </a>
+        </div>
+    </div>
+
+
 
     <!-- Group Selector Modal -->
     <div id="groupSelectorModal" class="fixed inset-0 bg-black bg-opacity-50 z-20 flex items-center justify-center hidden">
