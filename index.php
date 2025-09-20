@@ -774,9 +774,7 @@ $total_spending = $total_spending_result->fetch_assoc()['total_spending'] ?? 0;
 
         <?php
             }
-        } else {
-            echo '<p class="text-center text-gray-500 py-5 text-sm">You haven\'t joined any rooms yet. Create one to get started!</p>';
-        }
+        } 
         ?>
 
         <!-- Create New Room (Collapsible) -->
