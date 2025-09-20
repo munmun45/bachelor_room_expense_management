@@ -381,107 +381,7 @@ $total_spending = $total_spending_result->fetch_assoc()['total_spending'] ?? 0;
             </div>
         </div>
 
-        <!-- Create New Room (Collapsible) -->
-        <div class="p-4 mb-4 rounded-2xl  relative bg-gradient-to-br from-indigo-50 via-white to-purple-50  border-gray-200" style="margin-top: 10px;">
-            <!-- Header -->
-            <div class="flex justify-between items-center cursor-pointer" onclick="toggleCollapsible('createRoomSection')">
-                <div class="flex items-center">
-                    <div class="w-9 h-9 rounded-xl flex items-center justify-center bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-md">
-                        <i class="fas fa-door-open text-sm"></i>
-                    </div>
-                    <h2 class="ml-3 text-sm font-semibold text-gray-800">Create New Room</h2>
-                </div>
-                <button class="h-8 w-8 rounded-full bg-gradient-to-r from-indigo-500 to-purple-600 text-white flex items-center justify-center shadow-sm hover:from-indigo-600 hover:to-purple-700 transition-all transform hover:scale-105">
-                    <i class="fas fa-plus text-xs"></i>
-                </button>
-            </div>
-
-            <!-- Collapsible Content -->
-            <div id="createRoomSection" class="hidden mt-4 border-t border-gray-200 pt-4 collapsible-content">
-                <form action="process/create_room_process.php" method="post" class="space-y-4">
-
-                    <!-- Room Name -->
-                    <div>
-                        <label class="block text-gray-700 text-xs font-bold mb-1.5" for="room_name">
-                            Room Name*
-                        </label>
-                        <input class="shadow-sm border border-gray-200 rounded-lg w-full text-gray-700 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-transparent transition-all"
-                            id="room_name" name="room_name" type="text" placeholder="Enter room name" required>
-                    </div>
-
-                    <!-- Description -->
-                    <div>
-                        <label class="block text-gray-700 text-xs font-bold mb-1.5" for="room_description">
-                            Description (Optional)
-                        </label>
-                        <textarea class="shadow-sm border border-gray-200 rounded-lg w-full text-gray-700 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-transparent transition-all"
-                            id="room_description" name="room_description" placeholder="Enter room description" rows="2"></textarea>
-                    </div>
-
-                    <!-- Address -->
-                    <div>
-                        <label class="block text-gray-700 text-xs font-bold mb-1.5" for="room_address">
-                            Address*
-                        </label>
-                        <textarea class="shadow-sm border border-gray-200 rounded-lg w-full text-gray-700 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-transparent transition-all"
-                            id="room_address" name="room_address" placeholder="Enter room address" rows="2" required></textarea>
-                    </div>
-
-                    <!-- Latitude / Longitude -->
-                    <div class="grid grid-cols-2 gap-3">
-                        <div>
-                            <label class="block text-gray-700 text-xs font-bold mb-1.5" for="latitude">Latitude</label>
-                            <input class="shadow-sm border border-gray-200 rounded-lg w-full text-gray-700 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-transparent transition-all"
-                                id="latitude" name="latitude" type="text" placeholder="Latitude">
-                        </div>
-                        <div>
-                            <label class="block text-gray-700 text-xs font-bold mb-1.5" for="longitude">Longitude</label>
-                            <input class="shadow-sm border border-gray-200 rounded-lg w-full text-gray-700 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-transparent transition-all"
-                                id="longitude" name="longitude" type="text" placeholder="Longitude">
-                        </div>
-                    </div>
-
-                    <button type="button" onclick="getCurrentLocation()" class="text-indigo-600 text-xs font-medium flex items-center">
-                        <i class="fas fa-map-marker-alt mr-2 text-sm"></i> Get Current Location
-                    </button>
-
-                    <!-- Rental Information -->
-                    <div class="border-t border-gray-200 pt-4 mt-4">
-                        <h4 class="font-medium mb-3 text-gray-800 text-sm flex items-center">
-                            <i class="fas fa-file-invoice-dollar mr-2 text-indigo-500"></i> Rental Information
-                        </h4>
-
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                            <div>
-                                <label class="block text-gray-700 text-xs font-bold mb-1.5" for="rental_date">Rental Date</label>
-                                <input class="shadow-sm border border-gray-200 rounded-lg w-full text-gray-700 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-transparent transition-all"
-                                    id="rental_date" name="rental_date" type="date">
-                            </div>
-                            <div>
-                                <label class="block text-gray-700 text-xs font-bold mb-1.5" for="monthly_rent">Monthly Rent (₹)</label>
-                                <input class="shadow-sm border border-gray-200 rounded-lg w-full text-gray-700 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-transparent transition-all"
-                                    id="monthly_rent" name="monthly_rent" type="number" step="0.01" min="0" placeholder="Enter monthly rent">
-                            </div>
-                        </div>
-
-                        <div>
-                            <label class="block text-gray-700 text-xs font-bold mb-1.5" for="advance_payment">Advance Payment (₹)</label>
-                            <input class="shadow-sm border border-gray-200 rounded-lg w-full text-gray-700 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-transparent transition-all"
-                                id="advance_payment" name="advance_payment" type="number" step="0.01" min="0" placeholder="Enter advance payment">
-                        </div>
-                    </div>
-
-                    <!-- Submit -->
-                    <div class="flex justify-end">
-                        <button type="submit" name="create_room" class="px-4 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-semibold text-sm rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:ring-offset-1 transition-all shadow-md">
-                            <i class="fas fa-check-circle mr-2"></i> Create Room
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-
-
+        
 
 
         <!-- My Rooms Section -->
@@ -878,6 +778,108 @@ $total_spending = $total_spending_result->fetch_assoc()['total_spending'] ?? 0;
             echo '<p class="text-center text-gray-500 py-5 text-sm">You haven\'t joined any rooms yet. Create one to get started!</p>';
         }
         ?>
+
+        <!-- Create New Room (Collapsible) -->
+        <div class="p-4 mb-4 rounded-2xl  relative bg-gradient-to-br from-indigo-50 via-white to-purple-50  border-gray-200" style="margin-top: 10px;">
+            <!-- Header -->
+            <div class="flex justify-between items-center cursor-pointer" onclick="toggleCollapsible('createRoomSection')">
+                <div class="flex items-center">
+                    <div class="w-9 h-9 rounded-xl flex items-center justify-center bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-md">
+                        <i class="fas fa-door-open text-sm"></i>
+                    </div>
+                    <h2 class="ml-3 text-sm font-semibold text-gray-800">Create New Room</h2>
+                </div>
+                <button class="h-8 w-8 rounded-full bg-gradient-to-r from-indigo-500 to-purple-600 text-white flex items-center justify-center shadow-sm hover:from-indigo-600 hover:to-purple-700 transition-all transform hover:scale-105">
+                    <i class="fas fa-plus text-xs"></i>
+                </button>
+            </div>
+
+            <!-- Collapsible Content -->
+            <div id="createRoomSection" class="hidden mt-4 border-t border-gray-200 pt-4 collapsible-content">
+                <form action="process/create_room_process.php" method="post" class="space-y-4">
+
+                    <!-- Room Name -->
+                    <div>
+                        <label class="block text-gray-700 text-xs font-bold mb-1.5" for="room_name">
+                            Room Name*
+                        </label>
+                        <input class="shadow-sm border border-gray-200 rounded-lg w-full text-gray-700 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-transparent transition-all"
+                            id="room_name" name="room_name" type="text" placeholder="Enter room name" required>
+                    </div>
+
+                    <!-- Description -->
+                    <div>
+                        <label class="block text-gray-700 text-xs font-bold mb-1.5" for="room_description">
+                            Description (Optional)
+                        </label>
+                        <textarea class="shadow-sm border border-gray-200 rounded-lg w-full text-gray-700 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-transparent transition-all"
+                            id="room_description" name="room_description" placeholder="Enter room description" rows="2"></textarea>
+                    </div>
+
+                    <!-- Address -->
+                    <div>
+                        <label class="block text-gray-700 text-xs font-bold mb-1.5" for="room_address">
+                            Address*
+                        </label>
+                        <textarea class="shadow-sm border border-gray-200 rounded-lg w-full text-gray-700 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-transparent transition-all"
+                            id="room_address" name="room_address" placeholder="Enter room address" rows="2" required></textarea>
+                    </div>
+
+                    <!-- Latitude / Longitude -->
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-gray-700 text-xs font-bold mb-1.5" for="latitude">Latitude</label>
+                            <input class="shadow-sm border border-gray-200 rounded-lg w-full text-gray-700 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-transparent transition-all"
+                                id="latitude" name="latitude" type="text" placeholder="Latitude">
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 text-xs font-bold mb-1.5" for="longitude">Longitude</label>
+                            <input class="shadow-sm border border-gray-200 rounded-lg w-full text-gray-700 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-transparent transition-all"
+                                id="longitude" name="longitude" type="text" placeholder="Longitude">
+                        </div>
+                    </div>
+
+                    <button type="button" onclick="getCurrentLocation()" class="text-indigo-600 text-xs font-medium flex items-center">
+                        <i class="fas fa-map-marker-alt mr-2 text-sm"></i> Get Current Location
+                    </button>
+
+                    <!-- Rental Information -->
+                    <div class="border-t border-gray-200 pt-4 mt-4">
+                        <h4 class="font-medium mb-3 text-gray-800 text-sm flex items-center">
+                            <i class="fas fa-file-invoice-dollar mr-2 text-indigo-500"></i> Rental Information
+                        </h4>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-gray-700 text-xs font-bold mb-1.5" for="rental_date">Rental Date</label>
+                                <input class="shadow-sm border border-gray-200 rounded-lg w-full text-gray-700 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-transparent transition-all"
+                                    id="rental_date" name="rental_date" type="date">
+                            </div>
+                            <div>
+                                <label class="block text-gray-700 text-xs font-bold mb-1.5" for="monthly_rent">Monthly Rent (₹)</label>
+                                <input class="shadow-sm border border-gray-200 rounded-lg w-full text-gray-700 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-transparent transition-all"
+                                    id="monthly_rent" name="monthly_rent" type="number" step="0.01" min="0" placeholder="Enter monthly rent">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-gray-700 text-xs font-bold mb-1.5" for="advance_payment">Advance Payment (₹)</label>
+                            <input class="shadow-sm border border-gray-200 rounded-lg w-full text-gray-700 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-transparent transition-all"
+                                id="advance_payment" name="advance_payment" type="number" step="0.01" min="0" placeholder="Enter advance payment">
+                        </div>
+                    </div>
+
+                    <!-- Submit -->
+                    <div class="flex justify-end">
+                        <button type="submit" name="create_room" class="px-4 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-semibold text-sm rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:ring-offset-1 transition-all shadow-md">
+                            <i class="fas fa-check-circle mr-2"></i> Create Room
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+
 
 
         <div class="max-w-sm mx-auto mt-6">
