@@ -25,18 +25,10 @@ if ($room_id) {
     
     $member = $result->fetch_assoc();
     
-    // If user is admin, check if there are other members
+    // If user is admin, prevent them from leaving
     if ($member['is_admin']) {
-        $stmt = $conn->prepare("SELECT COUNT(*) as count FROM room_members WHERE room_id = ? AND user_id != ?");
-        $stmt->bind_param("ii", $room_id, $user_id);
-        $stmt->execute();
-        $result = $stmt->get_result();
-        $count = $result->fetch_assoc()['count'];
-        
-        if ($count > 0) {
-            header("Location: ../room-details.php?id=$room_id&error=You cannot leave the room as admin while other members exist. Transfer admin role first.");
-            exit();
-        }
+        header("Location: ../room-details.php?id=$room_id&error=As an admin, you cannot leave the room. You can delete the room or edit its information instead.");
+        exit();
     }
     
     // Remove user from all groups in the room

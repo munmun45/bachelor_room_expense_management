@@ -43,276 +43,13 @@ $total_spending = $total_spending_result->fetch_assoc()['total_spending'] ?? 0;
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="js/back-navigation.js"></script>
-    <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(160deg, #f7f9fc 0%, #eef1f8 40%, #e9ecf5 100%);
-            min-height: 100vh;
-        }
 
+    <link rel="stylesheet" href="./css/style.css">
 
-        .bottom-nav {
-            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
-        }
-
-        .add-expense-btn {
-            transform: translateY(-50%);
-            box-shadow: 0 0 15px rgba(37, 99, 235, 0.5);
-            transition: all 0.3s ease;
-        }
-
-        .add-expense-btn:hover {
-            transform: translateY(-50%) scale(1.05);
-            box-shadow: 0 0 20px rgba(37, 99, 235, 0.7);
-        }
-
-        .group-option {
-            transition: all 0.3s ease;
-            border-radius: 10px;
-        }
-
-        .group-option:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-        }
-
-        .group-option:active {
-            transform: translateY(0);
-        }
-
-        /* Compact Action Cards Styling */
-        .compact-card {
-            transition: all 0.3s ease;
-            border-radius: 8px;
-            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
-        }
-
-        .compact-card:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-        }
-
-        .compact-icon {
-            transition: all 0.3s ease;
-        }
-
-        .compact-card:hover .compact-icon {
-            transform: scale(1.05);
-        }
-
-        .notification-badge {
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-
-            0%,
-            100% {
-                transform: scale(1);
-            }
-
-            50% {
-                transform: scale(1.1);
-            }
-        }
-
-        /* Pull to Refresh Styles */
-        .pull-to-refresh {
-            position: fixed;
-            top: -60px;
-            left: 0;
-            right: 0;
-            height: 60px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-            transition: transform 0.3s ease;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            border-radius: 0 0 5px 5px;
-        }
-
-        .pull-to-refresh.show {
-            transform: translateY(60px);
-        }
-
-        .pull-to-refresh .refresh-content {
-            display: flex;
-            align-items: center;
-            color: white;
-            font-weight: 500;
-            font-size: 0.875rem;
-        }
-
-        .pull-to-refresh .refresh-icon {
-            margin-right: 6px;
-            transition: transform 0.3s ease;
-        }
-
-        .pull-to-refresh .refresh-icon.spinning {
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-            from {
-                transform: rotate(0deg);
-            }
-
-            to {
-                transform: rotate(360deg);
-            }
-        }
-
-        .pull-indicator {
-            position: fixed;
-            top: 15px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(0, 0, 0, 0.7);
-            color: white;
-            padding: 6px 12px;
-            border-radius: 16px;
-            font-size: 12px;
-            z-index: 1001;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-            pointer-events: none;
-        }
-
-        .pull-indicator.show {
-            opacity: 1;
-        }
-
-        .pull-indicator .icon {
-            margin-right: 4px;
-        }
-
-        /* Mobile App Design Enhancements */
-        .app-header {
-            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-            
-        }
-
-        .card-gradient {
-            background: linear-gradient(135deg, #ffffff 0%, #f9fafb 100%);
-            border-radius: 12px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
-            border: 1px solid rgba(255, 255, 255, 0.5);
-            backdrop-filter: blur(10px);
-        }
-
-        .action-button {
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .action-button:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
-        }
-
-        .action-button:active {
-            transform: translateY(0);
-        }
-
-        .floating-card {
-            animation: float 3s ease-in-out infinite;
-        }
-
-        @keyframes float {
-            0% {
-                transform: translateY(0px);
-            }
-
-            50% {
-                transform: translateY(-5px);
-            }
-
-            100% {
-                transform: translateY(0px);
-            }
-        }
-
-        .room-card {
-            transition: all 0.2s ease;
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-        }
-
-        .room-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-        }
-
-        .modal-container {
-            animation: modalSlideIn 0.2s ease-out;
-        }
-
-        @keyframes modalSlideIn {
-            from {
-                opacity: 0;
-                transform: translateY(15px) scale(0.98);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0) scale(1);
-            }
-        }
-
-        .collapsible-section {
-            transition: all 0.2s ease;
-        }
-
-        .collapsible-content {
-            animation: slideDown 0.2s ease-out;
-        }
-
-        @keyframes slideDown {
-            from {
-                opacity: 0;
-                max-height: 0;
-            }
-
-            to {
-                opacity: 1;
-                max-height: 1000px;
-            }
-        }
-
-        /* Compact form elements */
-        .compact-input {
-            padding: 0.5rem 0.75rem;
-            font-size: 0.875rem;
-        }
-
-        .compact-button {
-            padding: 0.5rem 1rem;
-            font-size: 0.875rem;
-        }
-
-        .compact-card-content {
-            padding: 0.75rem;
-        }
-    </style>
 </head>
 
 <body class="bg-gray-100 min-h-screen pb-20">
-    <!-- Pull to Refresh Indicator -->
-    <div class="pull-indicator" id="pullIndicator">
-        <i class="fas fa-arrow-down icon"></i>
-        <span>Pull to refresh</span>
-    </div>
 
-    <!-- Pull to Refresh Bar -->
-    <div class="pull-to-refresh" id="pullToRefresh">
-        <div class="refresh-content">
-            <i class="fas fa-sync-alt refresh-icon" id="refreshIcon"></i>
-            <span id="refreshText">Release to refresh</span>
-        </div>
-    </div>
 
     <!-- Top Header with Logo and Profile -->
     <header class="app-header fixed top-0 left-0 right-0 z-10 py-2.5 px-3">
@@ -328,10 +65,14 @@ $total_spending = $total_spending_result->fetch_assoc()['total_spending'] ?? 0;
             </div>
             <div class="flex items-center space-x-3">
                 <div class="relative">
-                    <div class="w-7 h-7 rounded-full bg-white bg-opacity-20 flex items-center justify-center backdrop-blur-sm">
-                        <i class="fas fa-bell text-white text-sm"></i>
+                    <div class="w-7 h-7 rounded-full bg-white bg-opacity-20 flex items-center justify-center backdrop-blur-sm cursor-pointer hover:bg-opacity-30 transition-all duration-200" onclick="location.reload()" id="refreshButton">
+                        <i class="fas fa-sync-alt text-white text-sm"></i>
                     </div>
-                    <span class="absolute -top-0.5 -right-0.5 h-2.5 w-2.5 bg-red-500 rounded-full border border-white animate-pulse"></span>
+                    <!-- Custom Tooltip -->
+                    <div id="refreshTooltip" class="absolute top-10 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs rounded py-1 px-2 whitespace-nowrap z-30 opacity-0 transition-opacity duration-300 pointer-events-none">
+                        Refresh Page
+                        <div class="absolute bottom-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-l-transparent border-r-4 border-r-transparent border-b-4 border-b-gray-800"></div>
+                    </div>
                 </div>
                 <a href="profile.php" class="transform transition-transform hover:scale-105">
                     <div class="h-8 w-8 rounded-full bg-white bg-opacity-20 flex items-center justify-center overflow-hidden border border-white border-opacity-30 backdrop-blur-sm" style="border: 2px solid white; height: 35px; width: 35px;">
@@ -381,7 +122,7 @@ $total_spending = $total_spending_result->fetch_assoc()['total_spending'] ?? 0;
             </div>
         </div>
 
-        
+
 
 
         <!-- My Rooms Section -->
@@ -419,10 +160,10 @@ $total_spending = $total_spending_result->fetch_assoc()['total_spending'] ?? 0;
 
                 <div class="p-5 mb-4 rounded-3xl relative border-gray-200 " style="background: linear-gradient(135deg, #E9D5FF, #FECACA);">
 
-                
+
                     <div class="flex justify-between items-center mb-3">
                         <div class="flex items-center">
-                            <h2 class="text-sm font-semibold truncate max-w-[140px]" style=" color: #E91E63; font-weight: bold;" ><?php echo htmlspecialchars($room['name']); ?></h2>
+                            <h2 class="text-sm font-semibold truncate max-w-[140px]" style=" color: #E91E63; font-weight: bold;"><?php echo htmlspecialchars($room['name']); ?></h2>
 
 
                             <?php if ($is_admin): ?>
@@ -774,7 +515,7 @@ $total_spending = $total_spending_result->fetch_assoc()['total_spending'] ?? 0;
 
         <?php
             }
-        } 
+        }
         ?>
 
         <!-- Create New Room (Collapsible) -->
@@ -883,24 +624,24 @@ $total_spending = $total_spending_result->fetch_assoc()['total_spending'] ?? 0;
         <div class="max-w-sm mx-auto mt-6">
             <div class="relative bg-gradient-to-br from-indigo-50 via-white rounded-3xl  overflow-hidden hover:scale-105 transform transition duration-300 cursor-pointer">
 
-                
+
                 <!-- Floating YouTube Icon -->
                 <div class="absolute top-4 right-4 w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-lg">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-red-600" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M23.498 6.186a2.996 2.996 0 00-2.115-2.122C19.418 3.5 12 3.5 12 3.5s-7.418 0-9.383.564a2.996 2.996 0 00-2.115 2.122A31.222 31.222 0 000 12a31.222 31.222 0 00.502 5.814 2.996 2.996 0 002.115 2.122C4.582 20.5 12 20.5 12 20.5s7.418 0 9.383-.564a2.996 2.996 0 002.115-2.122A31.222 31.222 0 0024 12a31.222 31.222 0 00-.502-5.814zM9.75 15.02V8.98l6.5 3.02-6.5 3.02z"/>
-                </svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-red-600" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M23.498 6.186a2.996 2.996 0 00-2.115-2.122C19.418 3.5 12 3.5 12 3.5s-7.418 0-9.383.564a2.996 2.996 0 00-2.115 2.122A31.222 31.222 0 000 12a31.222 31.222 0 00.502 5.814 2.996 2.996 0 002.115 2.122C4.582 20.5 12 20.5 12 20.5s7.418 0 9.383-.564a2.996 2.996 0 002.115-2.122A31.222 31.222 0 0024 12a31.222 31.222 0 00-.502-5.814zM9.75 15.02V8.98l6.5 3.02-6.5 3.02z" />
+                    </svg>
                 </div>
 
                 <!-- Content -->
                 <div class="p-6 relative z-10">
-                <h3 class="text-xl font-bold text-gray-800 mb-2">How to Use the App</h3>
-                <p class="text-gray-600 text-sm mb-4">
-                    Step-by-step video tutorials to help you get started and use all features efficiently.
-                </p>
-                <a href="https://www.youtube.com/watch?v=dQw4w9WgXcQ" target="_blank" 
-                    class="inline-block bg-red-600 text-white px-5 py-2 rounded-full font-semibold hover:bg-red-700 transition">
-                    Watch Now
-                </a>
+                    <h3 class="text-xl font-bold text-gray-800 mb-2">How to Use the App</h3>
+                    <p class="text-gray-600 text-sm mb-4">
+                        Step-by-step video tutorials to help you get started and use all features efficiently.
+                    </p>
+                    <a href="https://www.youtube.com/watch?v=dQw4w9WgXcQ" target="_blank"
+                        class="inline-block bg-red-600 text-white px-5 py-2 rounded-full font-semibold hover:bg-red-700 transition">
+                        Watch Now
+                    </a>
                 </div>
 
             </div>
@@ -909,67 +650,67 @@ $total_spending = $total_spending_result->fetch_assoc()['total_spending'] ?? 0;
 
 
 
-<div class="max-w-md mx-auto mt-6 bg-gradient-to-br from-indigo-50 via-white rounded-2xl p-5 space-y-4">
-    <h2 class="text-lg font-semibold text-gray-800 mb-3">Help Center</h2>
+        <div class="max-w-md mx-auto mt-6 bg-gradient-to-br from-indigo-50 via-white rounded-2xl p-5 space-y-4">
+            <h2 class="text-lg font-semibold text-gray-800 mb-3">Help Center</h2>
 
-    <!-- Phone -->
-    <div class="flex items-center justify-between bg-gray-50 rounded-xl p-3 shadow-sm">
-        <div class="flex items-center space-x-3">
-            <div class="w-10 h-10 rounded-2xl flex items-center justify-center 
-                bg-gradient-to-r from-green-400 to-teal-500 shadow-md">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5h2l3 7-3 7H3l3-7-3-7z" />
-                </svg>
+            <!-- Phone -->
+            <div class="flex items-center justify-between bg-gray-50 rounded-xl p-3 shadow-sm">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 rounded-2xl flex items-center justify-center 
+                    bg-gradient-to-r from-green-400 to-teal-500 shadow-md">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5h2l3 7-3 7H3l3-7-3-7z" />
+                        </svg>
+                    </div>
+                    <div>
+                        <p class="text-xs text-gray-500 font-medium">Phone Support</p>
+                        <p class="text-sm font-bold text-gray-800">+91 63705 00903</p>
+                    </div>
+                </div>
+                <a href="tel:+916370500903" class="text-xs font-semibold text-white bg-green-500 px-3 py-1 rounded-full hover:bg-green-600 transition">
+                    Call
+                </a>
             </div>
-            <div>
-                <p class="text-xs text-gray-500 font-medium">Phone Support</p>
-                <p class="text-sm font-bold text-gray-800">+91 63705 00903</p>
+
+            <!-- Email -->
+            <div class="flex items-center justify-between bg-gray-50 rounded-xl p-3 shadow-sm">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 rounded-2xl flex items-center justify-center 
+                    bg-gradient-to-r from-blue-400 to-indigo-500 shadow-md">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12H8m0 0l4-4m0 0l4 4M12 16v-8" />
+                        </svg>
+                    </div>
+                    <div>
+                        <p class="text-xs text-gray-500 font-medium">Email Support</p>
+                        <p class="text-sm font-bold text-gray-800">help@example.com</p>
+                    </div>
+                </div>
+                <a href="mailto:help@example.com" class="text-xs font-semibold text-white bg-blue-500 px-3 py-1 rounded-full hover:bg-blue-600 transition">
+                    Mail
+                </a>
             </div>
+
+            <!-- WhatsApp -->
+            <div class="flex items-center justify-between bg-gray-50 rounded-xl p-3 shadow-sm">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 rounded-2xl flex items-center justify-center 
+                    bg-gradient-to-r from-green-500 to-green-700 shadow-md">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-white" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.272-.099-.47-.148-.668.15-.198.297-.767.967-.94 1.165-.173.198-.347.223-.644.075-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.52.149-.173.198-.297.297-.495.099-.198.05-.372-.025-.52-.075-.149-.668-1.611-.915-2.21-.242-.579-.487-.5-.668-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.1 3.2 5.077 4.487.709.306 1.262.489 1.693.625.712.227 1.36.195 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.29.173-1.413-.074-.124-.272-.198-.57-.347z" />
+                        </svg>
+                    </div>
+                    <div>
+                        <p class="text-xs text-gray-500 font-medium">WhatsApp Support</p>
+                        <p class="text-sm font-bold text-gray-800">+91 63705 00903</p>
+                    </div>
+                </div>
+                <a href="https://wa.me/916370500903" target="_blank" class="text-xs font-semibold text-white bg-green-600 px-3 py-1 rounded-full hover:bg-green-700 transition">
+                    Chat
+                </a>
+            </div>
+
         </div>
-        <a href="tel:+916370500903" class="text-xs font-semibold text-white bg-green-500 px-3 py-1 rounded-full hover:bg-green-600 transition">
-            Call
-        </a>
-    </div>
-
-    <!-- Email -->
-    <div class="flex items-center justify-between bg-gray-50 rounded-xl p-3 shadow-sm">
-        <div class="flex items-center space-x-3">
-            <div class="w-10 h-10 rounded-2xl flex items-center justify-center 
-                bg-gradient-to-r from-blue-400 to-indigo-500 shadow-md">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12H8m0 0l4-4m0 0l4 4M12 16v-8" />
-                </svg>
-            </div>
-            <div>
-                <p class="text-xs text-gray-500 font-medium">Email Support</p>
-                <p class="text-sm font-bold text-gray-800">help@example.com</p>
-            </div>
-        </div>
-        <a href="mailto:help@example.com" class="text-xs font-semibold text-white bg-blue-500 px-3 py-1 rounded-full hover:bg-blue-600 transition">
-            Mail
-        </a>
-    </div>
-
-    <!-- WhatsApp -->
-    <div class="flex items-center justify-between bg-gray-50 rounded-xl p-3 shadow-sm">
-        <div class="flex items-center space-x-3">
-            <div class="w-10 h-10 rounded-2xl flex items-center justify-center 
-                bg-gradient-to-r from-green-500 to-green-700 shadow-md">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-white" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.272-.099-.47-.148-.668.15-.198.297-.767.967-.94 1.165-.173.198-.347.223-.644.075-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.52.149-.173.198-.297.297-.495.099-.198.05-.372-.025-.52-.075-.149-.668-1.611-.915-2.21-.242-.579-.487-.5-.668-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.1 3.2 5.077 4.487.709.306 1.262.489 1.693.625.712.227 1.36.195 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.29.173-1.413-.074-.124-.272-.198-.57-.347z"/>
-                </svg>
-            </div>
-            <div>
-                <p class="text-xs text-gray-500 font-medium">WhatsApp Support</p>
-                <p class="text-sm font-bold text-gray-800">+91 63705 00903</p>
-            </div>
-        </div>
-        <a href="https://wa.me/916370500903" target="_blank" class="text-xs font-semibold text-white bg-green-600 px-3 py-1 rounded-full hover:bg-green-700 transition">
-            Chat
-        </a>
-    </div>
-
-</div>
 
 
 
@@ -978,18 +719,18 @@ $total_spending = $total_spending_result->fetch_assoc()['total_spending'] ?? 0;
 
     <div class="fixed bottom-0 left-0 right-0 bg-white shadow-lg border-t border-gray-200 z-10 h-[70px]">
         <div class="flex justify-between items-center max-w-md mx-auto h-full relative">
-            <!-- Home -->
-            <a href="index.php" class="flex flex-col items-center justify-center flex-1 text-indigo-600 h-full">
-                <i class="fas fa-home text-lg mb-1"></i>
-                <span class="text-xs font-medium">Home</span>
+
+            <!-- Settings -->
+            <a href="profile.php" class="flex flex-col items-center justify-center flex-1 text-gray-600 h-full">
+                <i class="fas fa-cog text-lg mb-1"></i>
+                <span class="text-xs font-medium">Settings</span>
             </a>
-            
             <!-- Add Expense Button (Floating Style) -->
             <button onclick="openAddExpenseModal()" class="flex flex-col items-center justify-center w-16 h-16 bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-xl transform -translate-y-4 hover:scale-105 transition-all z-20" style="width: 150px; border-radius: 10px;">
                 <i class="fas fa-plus-circle text-2xl mb-1"></i>
                 <span class="text-[10px] font-bold">Add Expense</span>
             </button>
-            
+
             <!-- Donate -->
             <a href="#" class="flex flex-col items-center justify-center flex-1 text-gray-600 h-full">
                 <i class="fas fa-donate text-lg mb-1"></i>
@@ -1073,6 +814,24 @@ $total_spending = $total_spending_result->fetch_assoc()['total_spending'] ?? 0;
 
 
     <script>
+        // Show refresh tooltip automatically on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            const tooltip = document.getElementById('refreshTooltip');
+            if (tooltip) {
+                // Show tooltip after a short delay
+                setTimeout(function() {
+                    tooltip.classList.remove('opacity-0');
+                    tooltip.classList.add('opacity-100');
+
+                    // Hide tooltip after 3 seconds
+                    setTimeout(function() {
+                        tooltip.classList.remove('opacity-100');
+                        tooltip.classList.add('opacity-0');
+                    }, 3000);
+                }, 1000);
+            }
+        });
+
         function toggleCollapsible(sectionId) {
             const section = document.getElementById(sectionId);
             const icon = document.getElementById('createRoomIcon');
@@ -1144,205 +903,6 @@ $total_spending = $total_spending_result->fetch_assoc()['total_spending'] ?? 0;
                     });
             }
         }
-
-        function selectGroup(groupId, groupName) {
-            // Add loading animation
-            const clickedOption = event.currentTarget;
-            const chevron = clickedOption.querySelector('.fa-chevron-right');
-            if (chevron) {
-                chevron.className = 'fas fa-spinner fa-spin text-xs';
-            }
-
-            // Add visual feedback
-            clickedOption.style.backgroundColor = '#dbeafe';
-            clickedOption.style.borderColor = '#3b82f6';
-
-            // Redirect to settlement report page after short delay for visual feedback
-            setTimeout(() => {
-                window.location.href = `settlement_report.php?group_id=${groupId}`;
-            }, 300);
-        }
-
-        // Pull to Refresh Functionality
-        let pullToRefresh = {
-            startY: 0,
-            currentY: 0,
-            isPulling: false,
-            isRefreshing: false,
-            threshold: 100, // Increased threshold to prevent accidental refresh
-            maxPull: 150,
-            minMovement: 10, // Minimum movement to start pull detection
-
-            init() {
-                this.bindEvents();
-            },
-
-            bindEvents() {
-                // Touch events for mobile
-                document.addEventListener('touchstart', this.handleTouchStart.bind(this), {
-                    passive: false
-                });
-                document.addEventListener('touchmove', this.handleTouchMove.bind(this), {
-                    passive: false
-                });
-                document.addEventListener('touchend', this.handleTouchEnd.bind(this), {
-                    passive: false
-                });
-
-                // Mouse events for desktop (for testing)
-                document.addEventListener('mousedown', this.handleMouseDown.bind(this));
-                document.addEventListener('mousemove', this.handleMouseMove.bind(this));
-                document.addEventListener('mouseup', this.handleMouseUp.bind(this));
-            },
-
-            handleTouchStart(e) {
-                // Only start pull detection at the top of the page
-                if (window.scrollY === 0 && !this.isRefreshing) {
-                    this.startY = e.touches[0].clientY;
-                    this.isPulling = false; // Don't set to true yet
-                }
-            },
-
-            handleTouchMove(e) {
-                if (window.scrollY > 0 || this.isRefreshing) return;
-
-                this.currentY = e.touches[0].clientY;
-                const pullDistance = this.currentY - this.startY;
-
-                // Only start pulling if moved beyond minimum threshold
-                if (!this.isPulling && pullDistance > this.minMovement) {
-                    this.isPulling = true;
-                }
-
-                if (this.isPulling && pullDistance > 0) {
-                    e.preventDefault();
-                    this.updatePullState(Math.min(pullDistance, this.maxPull));
-                }
-            },
-
-            handleTouchEnd(e) {
-                if (!this.isPulling || this.isRefreshing) return;
-
-                const pullDistance = this.currentY - this.startY;
-                this.isPulling = false;
-
-                // Only refresh if pulled beyond threshold
-                if (pullDistance > this.threshold) {
-                    this.triggerRefresh();
-                } else {
-                    this.resetPullState();
-                }
-            },
-
-            handleMouseDown(e) {
-                // Only start pull detection at the top of the page
-                if (window.scrollY === 0 && !this.isRefreshing && e.clientY < 50) {
-                    this.startY = e.clientY;
-                    this.isPulling = false; // Don't set to true yet
-                    e.preventDefault();
-                }
-            },
-
-            handleMouseMove(e) {
-                if (window.scrollY > 0 || this.isRefreshing) return;
-
-                this.currentY = e.clientY;
-                const pullDistance = this.currentY - this.startY;
-
-                // Only start pulling if moved beyond minimum threshold
-                if (!this.isPulling && pullDistance > this.minMovement) {
-                    this.isPulling = true;
-                }
-
-                if (this.isPulling && pullDistance > 0) {
-                    e.preventDefault();
-                    this.updatePullState(Math.min(pullDistance, this.maxPull));
-                }
-            },
-
-            handleMouseUp(e) {
-                if (!this.isPulling || this.isRefreshing) return;
-
-                const pullDistance = this.currentY - this.startY;
-                this.isPulling = false;
-
-                // Only refresh if pulled beyond threshold
-                if (pullDistance > this.threshold) {
-                    this.triggerRefresh();
-                } else {
-                    this.resetPullState();
-                }
-            },
-
-            updatePullState(pullDistance) {
-                const progress = Math.min(pullDistance / this.maxPull, 1);
-                const refreshBar = document.getElementById('pullToRefresh');
-                const pullIndicator = document.getElementById('pullIndicator');
-                const refreshText = document.getElementById('refreshText');
-
-                // Show pull indicator when starting to pull
-                if (pullDistance > this.minMovement) {
-                    pullIndicator.classList.add('show');
-                }
-
-                // Show refresh bar when threshold is reached
-                if (pullDistance > this.threshold) {
-                    refreshBar.classList.add('show');
-                    refreshText.textContent = 'Release to refresh';
-                    pullIndicator.innerHTML = '<i class="fas fa-arrow-up icon"></i><span>Release to refresh</span>';
-                } else {
-                    refreshText.textContent = 'Pull to refresh';
-                    pullIndicator.innerHTML = '<i class="fas fa-arrow-down icon"></i><span>Pull to refresh</span>';
-                }
-
-                // Add haptic feedback on mobile when threshold is reached
-                if (navigator.vibrate && pullDistance > this.threshold && pullDistance < this.threshold + 5) {
-                    navigator.vibrate(50);
-                }
-            },
-
-            triggerRefresh() {
-                this.isRefreshing = true;
-                const refreshBar = document.getElementById('pullToRefresh');
-                const refreshIcon = document.getElementById('refreshIcon');
-                const refreshText = document.getElementById('refreshText');
-                const pullIndicator = document.getElementById('pullIndicator');
-
-                // Show refresh bar and start spinning
-                refreshBar.classList.add('show');
-                refreshIcon.classList.add('spinning');
-                refreshText.textContent = 'Refreshing...';
-                pullIndicator.classList.remove('show');
-
-                // Add haptic feedback
-                if (navigator.vibrate) {
-                    navigator.vibrate([100, 50, 100]);
-                }
-
-                // Simulate refresh delay and then reload
-                setTimeout(() => {
-                    window.location.reload();
-                }, 1000);
-            },
-
-            resetPullState() {
-                const refreshBar = document.getElementById('pullToRefresh');
-                const refreshIcon = document.getElementById('refreshIcon');
-                const pullIndicator = document.getElementById('pullIndicator');
-
-                refreshBar.classList.remove('show');
-                refreshIcon.classList.remove('spinning');
-                pullIndicator.classList.remove('show');
-
-                this.isPulling = false;
-                this.isRefreshing = false;
-            }
-        };
-
-        // Initialize pull to refresh when page loads
-        document.addEventListener('DOMContentLoaded', function() {
-            pullToRefresh.init();
-        });
     </script>
 </body>
 
