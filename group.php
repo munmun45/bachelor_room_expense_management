@@ -236,7 +236,7 @@ if ($result->num_rows === 1) {
     <?php endif; ?>
 
     <!-- Chat Content -->
-    <main class="pt-20 pb-20">
+    <main class="pt-20 pb-20" >
         <!-- Load More Button (hidden initially) -->
         <div id="loadMoreContainer" class="text-center hidden">
             <button id="loadMoreBtn" class="text-blue-600 text-sm font-medium">
@@ -245,7 +245,7 @@ if ($result->num_rows === 1) {
         </div>
 
         <!-- Messages -->
-        <div id="messagesContainer" class="message-container space-y-2 px-4">
+        <div id="messagesContainer" class="message-container space-y-2 px-4" style="overflow-x: hidden;">
             <?php if (count($initial_messages) > 0): ?>
                 <?php foreach ($initial_messages as $message): ?>
                     <?php
@@ -302,7 +302,7 @@ if ($result->num_rows === 1) {
                                             $food_lines = array_filter(explode("\n", $food_payments));
                                             if (!empty($food_lines)):
                                         ?>
-                                                <div class="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                                                <div class="bg-blue-50  border-blue-200 rounded-lg p-3">
                                                     <div class="flex items-center mb-2">
                                                         <i class="fas fa-utensils text-blue-600 mr-2"></i>
                                                         <span class="font-semibold text-blue-800 text-sm">Food Payments</span>
@@ -318,7 +318,7 @@ if ($result->num_rows === 1) {
                                                                     $receiver = trim($matches[2]);
                                                                     $amount = trim($matches[3]);
                                                         ?>
-                                                                    <div class="flex items-center justify-between bg-white rounded-lg p-2 border border-blue-100">
+                                                                    <div class="flex items-center justify-between bg-white rounded-lg p-2  border-blue-100">
                                                                         <div class="flex items-center space-x-2 text-xs">
                                                                             <span class="font-medium text-red-600"><?php echo htmlspecialchars($payer); ?></span>
                                                                             <i class="fas fa-arrow-right text-gray-400"></i>
@@ -342,7 +342,7 @@ if ($result->num_rows === 1) {
                                             $special_lines = array_filter(explode("\n", $special_payments));
                                             if (!empty($special_lines)):
                                             ?>
-                                                <div class="bg-purple-50 border border-purple-200 rounded-lg p-3">
+                                                <div class="bg-purple-50  border-purple-200 rounded-lg p-3">
                                                     <div class="flex items-center mb-2">
                                                         <i class="fas fa-star text-purple-600 mr-2"></i>
                                                         <span class="font-semibold text-purple-800 text-sm">Special Payments</span>
@@ -357,7 +357,7 @@ if ($result->num_rows === 1) {
                                                                     $receiver = trim($matches[2]);
                                                                     $amount = trim($matches[3]);
                                                         ?>
-                                                                    <div class="flex items-center justify-between bg-white rounded-lg p-2 border border-purple-100">
+                                                                    <div class="flex items-center justify-between bg-white rounded-lg p-2  border-purple-100">
                                                                         <div class="flex items-center space-x-2 text-xs">
                                                                             <span class="font-medium text-red-600"><?php echo htmlspecialchars($payer); ?></span>
                                                                             <i class="fas fa-arrow-right text-gray-400"></i>
@@ -381,7 +381,7 @@ if ($result->num_rows === 1) {
                                             $final_lines = array_filter(explode("\n", $final_payments));
                                             if (!empty($final_lines)):
                                             ?>
-                                                <div class="bg-gradient-to-r from-green-50 to-blue-50 border-2 border-gray-300 rounded-lg p-3">
+                                                <div class="bg-gradient-to-r from-green-50 to-blue-50  border-gray-300 rounded-lg p-3">
                                                     <div class="flex items-center mb-2">
                                                         <i class="fas fa-handshake text-gray-700 mr-2"></i>
                                                         <span class="font-semibold text-gray-800 text-sm">Final Payments</span>
@@ -396,7 +396,7 @@ if ($result->num_rows === 1) {
                                                                     $receiver = trim($matches[2]);
                                                                     $amount = trim($matches[3]);
                                                         ?>
-                                                                    <div class="flex items-center justify-between bg-white rounded-lg p-3 border-2 border-gray-200 shadow-sm">
+                                                                    <div class="flex items-center justify-between bg-white rounded-lg p-3  border-gray-200 shadow-sm">
                                                                         <div class="flex items-center space-x-2 text-sm">
                                                                             <span class="font-bold text-red-700"><?php echo htmlspecialchars($payer); ?></span>
                                                                             <i class="fas fa-arrow-right text-gray-500"></i>

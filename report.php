@@ -723,6 +723,37 @@ if ($result->num_rows === 1) {
     </main>
 
 
+    <div class="fixed bottom-0 left-0 right-0 bg-white shadow-lg border-t border-gray-200 z-10 h-[70px]">
+    <div class="flex justify-between items-center max-w-md mx-auto h-full relative">
+
+        <!-- Home -->
+        <a href="index.php" class="flex flex-col items-center justify-center flex-1 text-indigo-600 h-full">
+            <i class="fas fa-home text-lg mb-1"></i>
+            <span class="text-xs font-medium">Home</span>
+        </a>
+
+        <!-- Find a Room -->
+        <a href="find-room.php" class="flex flex-col items-center justify-center flex-1 text-green-600 h-full">
+            <i class="fas fa-search text-lg mb-1"></i>
+            <span class="text-xs font-medium">Find Room</span>
+        </a>
+
+        <!-- Settings -->
+        <a href="profile.php" class="flex flex-col items-center justify-center flex-1 text-blue-600 h-full">
+            <i class="fas fa-cog text-lg mb-1"></i>
+            <span class="text-xs font-medium">Settings</span>
+        </a>
+
+        <!-- Donation -->
+        <a href="donate.php" class="flex flex-col items-center justify-center flex-1 text-purple-600 h-full">
+            <i class="fas fa-donate text-lg mb-1"></i>
+            <span class="text-xs font-medium">Donation</span>
+        </a>
+
+    </div>
+</div>
+
+
 </body>
 
 </html>
