@@ -72,7 +72,7 @@ if ($room_id && isset($_POST['confirm']) && $_POST['confirm'] === 'yes') {
         // Commit transaction
         $conn->commit();
         
-        header("Location: ../index.php?success=Room deleted successfully");
+        header("Location: ../index.php?success=Room and all associated data deleted successfully");
         exit();
         
     } catch (Exception $e) {

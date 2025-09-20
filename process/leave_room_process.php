@@ -27,7 +27,7 @@ if ($room_id) {
     
     // If user is admin, prevent them from leaving
     if ($member['is_admin']) {
-        header("Location: ../room-details.php?id=$room_id&error=As an admin, you cannot leave the room. You can delete the room or edit its information instead.");
+        header("Location: ../room-details.php?id=$room_id&error=As an admin, you cannot leave the room. You can only transfer admin rights to another member or delete the room.");
         exit();
     }
     
