@@ -93,11 +93,11 @@ if ($settlement_id > 0) {
     $stmt->bind_param("ii", $settlement_id, $group_id);
     $stmt->execute();
     $result = $stmt->get_result();
-    
+
     if ($result->num_rows > 0) {
         $settlement_record = $result->fetch_assoc();
         $settlement_data = json_decode($settlement_record['settlement_data'], true);
-        
+
         // Validate the JSON data and provide defaults if needed
         if (!is_array($settlement_data)) {
             $settlement_data = [
@@ -108,14 +108,14 @@ if ($settlement_id > 0) {
                 'settlements' => []
             ];
         }
-        
+
         // Ensure required fields exist with defaults
         $settlement_data['total_food'] = $settlement_data['total_food'] ?? 0;
         $settlement_data['total_special'] = $settlement_data['total_special'] ?? 0;
         $settlement_data['food_expenses'] = $settlement_data['food_expenses'] ?? [];
         $settlement_data['special_expenses'] = $settlement_data['special_expenses'] ?? [];
         $settlement_data['settlements'] = $settlement_data['settlements'] ?? [];
-        
+
         $settlement_source = 'saved';
         $settlement_details = [
             'id' => $settlement_record['id'],
@@ -127,7 +127,7 @@ if ($settlement_id > 0) {
             'include_special' => $settlement_record['include_special'],
             'message_id' => $settlement_record['message_id']
         ];
-        
+
         // Override the date range from saved settlement
         $from_date = $settlement_record['from_date'];
         $to_date = $settlement_record['to_date'];
@@ -146,7 +146,7 @@ if ($settlement_source === 'calculated') {
     }
 
     $settlement_data = calculateSettlement($conn, $group_id, $room_id, $from_date, $to_date, true, true, $member_names);
-    
+
     // Ensure required fields exist with defaults for calculated data too
     $settlement_data['total_food'] = $settlement_data['total_food'] ?? 0;
     $settlement_data['total_special'] = $settlement_data['total_special'] ?? 0;
@@ -170,6 +170,7 @@ if ($result->num_rows === 1) {
 ?>
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -177,228 +178,121 @@ if ($result->num_rows === 1) {
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="js/back-navigation.js"></script>
-    <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f0f2f5;
-        }
-        .calculation-row {
-            border-bottom: 1px solid #e5e7eb;
-            padding: 8px 0;
-        }
-        .calculation-row:last-child {
-            border-bottom: none;
-            font-weight: 600;
-            background-color: #f9fafb;
-            margin: 4px -12px -8px -12px;
-            padding: 8px 12px;
-            border-radius: 0 0 6px 6px;
-        }
-        .member-card {
-            transition: all 0.2s ease;
-        }
-        .member-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        }
-        
-        /* Pull to Refresh Styles */
-        .pull-to-refresh {
-            position: fixed;
-            top: -60px;
-            left: 0;
-            right: 0;
-            height: 60px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-            transition: transform 0.3s ease;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-        }
-        
-        .pull-to-refresh.show {
-            transform: translateY(60px);
-        }
-        
-        .pull-to-refresh .refresh-content {
-            display: flex;
-            align-items: center;
-            color: white;
-            font-weight: 500;
-        }
-        
-        .pull-to-refresh .refresh-icon {
-            margin-right: 8px;
-            transition: transform 0.3s ease;
-        }
-        
-        .pull-to-refresh .refresh-icon.spinning {
-            animation: spin 1s linear infinite;
-        }
-        
-        @keyframes spin {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
-        
-        .pull-indicator {
-            position: fixed;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(0, 0, 0, 0.7);
-            color: white;
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-size: 14px;
-            z-index: 1001;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-            pointer-events: none;
-        }
-        
-        .pull-indicator.show {
-            opacity: 1;
-        }
-        
-        .pull-indicator .icon {
-            margin-right: 6px;
-        }
-    </style>
+
+    <link rel="stylesheet" href="./css/style.css">
+
 </head>
-<body class="bg-gray-100">
-    <!-- Pull to Refresh Indicator -->
-    <div class="pull-indicator" id="pullIndicator">
-        <i class="fas fa-arrow-down icon"></i>
-        <span>Pull to refresh</span>
-    </div>
-    
-    <!-- Pull to Refresh Bar -->
-    <div class="pull-to-refresh" id="pullToRefresh">
-        <div class="refresh-content">
-            <i class="fas fa-sync-alt refresh-icon" id="refreshIcon"></i>
-            <span id="refreshText">Release to refresh</span>
-        </div>
-    </div>
-    
+
+<body>
+
+
     <!-- Header -->
-    <header class="fixed top-0 left-0 right-0 bg-white shadow-md z-10">
-        <div class="flex justify-between items-center px-4 py-3">
-            <div class="flex items-center">
-                <button onclick="goBack()" class="mr-3 back-button" title="Go Back">
-                    <i class="fas fa-arrow-left text-blue-600 text-xl hover:text-blue-800 transition-colors"></i>
+
+    <header class="app-header fixed top-0 left-0 right-0 z-10 py-2.5 px-3">
+        <div class="flex justify-between items-center">
+            <div class="flex items-center space-x-2.5">
+                <button onclick="goBack()" class="mr-3 back-button" title="Go Back" style="margin-left: 15px;">
+                    <i class="fas fa-arrow-left text-white text-xl"></i>
                 </button>
-                <div class="mr-3">
-                    <i class="fas fa-calculator text-green-600 text-2xl"></i>
-                </div>
+
                 <div>
-                    <h1 class="text-lg font-bold text-gray-800"><?php echo htmlspecialchars($group['name']); ?></h1>
-                    <p class="text-xs text-gray-500">
+                    <h1 class="text-base font-bold text-white tracking-tight"><?php echo htmlspecialchars($group['name']); ?></h1>
+                    <p class="text-[12px] text-white text-opacity-80 -mt-0.5">
                         <?php echo $settlement_source === 'saved' ? 'Saved Settlement Report' : 'Settlement Report'; ?>
                     </p>
                 </div>
             </div>
-            <div class="flex items-center">
-                <a href="profile.php">
-                    <img src="<?php echo $profile_image; ?>" alt="Profile" class="h-8 w-8 rounded-full border-2 border-blue-500 object-cover">
+            <div class="flex items-center space-x-3">
+                <div class="relative">
+                    <div class="w-7 h-7 rounded-full bg-white bg-opacity-20 flex items-center justify-center backdrop-blur-sm cursor-pointer hover:bg-opacity-30 transition-all duration-200" onclick="location.reload()" id="refreshButton">
+                        <i class="fas fa-sync-alt text-white text-sm"></i>
+                    </div>
+
+                </div>
+                <a href="profile.php" class="transform transition-transform hover:scale-105">
+                    <div class="h-8 w-8 rounded-full bg-white bg-opacity-20 flex items-center justify-center overflow-hidden border border-white border-opacity-30 backdrop-blur-sm" style="border: 2px solid white; height: 35px; width: 35px;">
+                        <img src="<?php echo $profile_image; ?>" alt="Profile" class="h-full w-full object-cover">
+                    </div>
                 </a>
             </div>
         </div>
     </header>
 
+
+
     <!-- Main Content -->
     <main class="pt-20 pb-24 px-4 max-w-md mx-auto">
+
+
         <!-- Report Period Selector -->
-        <div class="bg-white rounded-xl shadow-md p-4 mb-4">
-            <div class="flex flex-col space-y-3">
-                <h2 class="text-lg font-semibold">📊 <?php echo htmlspecialchars($group['name']); ?> Settlement Report</h2>
-                
+        <div class="p-5 mb-4 mt-3 rounded-3xl  relative bg-gradient-to-br from-gray-50 via-white to-gray-100  border-gray-200 text-[12px]">
+            <div class="flex flex-col space-y-4">
+                <!-- Header -->
+                <div class="flex items-center justify-between">
+                    <h2 class="text-sm font-semibold text-gray-800 flex items-center gap-2">
+                        📊 <?php echo htmlspecialchars($group['name']); ?> Settlement Report
+                    </h2>
+                </div>
+
+                <!-- Saved Settlement Details -->
                 <?php if ($settlement_source === 'saved' && $settlement_details): ?>
-                    <!-- Saved Settlement Details -->
-                    <div class="bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 rounded-lg p-3 mb-3">
+                    <div class="bg-gradient-to-r from-green-50 to-blue-50  border-green-200 rounded-lg p-4">
                         <div class="flex items-center mb-2">
                             <i class="fas fa-save text-green-600 mr-2"></i>
-                            <span class="font-semibold text-green-800">Saved Settlement #<?php echo $settlement_details['id']; ?></span>
+                            <span class="font-medium text-green-800">
+                                Saved Settlement #<?php echo $settlement_details['id']; ?>
+                            </span>
                         </div>
-                        <div class="text-sm text-gray-700 space-y-1">
-                            <div><strong>Created by:</strong> <?php echo htmlspecialchars($settlement_details['creator']); ?></div>
-                            <div><strong>Created on:</strong> <?php echo date('M d, Y \a\t g:i A', strtotime($settlement_details['created_at'])); ?></div>
+                        <div class="grid gap-1 text-gray-700">
+                            <div><span class="font-medium">Created by:</span> <?php echo htmlspecialchars($settlement_details['creator']); ?></div>
+                            <div><span class="font-medium">Created on:</span> <?php echo date('M d, Y \a\t g:i A', strtotime($settlement_details['created_at'])); ?></div>
                             <?php if ($settlement_details['message_id']): ?>
-                                <div><strong>Message ID:</strong> #<?php echo $settlement_details['message_id']; ?></div>
+                                <div><span class="font-medium">Message ID:</span> #<?php echo $settlement_details['message_id']; ?></div>
                             <?php endif; ?>
                         </div>
                     </div>
                 <?php endif; ?>
-                
-                <div class="text-sm text-gray-600 bg-blue-50 p-2 rounded">
-                    <strong>Report Period:</strong> <?php echo date('M d, Y', strtotime($from_date)); ?> to <?php echo date('M d, Y', strtotime($to_date)); ?>
+
+                <!-- Report Period -->
+                <div class="bg-blue-50  border-blue-100 p-3 rounded-lg text-gray-700">
+                    <span class="font-medium">Report Period:</span>
+                    <?php echo date('M d, Y', strtotime($from_date)); ?> → <?php echo date('M d, Y', strtotime($to_date)); ?>
                     <?php if ($settlement_source === 'saved'): ?>
-                        <span class="text-xs text-green-600 block mt-1">
-                            <i class="fas fa-database mr-1"></i>Data loaded from saved settlement
+                        <span class="text-[11px] text-green-600 block mt-1">
+                            <i class="fas fa-database mr-1"></i> Data loaded from saved settlement
                         </span>
                     <?php endif; ?>
                 </div>
-                
-                <?php if ($settlement_source === 'calculated'): ?>
-                    <!-- Month and Year Filter (only for calculated reports) -->
-                    <form method="GET" class="flex justify-between items-center gap-2">
-                        <input type="hidden" name="group_id" value="<?php echo $group_id; ?>">
-                        <div class="flex items-center">
-                            <label for="settlement-month" class="text-sm text-gray-500 mr-2">Month:</label>
-                            <select id="settlement-month" name="month" class="border rounded px-2 py-1 text-sm" onchange="this.form.submit()">
-                                <option value="01" <?php echo $selected_month == '01' ? 'selected' : ''; ?>>January</option>
-                                <option value="02" <?php echo $selected_month == '02' ? 'selected' : ''; ?>>February</option>
-                                <option value="03" <?php echo $selected_month == '03' ? 'selected' : ''; ?>>March</option>
-                                <option value="04" <?php echo $selected_month == '04' ? 'selected' : ''; ?>>April</option>
-                                <option value="05" <?php echo $selected_month == '05' ? 'selected' : ''; ?>>May</option>
-                                <option value="06" <?php echo $selected_month == '06' ? 'selected' : ''; ?>>June</option>
-                                <option value="07" <?php echo $selected_month == '07' ? 'selected' : ''; ?>>July</option>
-                                <option value="08" <?php echo $selected_month == '08' ? 'selected' : ''; ?>>August</option>
-                                <option value="09" <?php echo $selected_month == '09' ? 'selected' : ''; ?>>September</option>
-                                <option value="10" <?php echo $selected_month == '10' ? 'selected' : ''; ?>>October</option>
-                                <option value="11" <?php echo $selected_month == '11' ? 'selected' : ''; ?>>November</option>
-                                <option value="12" <?php echo $selected_month == '12' ? 'selected' : ''; ?>>December</option>
-                            </select>
-                        </div>
-                        <div class="flex items-center">
-                            <label for="settlement-year" class="text-sm text-gray-500 mr-2">Year:</label>
-                            <select id="settlement-year" name="year" class="border rounded px-2 py-1 text-sm" onchange="this.form.submit()">
-                                <option value="2023" <?php echo $selected_year == '2023' ? 'selected' : ''; ?>>2023</option>
-                                <option value="2024" <?php echo $selected_year == '2024' ? 'selected' : ''; ?>>2024</option>
-                                <option value="2025" <?php echo $selected_year == '2025' ? 'selected' : ''; ?>>2025</option>
-                            </select>
-                        </div>
-                    </form>
-                <?php else: ?>
-                    <!-- View General Report Link (for saved settlements) -->
-                    <div class="text-center">
-                        <a href="report.php?group_id=<?php echo $group_id; ?>" class="text-sm text-blue-600 hover:text-blue-800 underline">
-                            <i class="fas fa-calculator mr-1"></i>View Current Month Report
-                        </a>
+
+                <!-- Expense Stats -->
+                <div class="grid grid-cols-2 gap-4">
+                    <!-- Food Expenses -->
+                    <div class="bg-blue-50  border-blue-100 rounded-lg p-4">
+                        <p class="text-blue-700 mb-1">Total Food Expenses</p>
+                        <p class="text-base font-bold text-blue-800 flex items-center gap-1">
+                            <i class="fas fa-rupee-sign"></i><?php echo number_format($settlement_data['total_food'], 2); ?>
+                        </p>
+                        <p class="text-gray-500"><?php echo count($settlement_data['food_expenses']); ?> transactions</p>
                     </div>
-                <?php endif; ?>
-                
-                <div class="flex justify-between items-center">
-                    <div>
-                        <p class="text-sm text-gray-500">Total Food Expenses</p>
-                        <p class="text-xl font-bold text-blue-600"><i class="fas fa-rupee-sign"></i><?php echo number_format($settlement_data['total_food'], 2); ?></p>
-                        <p class="text-xs text-gray-400"><?php echo count($settlement_data['food_expenses']); ?> transactions</p>
-                    </div>
-                    <div>
-                        <p class="text-sm text-gray-500">Special Items</p>
-                        <p class="text-xl font-bold text-purple-600"><i class="fas fa-rupee-sign"></i><?php echo number_format($settlement_data['total_special'], 2); ?></p>
-                        <p class="text-xs text-gray-400"><?php echo count($settlement_data['special_expenses']); ?> transactions</p>
+
+                    <!-- Special Items -->
+                    <div class="bg-purple-50  border-purple-100 rounded-lg p-4">
+                        <p class="text-purple-700 mb-1">Special Items</p>
+                        <p class="text-base font-bold text-purple-800 flex items-center gap-1">
+                            <i class="fas fa-rupee-sign"></i><?php echo number_format($settlement_data['total_special'], 2); ?>
+                        </p>
+                        <p class="text-gray-500"><?php echo count($settlement_data['special_expenses']); ?> transactions</p>
                     </div>
                 </div>
             </div>
         </div>
 
+
+
         <!-- Food Expense Settlement Summary -->
-        <div class="bg-white rounded-xl shadow-md p-4 mb-4">
-            <h2 class="text-lg font-semibold mb-3">🍽️ Food Expense Settlement</h2>
-            
+        <div class="p-5 mb-4 mt-3 rounded-3xl  relative bg-gradient-to-br from-gray-50 via-white to-gray-100  border-gray-200 text-[12px]">
+            <h2 class="text-lg font-semibold mb-3" style="background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); color: white; padding: 10px 14px; border-radius: 10px;">🍽️ Food Expense Settlement</h2>
+
             <?php if ($settlement_data['total_food'] == 0): ?>
                 <div class="text-center py-8 text-gray-500">
                     <i class="fas fa-utensils text-4xl mb-3 text-gray-300"></i>
@@ -406,134 +300,123 @@ if ($result->num_rows === 1) {
                     <p class="text-sm">Food expenses will appear here when added to group chat</p>
                 </div>
             <?php else: ?>
-            
-            <!-- Food Expense Breakdown -->
-            <div class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-4 mb-4 border border-blue-100">
-                <h3 class="font-semibold mb-3 text-blue-800">
-                    <i class="fas fa-utensils mr-2"></i>Food Expense Details
-                </h3>
-                <div class="space-y-2 text-sm">
-                    <div class="calculation-row flex justify-between items-center">
-                        <span class="font-medium">Total Food Expenses:</span>
-                        <span class="font-semibold text-blue-600 text-lg">₹<?php echo number_format($settlement_data['total_food'], 2); ?></span>
-                </div>
-                    <div class="calculation-row flex justify-between items-center">
-                        <span class="font-medium">Settlement Period:</span>
-                        <span class="font-semibold"><?php echo date('M d, Y', strtotime($from_date)); ?> - <?php echo date('M d, Y', strtotime($to_date)); ?></span>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Member Settlement Cards for Food -->
-            <div class="space-y-3 mb-4">
-                <?php
-                // Group settlements by user and type
-                $user_settlements = [];
-                
-                // Ensure settlements array exists and is not empty
-                if (is_array($settlement_data['settlements']) && !empty($settlement_data['settlements'])) {
-                    foreach ($settlement_data['settlements'] as $settlement) {
-                        if (!isset($user_settlements[$settlement['user_id']])) {
-                            $user_settlements[$settlement['user_id']] = [
-                                'name' => $settlement['name'],
-                                'food' => ['spent' => 0, 'share' => 0, 'net' => 0, 'days_present' => 0, 'total_days' => 0],
-                                'special' => ['spent' => 0, 'share' => 0, 'net' => 0]
-                            ];
-                        }
-                        
-                        if ($settlement['type'] == 'food') {
-                            $user_settlements[$settlement['user_id']]['food'] = $settlement;
-                        } else {
-                            $user_settlements[$settlement['user_id']]['special'] = $settlement;
+
+
+
+
+                <!-- Member Settlement Cards for Food -->
+                <div class="space-y-3 mb-4">
+                    <?php
+                    // Group settlements by user and type
+                    $user_settlements = [];
+
+                    if (is_array($settlement_data['settlements']) && !empty($settlement_data['settlements'])) {
+                        foreach ($settlement_data['settlements'] as $settlement) {
+                            if (!isset($user_settlements[$settlement['user_id']])) {
+                                $user_settlements[$settlement['user_id']] = [
+                                    'name' => $settlement['name'],
+                                    'food' => ['spent' => 0, 'share' => 0, 'net' => 0, 'days_present' => 0, 'total_days' => 0],
+                                    'special' => ['spent' => 0, 'share' => 0, 'net' => 0]
+                                ];
+                            }
+                            if ($settlement['type'] == 'food') {
+                                $user_settlements[$settlement['user_id']]['food'] = $settlement;
+                            } else {
+                                $user_settlements[$settlement['user_id']]['special'] = $settlement;
+                            }
                         }
                     }
-                }
-                
-                $colors = ['blue', 'green', 'purple', 'yellow', 'red', 'indigo'];
-                $i = 0;
-                
-                if (empty($user_settlements)): ?>
-                    <div class="text-center py-6 text-gray-500">
-                        <i class="fas fa-users text-3xl mb-3 text-gray-300"></i>
-                        <p class="font-medium">No settlement data available</p>
-                        <p class="text-sm">Settlement calculations will appear here when expenses are added</p>
-                    </div>
-                <?php else:
-                    foreach ($user_settlements as $user_id => $user_data):
-                    $color = $colors[$i % count($colors)];
-                    $food_net = $user_data['food']['net'];
-                    // Check if user is still a member of the group
-                    if (isset($members[$user_id])) {
-                        $profile_img = $members[$user_id]['profile_image'] ? 'uploads/profile/' . $members[$user_id]['profile_image'] : 'uploads/profile/default_avatar.png';
-                        $member_name = $members[$user_id]['name'];
-                    } else {
-                        // User was removed from group, use default values
-                        $profile_img = 'uploads/profile/default_avatar.png';
-                        $member_name = 'Former Member';
-                    }
-                    $i++;
-                ?>
-                    <div class="member-card p-4 bg-white border-2 border-gray-100 rounded-lg shadow-sm">
-                    <div class="flex justify-between items-start mb-3">
-                        <div class="flex items-center">
-                                <img src="<?php echo $profile_img; ?>" alt="Profile" class="w-12 h-12 rounded-full object-cover mr-3 border-2 border-<?php echo $color; ?>-200">
-                            <div>
-                                    <div class="font-semibold text-lg"><?php echo htmlspecialchars($user_data['name']); ?></div>
-                                <div class="text-sm text-gray-500 flex items-center">
-                                        <span class="mr-2">Days present:</span>
-                                        <span class="font-medium"><?php echo $user_data['food']['days_present'] ?? $user_data['food']['total_days'] ?? 0; ?> / <?php echo $user_data['food']['total_days'] ?? 0; ?></span>
+
+                    $colors = ['blue', 'green', 'purple', 'yellow', 'red', 'indigo'];
+                    $i = 0;
+
+                    if (empty($user_settlements)): ?>
+                        <div class="text-center py-6 text-gray-500">
+                            <i class="fas fa-users text-3xl mb-3 text-gray-300"></i>
+                            <p class="font-medium">No settlement data available</p>
+                            <p class="text-sm">Settlement calculations will appear here when expenses are added</p>
+                        </div>
+                        <?php else:
+                        foreach ($user_settlements as $user_id => $user_data):
+                            $color = $colors[$i % count($colors)];
+                            $food_net = $user_data['food']['net'];
+
+                            if (isset($members[$user_id])) {
+                                $profile_img = $members[$user_id]['profile_image'] ? 'uploads/profile/' . $members[$user_id]['profile_image'] : 'uploads/profile/default_avatar.png';
+                                $member_name = $members[$user_id]['name'];
+                            } else {
+                                $profile_img = 'uploads/profile/default_avatar.png';
+                                $member_name = 'Former Member';
+                            }
+                            $i++;
+                        ?>
+                            <div class="member-card ">
+                                <!-- Header -->
+                                <div class="flex justify-between items-start mb-3">
+                                    <div class="flex items-center gap-3">
+                                        <img src="<?php echo $profile_img; ?>" alt="Profile" class="w-12 h-12 rounded-full object-cover border-2 border-<?php echo $color; ?>-200">
+                                        <div>
+                                            <div class="font-semibold text-sm"><?php echo htmlspecialchars($user_data['name']); ?></div>
+                                            <div class="text-xs text-gray-500 flex items-center gap-1">
+                                                <span>Days present:</span>
+                                                <span class="font-medium"><?php echo $user_data['food']['days_present'] ?? $user_data['food']['total_days'] ?? 0; ?> / <?php echo $user_data['food']['total_days'] ?? 0; ?></span>
+                                            </div>
+
+                                            <div style="display: flex ; align-items: center; gap: 10px;">
+                                                <div class="font-bold text-[14px] <?php echo $food_net >= 0 ? 'text-green-600' : 'text-red-600'; ?>">
+                                                    <?php echo $food_net >= 0 ? '+' : ''; ?>₹<?php echo number_format($food_net, 2); ?>
+                                                </div>
+                                                <div class="text-xs text-gray-500">Food Settlement</div>
+                                            </div>
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                                <!-- Detailed Calculation -->
+                                <div class="bg-gray-50 rounded-lg p-3 border-l-4 border-<?php echo $color; ?>-400 text-[12px]">
+                                    <div class="text-xs font-medium text-gray-700 mb-2 flex items-center gap-1">
+                                        <i class="fas fa-chart-line"></i> Food Calculation Details
+                                    </div>
+                                    <div class="space-y-1">
+                                        <div class="flex justify-between">
+                                            <span>Amount spent by <?php echo htmlspecialchars($user_data['name']); ?>:</span>
+                                            <span class="font-semibold text-blue-600">₹<?php echo number_format($user_data['food']['spent'], 2); ?></span>
+                                        </div>
+                                        <div class="flex justify-between">
+                                            <span>Fair share for food:</span>
+                                            <span class="font-semibold text-purple-600">₹<?php echo number_format($user_data['food']['share'], 2); ?></span>
+                                        </div>
+                                        <div class="flex justify-between">
+                                            <span class="font-semibold">Net Settlement:</span>
+                                            <div class="text-right">
+                                                <div class="font-bold <?php echo $food_net >= 0 ? 'text-green-600' : 'text-red-600'; ?>">
+                                                    <?php echo $food_net >= 0 ? '+' : ''; ?>₹<?php echo number_format($food_net, 2); ?>
+                                                </div>
+                                                <div class="text-xs text-gray-500">
+                                                    ₹<?php echo number_format($user_data['food']['spent'], 2); ?> - ₹<?php echo number_format($user_data['food']['share'], 2); ?>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                        <div class="text-right">
-                                <div class="settlement-amount <?php echo $food_net >= 0 ? 'text-green-600' : 'text-red-600'; ?> font-bold text-xl">
-                                    <?php echo $food_net >= 0 ? '+' : ''; ?>₹<?php echo number_format($food_net, 2); ?>
-                                </div>
-                                <div class="text-xs text-gray-500">Food Settlement</div>
-                        </div>
-                    </div>
-                    
-                    <!-- Detailed Calculation -->
-                        <div class="bg-gray-50 rounded-lg p-3 border-l-4 border-<?php echo $color; ?>-400">
-                        <div class="text-xs font-medium text-gray-700 mb-2">
-                                <i class="fas fa-chart-line mr-1"></i>Food Calculation Details
-                            </div>
-                            <div class="space-y-1 text-xs">
-                                <div class="calculation-row flex justify-between">
-                                    <span>Amount spent by <?php echo htmlspecialchars($user_data['name']); ?>:</span>
-                                    <span class="font-semibold text-blue-600">₹<?php echo number_format($user_data['food']['spent'], 2); ?></span>
-                                </div>
-                                <div class="calculation-row flex justify-between">
-                                    <span>Fair share for food:</span>
-                                    <span class="font-semibold text-purple-600">₹<?php echo number_format($user_data['food']['share'], 2); ?></span>
-                                </div>
-                                <div class="calculation-row flex justify-between">
-                                    <span class="font-semibold">Net Settlement:</span>
-                                    <div class="text-right">
-                                        <div class="font-bold <?php echo $food_net >= 0 ? 'text-green-600' : 'text-red-600'; ?>">
-                                            <?php echo $food_net >= 0 ? '+' : ''; ?>₹<?php echo number_format($food_net, 2); ?>
-                        </div>
-                                        <div class="text-xs text-gray-500">
-                                            ₹<?php echo number_format($user_data['food']['spent'], 2); ?> - ₹<?php echo number_format($user_data['food']['share'], 2); ?>
-                        </div>
-                    </div>
+                    <?php endforeach;
+                    endif; ?>
                 </div>
-                                </div>
-                            </div>
-                        </div>
-                <?php endforeach; 
-                endif; // End of user settlements check ?>
-                        </div>
-            <?php endif; // End of food expenses check ?>
-                    </div>
-                    
+
+            <?php endif; // End of food expenses check 
+            ?>
+        </div>
+
         <!-- Special Item Settlement Summary -->
-        <div class="bg-white rounded-xl shadow-md p-4 mb-4">
-            <h2 class="text-lg font-semibold mb-3">⭐ Special Item Settlement</h2>
-            
+        <div class="p-5 mb-4 mt-3 rounded-3xl  relative bg-gradient-to-br from-gray-50 via-white to-gray-100  border-gray-200 text-[12px]">
+            <h2 class="text-lg font-semibold mb-3" style="background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); color: white; padding: 10px 14px; border-radius: 10px;">⭐ Special Item Settlement</h2>
+
             <?php if ($settlement_data['total_special'] > 0): ?>
                 <!-- Special Item Breakdown -->
-                <div class="bg-gradient-to-r from-purple-50 to-indigo-50 rounded-lg p-4 mb-4 border border-purple-100">
+                <div class="bg-gradient-to-r from-purple-50 to-indigo-50 rounded-lg p-4 mb-4 border-purple-100">
                     <h3 class="font-semibold mb-3 text-purple-800">
                         <i class="fas fa-star mr-2"></i>Special Item Details
                     </h3>
@@ -552,7 +435,7 @@ if ($result->num_rows === 1) {
                         </div>
                     </div>
                 </div>
-                
+
                 <!-- Member Settlement Cards for Special Items -->
                 <div class="space-y-3 mb-4">
                     <?php
@@ -562,81 +445,86 @@ if ($result->num_rows === 1) {
                             <p class="font-medium">No settlement data available</p>
                             <p class="text-sm">Special item settlements will appear here when calculated</p>
                         </div>
-                    <?php else:
+                        <?php else:
                         $i = 0;
                         foreach ($user_settlements as $user_id => $user_data):
-                        $color = $colors[$i % count($colors)];
-                        $special_net = $user_data['special']['net'];
-                        // Check if user is still a member of the group
-                        if (isset($members[$user_id])) {
-                            $profile_img = $members[$user_id]['profile_image'] ? 'uploads/profile/' . $members[$user_id]['profile_image'] : 'uploads/profile/default_avatar.png';
-                        } else {
-                            // User was removed from group, use default values
-                            $profile_img = 'uploads/profile/default_avatar.png';
-                        }
-                        $i++;
-                    ?>
-                        <div class="member-card p-4 bg-white border-2 border-purple-100 rounded-lg shadow-sm">
-                    <div class="flex justify-between items-start mb-3">
-                        <div class="flex items-center">
-                                    <img src="<?php echo $profile_img; ?>" alt="Profile" class="w-12 h-12 rounded-full object-cover mr-3 border-2 border-purple-200">
-                            <div>
-                                        <div class="font-semibold text-lg"><?php echo htmlspecialchars($user_data['name']); ?></div>
-                                        <div class="text-sm text-purple-500">Special Items</div>
-                            </div>
-                        </div>
-                        <div class="text-right">
-                                    <div class="settlement-amount <?php echo $special_net >= 0 ? 'text-green-600' : 'text-red-600'; ?> font-bold text-xl">
-                                        <?php echo $special_net >= 0 ? '+' : ''; ?>₹<?php echo number_format($special_net, 2); ?>
-                        </div>
-                                    <div class="text-xs text-gray-500">Special Settlement</div>
-                    </div>
-                </div>
-                
-                            <!-- Detailed Calculation -->
-                            <div class="bg-purple-50 rounded-lg p-3 border-l-4 border-purple-400">
-                                <div class="text-xs font-medium text-purple-700 mb-2">
-                                    <i class="fas fa-star mr-1"></i>Special Item Calculation
-                            </div>
-                                <div class="space-y-1 text-xs">
-                                    <div class="calculation-row flex justify-between">
-                                        <span>Amount spent on special items:</span>
-                                        <span class="font-semibold text-purple-600">₹<?php echo number_format($user_data['special']['spent'], 2); ?></span>
-                                </div>
-                                    <div class="calculation-row flex justify-between">
-                                        <span>Fair share (equal split):</span>
-                                        <span class="font-semibold text-purple-600">₹<?php echo number_format($user_data['special']['share'], 2); ?></span>
-                            </div>
-                                    <div class="calculation-row flex justify-between">
-                                        <span class="font-semibold">Net Settlement:</span>
-                        <div class="text-right">
-                                            <div class="font-bold <?php echo $special_net >= 0 ? 'text-green-600' : 'text-red-600'; ?>">
+                            $color = $colors[$i % count($colors)];
+                            $special_net = $user_data['special']['net'];
+                            // Check if user is still a member of the group
+                            if (isset($members[$user_id])) {
+                                $profile_img = $members[$user_id]['profile_image'] ? 'uploads/profile/' . $members[$user_id]['profile_image'] : 'uploads/profile/default_avatar.png';
+                            } else {
+                                // User was removed from group, use default values
+                                $profile_img = 'uploads/profile/default_avatar.png';
+                            }
+                            $i++;
+                        ?>
+                            <div class="member-card  rounded-lg shadow-sm">
+                                <div class="flex justify-between items-start mb-3">
+                                    <div class="flex items-center">
+                                        <img src="<?php echo $profile_img; ?>" alt="Profile" class="w-12 h-12 rounded-full object-cover mr-3 border-2 border-purple-200">
+                                        <div class="member-info">
+
+                                            <div>
+                                                <div class="font-semibold text-sm"><?php echo htmlspecialchars($user_data['name']); ?></div>
+                                            </div>
+
+                                            <div class="settlement-amount <?php echo $special_net >= 0 ? 'text-green-600' : 'text-red-600'; ?> font-bold text-xl">
                                                 <?php echo $special_net >= 0 ? '+' : ''; ?>₹<?php echo number_format($special_net, 2); ?>
-                        </div>
-                                            <div class="text-xs text-gray-500">
-                                                ₹<?php echo number_format($user_data['special']['spent'], 2); ?> - ₹<?php echo number_format($user_data['special']['share'], 2); ?>
-                        </div>
-                    </div>
-                </div>
+                                            </div>
+                                            <div class="text-xs text-gray-500">Special Settlement</div>
+
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                                <!-- Detailed Calculation -->
+                                <div class="bg-purple-50 rounded-lg p-3 border-l-4 border-purple-400">
+                                    <div class="text-xs font-medium text-purple-700 mb-2">
+                                        <i class="fas fa-star mr-1"></i>Special Item Calculation
+                                    </div>
+                                    <div class="space-y-1 text-xs">
+                                        <div class="calculation-row flex justify-between">
+                                            <span>Amount spent on special items:</span>
+                                            <span class="font-semibold text-purple-600">₹<?php echo number_format($user_data['special']['spent'], 2); ?></span>
+                                        </div>
+                                        <div class="calculation-row flex justify-between">
+                                            <span>Fair share (equal split):</span>
+                                            <span class="font-semibold text-purple-600">₹<?php echo number_format($user_data['special']['share'], 2); ?></span>
+                                        </div>
+                                        <div class="calculation-row flex justify-between">
+                                            <span class="font-semibold">Net Settlement:</span>
+                                            <div class="text-right">
+                                                <div class="font-bold <?php echo $special_net >= 0 ? 'text-green-600' : 'text-red-600'; ?>">
+                                                    <?php echo $special_net >= 0 ? '+' : ''; ?>₹<?php echo number_format($special_net, 2); ?>
+                                                </div>
+                                                <div class="text-xs text-gray-500">
+                                                    ₹<?php echo number_format($user_data['special']['spent'], 2); ?> - ₹<?php echo number_format($user_data['special']['share'], 2); ?>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    <?php endforeach; 
-                    endif; // End of user settlements check ?>
+                    <?php endforeach;
+                    endif; // End of user settlements check 
+                    ?>
                 </div>
             <?php else: ?>
                 <div class="text-center py-8 text-gray-500">
                     <i class="fas fa-star text-4xl mb-3 text-gray-300"></i>
                     <p class="font-medium">No special items for this period</p>
                     <p class="text-sm">Special items marked in group chat will appear here</p>
-                        </div>
+                </div>
             <?php endif; ?>
-                    </div>
-                    
+        </div>
+
         <!-- Combined Settlement Summary -->
-        <div class="bg-white rounded-xl shadow-md p-4 mb-4">
+        <div class="p-5 mb-4 mt-3 rounded-3xl  relative bg-gradient-to-br from-gray-50 via-white to-gray-100  border-gray-200 text-[12px]">
             <h2 class="text-lg font-semibold mb-3">💰 Final Settlement Summary</h2>
-            
+
             <div class="space-y-3">
                 <?php
                 if (empty($user_settlements)): ?>
@@ -645,52 +533,53 @@ if ($result->num_rows === 1) {
                         <p class="font-medium">No settlement data to summarize</p>
                         <p class="text-sm">Final settlement summary will appear when settlements are calculated</p>
                     </div>
-                <?php else:
+                    <?php else:
                     foreach ($user_settlements as $user_id => $user_data):
-                    $total_net = $user_data['food']['net'] + $user_data['special']['net'];
-                    // Check if user is still a member of the group
-                    if (isset($members[$user_id])) {
-                        $profile_img = $members[$user_id]['profile_image'] ? 'uploads/profile/' . $members[$user_id]['profile_image'] : 'uploads/profile/default_avatar.png';
-                    } else {
-                        // User was removed from group, use default values
-                        $profile_img = 'uploads/profile/default_avatar.png';
-                    }
-                ?>
-                    <div class="flex items-center justify-between p-3 <?php echo $total_net >= 0 ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'; ?> rounded-lg">
-                        <div class="flex items-center space-x-3">
-                            <img src="<?php echo $profile_img; ?>" alt="Profile" class="w-10 h-10 rounded-full object-cover">
-                            <div>
-                                <div class="font-medium"><?php echo htmlspecialchars($user_data['name']); ?></div>
+                        $total_net = $user_data['food']['net'] + $user_data['special']['net'];
+                        // Check if user is still a member of the group
+                        if (isset($members[$user_id])) {
+                            $profile_img = $members[$user_id]['profile_image'] ? 'uploads/profile/' . $members[$user_id]['profile_image'] : 'uploads/profile/default_avatar.png';
+                        } else {
+                            // User was removed from group, use default values
+                            $profile_img = 'uploads/profile/default_avatar.png';
+                        }
+                    ?>
+                        <div class="flex items-center justify-between p-3 <?php echo $total_net >= 0 ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'; ?> rounded-lg">
+                            <div class="flex items-center space-x-3">
+                                <img src="<?php echo $profile_img; ?>" alt="Profile" class="w-10 h-10 rounded-full object-cover">
+                                <div>
+                                    <div class="font-medium"><?php echo htmlspecialchars($user_data['name']); ?></div>
+                                    <div class="text-xs text-gray-500">
+                                        Food: <?php echo $user_data['food']['net'] >= 0 ? '+' : ''; ?>₹<?php echo number_format($user_data['food']['net'], 2); ?> |
+                                        Special: <?php echo $user_data['special']['net'] >= 0 ? '+' : ''; ?>₹<?php echo number_format($user_data['special']['net'], 2); ?>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <div class="font-bold text-lg <?php echo $total_net >= 0 ? 'text-green-600' : 'text-red-600'; ?>">
+                                    <?php echo $total_net >= 0 ? '+' : ''; ?>₹<?php echo number_format($total_net, 2); ?>
+                                </div>
                                 <div class="text-xs text-gray-500">
-                                    Food: <?php echo $user_data['food']['net'] >= 0 ? '+' : ''; ?>₹<?php echo number_format($user_data['food']['net'], 2); ?> | 
-                                    Special: <?php echo $user_data['special']['net'] >= 0 ? '+' : ''; ?>₹<?php echo number_format($user_data['special']['net'], 2); ?>
+                                    <?php echo $total_net >= 0 ? 'To Receive' : 'To Pay'; ?>
                                 </div>
                             </div>
                         </div>
-                        <div class="text-right">
-                            <div class="font-bold text-lg <?php echo $total_net >= 0 ? 'text-green-600' : 'text-red-600'; ?>">
-                                <?php echo $total_net >= 0 ? '+' : ''; ?>₹<?php echo number_format($total_net, 2); ?>
-                        </div>
-                            <div class="text-xs text-gray-500">
-                                <?php echo $total_net >= 0 ? 'To Receive' : 'To Pay'; ?>
-                        </div>
-                    </div>
-                </div>
-                <?php endforeach; 
-                endif; // End of user settlements check ?>
-                </div>
+                <?php endforeach;
+                endif; // End of user settlements check 
+                ?>
             </div>
-            
+        </div>
+
         <!-- Payment Instructions -->
-        <div class="bg-white rounded-xl shadow-md p-4 mb-4">
+        <div class="p-5 mb-4 mt-3 rounded-3xl  relative bg-gradient-to-br from-gray-50 via-white to-gray-100  border-gray-200 text-[12px]">
             <h2 class="text-lg font-semibold mb-3">💸 Payment Instructions</h2>
-            
+
             <?php
             // Generate payment instructions for food expenses
             $food_settlements = [];
             $special_settlements = [];
             $combined_settlements = [];
-            
+
             if (!empty($user_settlements)) {
                 foreach ($user_settlements as $user_id => $user_data) {
                     if ($user_data['food']['net'] != 0) {
@@ -699,7 +588,7 @@ if ($result->num_rows === 1) {
                     if ($user_data['special']['net'] != 0) {
                         $special_settlements[$user_id] = $user_data['special'];
                     }
-                    
+
                     $total_net = $user_data['food']['net'] + $user_data['special']['net'];
                     if ($total_net != 0) {
                         $combined_settlements[$user_id] = [
@@ -709,116 +598,116 @@ if ($result->num_rows === 1) {
                     }
                 }
             }
-            
+
             // Food payment instructions
             if (!empty($food_settlements)):
                 $food_payments = generatePaymentInstructions($food_settlements, 'food');
                 if (!empty($food_payments)):
             ?>
-                <div class="mb-6">
-                    <h3 class="text-md font-semibold mb-3 text-blue-800">
-                        <i class="fas fa-utensils mr-2"></i>Food Expense Payments
-                    </h3>
-                    <div class="space-y-2">
-                        <?php foreach ($food_payments as $payment): ?>
-                            <div class="flex items-center justify-between p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                                <div class="flex items-center space-x-3">
-                                    <div class="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center">
-                                        <i class="fas fa-arrow-right text-red-600 text-sm"></i>
-                        </div>
-                                    <div class="text-sm">
-                                        <span class="font-medium text-red-600"><?php echo htmlspecialchars($payment['payer']); ?></span>
-                                        <span class="text-gray-600"> pays </span>
-                                        <span class="font-medium text-green-600"><?php echo htmlspecialchars($payment['receiver']); ?></span>
+                    <div class="mb-6">
+                        <h3 class="text-md font-semibold mb-3 text-blue-800">
+                            <i class="fas fa-utensils mr-2"></i>Food Expense Payments
+                        </h3>
+                        <div class="space-y-2">
+                            <?php foreach ($food_payments as $payment): ?>
+                                <div class="flex items-center justify-between p-3 bg-blue-50  border-blue-200 rounded-lg">
+                                    <div class="flex items-center space-x-3">
+                                        <div class="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center">
+                                            <i class="fas fa-arrow-right text-red-600 text-sm"></i>
+                                        </div>
+                                        <div class="text-sm">
+                                            <span class="font-medium text-red-600"><?php echo htmlspecialchars($payment['payer']); ?></span>
+                                            <span class="text-gray-600"> pays </span> <br>
+                                            <span class="font-medium text-green-600"><?php echo htmlspecialchars($payment['receiver']); ?></span>
+                                        </div>
+                                    </div>
+                                    <div class="font-bold text-lg text-blue-600">
+                                        ₹<?php echo number_format($payment['amount'], 2); ?>
+                                    </div>
                                 </div>
-                            </div>
-                                <div class="font-bold text-lg text-blue-600">
-                                    ₹<?php echo number_format($payment['amount'], 2); ?>
+                            <?php endforeach; ?>
                         </div>
                     </div>
-                        <?php endforeach; ?>
-                        </div>
-                    </div>
-            <?php 
+                <?php
                 endif;
             endif;
-            
+
             // Special item payment instructions
             if (!empty($special_settlements)):
                 $special_payments = generatePaymentInstructions($special_settlements, 'special');
                 if (!empty($special_payments)):
-            ?>
-                <div class="mb-6">
-                    <h3 class="text-md font-semibold mb-3 text-purple-800">
-                        <i class="fas fa-star mr-2"></i>Special Item Payments
-                    </h3>
-                    <div class="space-y-2">
-                        <?php foreach ($special_payments as $payment): ?>
-                            <div class="flex items-center justify-between p-3 bg-purple-50 border border-purple-200 rounded-lg">
+                ?>
+                    <div class="mb-6">
+                        <h3 class="text-md font-semibold mb-3 text-purple-800">
+                            <i class="fas fa-star mr-2"></i>Special Item Payments
+                        </h3>
+                        <div class="space-y-2">
+                            <?php foreach ($special_payments as $payment): ?>
+                                <div class="flex items-center justify-between p-3 bg-purple-50  border-purple-200 rounded-lg">
                                     <div class="flex items-center space-x-3">
                                         <div class="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center">
-                                        <i class="fas fa-arrow-right text-red-600 text-sm"></i>
+                                            <i class="fas fa-arrow-right text-red-600 text-sm"></i>
                                         </div>
                                         <div class="text-sm">
-                                        <span class="font-medium text-red-600"><?php echo htmlspecialchars($payment['payer']); ?></span>
-                                        <span class="text-gray-600"> pays </span>
-                                        <span class="font-medium text-green-600"><?php echo htmlspecialchars($payment['receiver']); ?></span>
-                                            </div>
+                                            <span class="font-medium text-red-600"><?php echo htmlspecialchars($payment['payer']); ?></span>
+                                            <span class="text-gray-600"> pays </span><br>
+                                            <span class="font-medium text-green-600"><?php echo htmlspecialchars($payment['receiver']); ?></span>
                                         </div>
-                                <div class="font-bold text-lg text-purple-600">
-                                    ₹<?php echo number_format($payment['amount'], 2); ?>
+                                    </div>
+                                    <div class="font-bold text-lg text-purple-600">
+                                        ₹<?php echo number_format($payment['amount'], 2); ?>
                                     </div>
                                 </div>
-                        <?php endforeach; ?>
-                            </div>
+                            <?php endforeach; ?>
                         </div>
-            <?php 
+                    </div>
+                <?php
                 endif;
             endif;
-            
+
             // Combined payment instructions
             if (!empty($combined_settlements)):
                 $combined_payments = generatePaymentInstructions($combined_settlements, 'combined');
                 if (!empty($combined_payments)):
-            ?>
-                <div class="mb-4">
-                    <h3 class="text-md font-semibold mb-3 text-gray-800">
-                        <i class="fas fa-handshake mr-2"></i>Final Payment Instructions (Combined)
-                    </h3>
-                    <div class="space-y-2">
-                        <?php foreach ($combined_payments as $payment): ?>
-                            <div class="flex items-center justify-between p-4 bg-gradient-to-r from-green-50 to-blue-50 border-2 border-gray-300 rounded-lg shadow-sm">
-                                <div class="flex items-center space-x-3">
-                                    <div class="w-10 h-10 rounded-full bg-gradient-to-r from-red-500 to-orange-500 flex items-center justify-center">
-                                        <i class="fas fa-arrow-right text-white"></i>
+                ?>
+                    <div class="mb-4">
+                        <h3 class="text-md font-semibold mb-3 text-gray-800">
+                            <i class="fas fa-handshake mr-2"></i>Final Payment Instructions (Combined)
+                        </h3>
+                        <div class="space-y-2">
+                            <?php foreach ($combined_payments as $payment): ?>
+                                <div class="flex items-center justify-between p-4 bg-gradient-to-r from-green-50 to-blue-50  border-gray-300 rounded-lg shadow-sm">
+                                    <div class="flex items-center space-x-3">
+                                        <div class="w-10 h-10 rounded-full bg-gradient-to-r from-red-500 to-orange-500 flex items-center justify-center">
+                                            <i class="fas fa-arrow-right text-white"></i>
                                         </div>
-                                    <div class="text-md">
-                                        <span class="font-bold text-red-700"><?php echo htmlspecialchars($payment['payer']); ?></span>
-                                        <span class="text-gray-700 font-medium"> pays </span>
-                                        <span class="font-bold text-green-700"><?php echo htmlspecialchars($payment['receiver']); ?></span>
+                                        <div class="text-md">
+                                            <span class="font-bold text-red-700"><?php echo htmlspecialchars($payment['payer']); ?></span>
+                                            <span class="text-gray-700 font-medium"> pays </span> <br>
+                                            <span class="font-bold text-green-700"><?php echo htmlspecialchars($payment['receiver']); ?></span>
+                                        </div>
+                                    </div>
+                                    <div class="font-bold text-xl text-gray-800">
+                                        ₹<?php echo number_format($payment['amount'], 2); ?>
                                     </div>
                                 </div>
-                                <div class="font-bold text-xl text-gray-800">
-                                    ₹<?php echo number_format($payment['amount'], 2); ?>
-                            </div>
+                            <?php endforeach; ?>
                         </div>
-                        <?php endforeach; ?>
-                                            </div>
-                                        </div>
-            <?php 
+                    </div>
+                <?php
                 else:
-            ?>
-                <div class="text-center py-8 text-gray-500">
-                    <i class="fas fa-check-circle text-4xl mb-3 text-green-400"></i>
-                    <p class="font-medium">All settlements are balanced!</p>
-                    <p class="text-sm">No payments required for this period.</p>
-                                    </div>
-            <?php 
+                ?>
+                    <div class="text-center py-8 text-gray-500">
+                        <i class="fas fa-check-circle text-4xl mb-3 text-green-400"></i>
+                        <p class="font-medium">All settlements are balanced!</p>
+                        <p class="text-sm">No payments required for this period.</p>
+                    </div>
+            <?php
                 endif;
             endif;
             ?>
-                                </div>
-        
+        </div>
+
         <!-- Settlement Date -->
         <div class="text-center text-sm text-gray-600 bg-white rounded-lg shadow-sm p-3 mb-4">
             <i class="fas fa-calendar mr-2 text-gray-600"></i>
@@ -830,169 +719,10 @@ if ($result->num_rows === 1) {
             <?php else: ?>
                 Report Generated: <span class="font-semibold"><?php echo date('M d, Y \a\t g:i A'); ?></span>
             <?php endif; ?>
-                            </div>
+        </div>
     </main>
-    
-    <script>
-        // Pull to Refresh Functionality
-        let pullToRefresh = {
-            startY: 0,
-            currentY: 0,
-            isPulling: false,
-            isRefreshing: false,
-            threshold: 80,
-            maxPull: 120,
-            
-            init() {
-                this.bindEvents();
-            },
-            
-            bindEvents() {
-                // Touch events for mobile
-                document.addEventListener('touchstart', this.handleTouchStart.bind(this), { passive: false });
-                document.addEventListener('touchmove', this.handleTouchMove.bind(this), { passive: false });
-                document.addEventListener('touchend', this.handleTouchEnd.bind(this), { passive: false });
-                
-                // Mouse events for desktop (for testing)
-                document.addEventListener('mousedown', this.handleMouseDown.bind(this));
-                document.addEventListener('mousemove', this.handleMouseMove.bind(this));
-                document.addEventListener('mouseup', this.handleMouseUp.bind(this));
-            },
-            
-            handleTouchStart(e) {
-                if (window.scrollY === 0 && !this.isRefreshing) {
-                    this.startY = e.touches[0].clientY;
-                    this.isPulling = true;
-                }
-            },
-            
-            handleTouchMove(e) {
-                if (!this.isPulling || this.isRefreshing) return;
-                
-                this.currentY = e.touches[0].clientY;
-                const pullDistance = this.currentY - this.startY;
-                
-                if (pullDistance > 0) {
-                    e.preventDefault();
-                    this.updatePullState(pullDistance);
-                }
-            },
-            
-            handleTouchEnd(e) {
-                if (!this.isPulling || this.isRefreshing) return;
-                
-                const pullDistance = this.currentY - this.startY;
-                this.isPulling = false;
-                
-                if (pullDistance > this.threshold) {
-                    this.triggerRefresh();
-                } else {
-                    this.resetPullState();
-                }
-            },
-            
-            handleMouseDown(e) {
-                if (window.scrollY === 0 && !this.isRefreshing && e.clientY < 50) {
-                    this.startY = e.clientY;
-                    this.isPulling = true;
-                    e.preventDefault();
-                }
-            },
-            
-            handleMouseMove(e) {
-                if (!this.isPulling || this.isRefreshing) return;
-                
-                this.currentY = e.clientY;
-                const pullDistance = this.currentY - this.startY;
-                
-                if (pullDistance > 0) {
-                    e.preventDefault();
-                    this.updatePullState(pullDistance);
-                }
-            },
-            
-            handleMouseUp(e) {
-                if (!this.isPulling || this.isRefreshing) return;
-                
-                const pullDistance = this.currentY - this.startY;
-                this.isPulling = false;
-                
-                if (pullDistance > this.threshold) {
-                    this.triggerRefresh();
-                } else {
-                    this.resetPullState();
-                }
-            },
-            
-            updatePullState(pullDistance) {
-                const progress = Math.min(pullDistance / this.maxPull, 1);
-                const refreshBar = document.getElementById('pullToRefresh');
-                const pullIndicator = document.getElementById('pullIndicator');
-                const refreshText = document.getElementById('refreshText');
-                
-                // Show pull indicator when starting to pull
-                if (pullDistance > 20) {
-                    pullIndicator.classList.add('show');
-                }
-                
-                // Show refresh bar when threshold is reached
-                if (pullDistance > this.threshold) {
-                    refreshBar.classList.add('show');
-                    refreshText.textContent = 'Release to refresh';
-                    pullIndicator.innerHTML = '<i class="fas fa-arrow-up icon"></i><span>Release to refresh</span>';
-                } else {
-                    refreshText.textContent = 'Pull to refresh';
-                    pullIndicator.innerHTML = '<i class="fas fa-arrow-down icon"></i><span>Pull to refresh</span>';
-                }
-                
-                // Add haptic feedback on mobile
-                if (navigator.vibrate && pullDistance > this.threshold && pullDistance < this.threshold + 5) {
-                    navigator.vibrate(50);
-                }
-            },
-            
-            triggerRefresh() {
-                this.isRefreshing = true;
-                const refreshBar = document.getElementById('pullToRefresh');
-                const refreshIcon = document.getElementById('refreshIcon');
-                const refreshText = document.getElementById('refreshText');
-                const pullIndicator = document.getElementById('pullIndicator');
-                
-                // Show refresh bar and start spinning
-                refreshBar.classList.add('show');
-                refreshIcon.classList.add('spinning');
-                refreshText.textContent = 'Refreshing...';
-                pullIndicator.classList.remove('show');
-                
-                // Add haptic feedback
-                if (navigator.vibrate) {
-                    navigator.vibrate([100, 50, 100]);
-                }
-                
-                // Simulate refresh delay and then reload
-                setTimeout(() => {
-                    window.location.reload();
-                }, 1000);
-            },
-            
-            resetPullState() {
-                const refreshBar = document.getElementById('pullToRefresh');
-                const refreshIcon = document.getElementById('refreshIcon');
-                const pullIndicator = document.getElementById('pullIndicator');
-                
-                refreshBar.classList.remove('show');
-                refreshIcon.classList.remove('spinning');
-                pullIndicator.classList.remove('show');
-                
-                this.isPulling = false;
-                this.isRefreshing = false;
-            }
-        };
-        
-        // Initialize pull to refresh when page loads
-        document.addEventListener('DOMContentLoaded', function() {
-            pullToRefresh.init();
-        });
-    </script>
+
+
 </body>
+
 </html>
