@@ -866,14 +866,39 @@ $total_spending = $total_spending_result->fetch_assoc()['total_spending'] ?? 0;
         function getCurrentLocation() {
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(function(position) {
-                    document.getElementById('latitude').value = position.coords.latitude;
-                    document.getElementById('longitude').value = position.coords.longitude;
+                    const latitude = position.coords.latitude;
+                    const longitude = position.coords.longitude;
+                    
+                    document.getElementById('latitude').value = latitude;
+                    document.getElementById('longitude').value = longitude;
+                    
+                    // Use reverse geocoding to get address
+                    getAddressFromCoordinates(latitude, longitude);
                 }, function(error) {
                     alert('Error getting location: ' + error.message);
                 });
             } else {
                 alert('Geolocation is not supported by this browser.');
             }
+        }
+        
+        function getAddressFromCoordinates(lat, lng) {
+            // Using Nominatim API for reverse geocoding (free service)
+            const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&addressdetails=1`;
+            
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    if (data && data.display_name) {
+                        document.getElementById('room_address').value = data.display_name;
+                    } else {
+                        alert('Unable to retrieve address for the selected location.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error retrieving address. Please enter manually.');
+                });
         }
 
         function toggleModal(modalId) {

@@ -150,9 +150,16 @@ $error_msg = isset($_GET['error']) ? $_GET['error'] : '';
         <!-- Room Overview -->
         <div class="p-5 mb-4 mt-3 rounded-3xl  relative bg-gradient-to-br from-gray-50 via-white to-gray-100  border-gray-200">
             <!-- Room Name -->
-            <h2 class="text-base font-semibold text-gray-800 mb-2">
-                <?php echo htmlspecialchars($room['name']); ?>
-            </h2>
+            <div class="flex justify-between items-center mb-2">
+                <h2 class="text-base font-semibold text-gray-800">
+                    <?php echo htmlspecialchars($room['name']); ?>
+                </h2>
+                <?php if ($is_admin): ?>
+                <button onclick="toggleModal('editRoomModal')" class="text-blue-600 hover:text-blue-800">
+                    <i class="fas fa-edit"></i>
+                </button>
+                <?php endif; ?>
+            </div>
 
             <!-- Description -->
             <p class="text-[12px] text-gray-600 mb-3 leading-snug">
@@ -163,6 +170,11 @@ $error_msg = isset($_GET['error']) ? $_GET['error'] : '';
             <div class="flex items-start text-[12px] text-gray-600 mb-3">
                 <i class="fas fa-map-marker-alt text-red-500 mt-0.5 mr-1"></i>
                 <span><?php echo nl2br(htmlspecialchars($room['address'])); ?></span>
+                <?php if (!empty($room['latitude']) && !empty($room['longitude'])): ?>
+                <button style="padding: 21px; background: #2563eb;" onclick="openMap(<?php echo $room['latitude']; ?>, <?php echo $room['longitude']; ?>)" class="ml-2 text-white bg-red-600 hover:bg-red-700 rounded-full w-8 h-8 flex items-center justify-center shadow-md transition-all transform hover:scale-105" title="Open in Maps">
+                    <i class="fas fa-map-marked-alt text-sm"></i>
+                </button>
+                <?php endif; ?>
             </div>
 
             <!-- Rental Information -->
@@ -533,8 +545,99 @@ $error_msg = isset($_GET['error']) ? $_GET['error'] : '';
             </form>
         </div>
     </div>
-    <?php endif; ?>
+    
+    <!-- Edit Room Modal -->
+    <?php if ($is_admin): ?>
+    <div id="editRoomModal" class="fixed inset-0 bg-black bg-opacity-50 z-20 flex items-center justify-center hidden">
+        <div class="modal-container bg-white rounded-xl p-4 w-full max-w-md mx-3 shadow-xl">
+            <div class="flex justify-between items-center mb-3">
+                <h3 class="text-base font-bold text-gray-800">Edit Room Details</h3>
+                <button onclick="toggleModal('editRoomModal')" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times text-sm"></i>
+                </button>
+            </div>
+            <form action="process/edit_room_process.php" method="post">
+                <input type="hidden" name="room_id" value="<?php echo $room_id; ?>">
 
+                <div class="mb-3">
+                    <label class="block text-gray-700 text-xs font-bold mb-1.5" for="edit_room_name">
+                        Room Name*
+                    </label>
+                    <input class="compact-input shadow-sm appearance-none border border-gray-200 rounded-lg w-full text-gray-700 leading-tight focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-transparent transition-all"
+                        id="edit_room_name" name="room_name" type="text" value="<?php echo htmlspecialchars($room['name']); ?>" required>
+                </div>
+
+                <div class="mb-3">
+                    <label class="block text-gray-700 text-xs font-bold mb-1.5" for="edit_room_description">
+                        Description (Optional)
+                    </label>
+                    <textarea class="compact-input shadow-sm appearance-none border border-gray-200 rounded-lg w-full text-gray-700 leading-tight focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-transparent transition-all"
+                        id="edit_room_description" name="room_description" placeholder="Enter room description" rows="2"><?php echo htmlspecialchars($room['description']); ?></textarea>
+                </div>
+
+                <div class="mb-3">
+                    <label class="block text-gray-700 text-xs font-bold mb-1.5" for="edit_room_address">
+                        Address*
+                    </label>
+                    <textarea class="shadow-sm border border-gray-200 rounded-lg w-full text-gray-700 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-transparent transition-all"
+                        id="edit_room_address" name="room_address" placeholder="Enter room address" rows="2" required><?php echo htmlspecialchars($room['address']); ?></textarea>
+                </div>
+
+                <button type="button" onclick="getCurrentLocation()" class="text-indigo-600 text-xs font-medium flex items-center" style=" background-color: rgb(90 67 231); color: white; padding: 5px 10px; border-radius: 7px; margin-bottom: 10px;">
+                    <i class="fas fa-map-marker-alt mr-2 text-sm"></i> Get Current Location
+                </button>
+
+                <div class="mb-3">
+                    <label class="block text-gray-700 text-xs font-bold mb-1.5" for="edit_latitude">Latitude</label>
+                    <input class="shadow-sm border border-gray-200 rounded-lg w-full text-gray-700 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-transparent transition-all"
+                        id="edit_latitude" name="latitude" type="text" value="<?php echo htmlspecialchars($room['latitude']); ?>" placeholder="Location Latitude">
+                </div>
+
+                <div class="mb-3">
+                    <label class="block text-gray-700 text-xs font-bold mb-1.5" for="edit_longitude">Longitude</label>
+                    <input class="shadow-sm border border-gray-200 rounded-lg w-full text-gray-700 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-transparent transition-all"
+                        id="edit_longitude" name="longitude" type="text" value="<?php echo htmlspecialchars($room['longitude']); ?>" placeholder="Location Longitude">
+                </div>
+
+                <!-- Rental Information -->
+                <div class="border-t border-gray-200 pt-4 mt-4">
+                    <h4 class="font-medium mb-3 text-gray-800 text-sm flex items-center">
+                        <i class="fas fa-file-invoice-dollar mr-2 text-indigo-500"></i> Rental Information
+                    </h4>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-gray-700 text-xs font-bold mb-1.5" for="edit_rental_date">Rental Date</label>
+                            <input class="shadow-sm border border-gray-200 rounded-lg w-full text-gray-700 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-transparent transition-all"
+                                id="edit_rental_date" name="rental_date" type="date" value="<?php echo htmlspecialchars($room['rental_date']); ?>">
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 text-xs font-bold mb-1.5" for="edit_monthly_rent">Monthly Rent (₹)</label>
+                            <input class="shadow-sm border border-gray-200 rounded-lg w-full text-gray-700 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-transparent transition-all"
+                                id="edit_monthly_rent" name="monthly_rent" type="number" step="0.01" min="0" placeholder="Enter monthly rent" value="<?php echo htmlspecialchars($room['monthly_rent']); ?>">
+                        </div>
+                    </div>
+
+                    <div class="mt-3">
+                        <label class="block text-gray-700 text-xs font-bold mb-1.5" for="edit_advance_payment">Advance Payment (₹)</label>
+                        <input class="shadow-sm border border-gray-200 rounded-lg w-full text-gray-700 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-transparent transition-all"
+                            id="edit_advance_payment" name="advance_payment" type="number" step="0.01" min="0" placeholder="Enter advance payment" value="<?php echo htmlspecialchars($room['advance_payment']); ?>">
+                    </div>
+                </div>
+
+                <div class="flex justify-end space-x-2 pt-2">
+                    <button type="button" onclick="toggleModal('editRoomModal')" class="px-3 py-2 text-gray-600 font-medium text-xs rounded-lg hover:bg-gray-100 transition-all">
+                        Cancel
+                    </button>
+                    <button type="submit" name="edit_room" class="action-button px-3 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-medium text-xs rounded-lg hover:from-indigo-700 hover:to-purple-700 transition-all shadow-xs">
+                        Save Changes
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <?php endif; ?>
+    
     <script>
         function toggleModal(modalId) {
             const modal = document.getElementById(modalId);
@@ -542,6 +645,59 @@ $error_msg = isset($_GET['error']) ? $_GET['error'] : '';
                 modal.classList.remove('hidden');
             } else {
                 modal.classList.add('hidden');
+            }
+        }
+        
+        function getCurrentLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(function(position) {
+                    const latitude = position.coords.latitude;
+                    const longitude = position.coords.longitude;
+                    
+                    document.getElementById('edit_latitude').value = latitude;
+                    document.getElementById('edit_longitude').value = longitude;
+                    
+                    // Use reverse geocoding to get address
+                    getAddressFromCoordinates(latitude, longitude);
+                }, function(error) {
+                    // alert('Error getting location: ' + error.message);
+                });
+            } else {
+                // alert('Geolocation is not supported by this browser.');
+            }
+        }
+        
+        function getAddressFromCoordinates(lat, lng) {
+            // Using Nominatim API for reverse geocoding (free service)
+            const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&addressdetails=1`;
+            
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    if (data && data.display_name) {
+                        document.getElementById('edit_room_address').value = data.display_name;
+                    } else {
+                        // alert('Unable to retrieve address for the selected location.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    // alert('Error retrieving address. Please enter manually.');
+                });
+        }
+        
+        function openMap(latitude, longitude) {
+            // Try to open in Google Maps first, fallback to Apple Maps
+            const googleMapsUrl = `https://www.google.com/maps?q=${latitude},${longitude}`;
+            const appleMapsUrl = `https://maps.apple.com/?q=${latitude},${longitude}`;
+            
+            // Check if we're on iOS (which prefers Apple Maps)
+            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+            
+            if (isIOS) {
+                window.open(appleMapsUrl, '_blank');
+            } else {
+                window.open(googleMapsUrl, '_blank');
             }
         }
         
@@ -660,6 +816,7 @@ The leader will need to approve this request before the group is deleted.`)) {
                 });
             }
         }
+    <?php endif; ?>
     </script>
 </body>
 </html>
