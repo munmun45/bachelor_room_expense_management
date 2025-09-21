@@ -8,6 +8,11 @@ if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
     exit();
 }
 
+// Log user activity for view all absence page access
+if (function_exists('logUserActivity')) {
+    logUserActivity($conn, $_SESSION['user_id'], 'view_all_absence_page_access', 'view_all_absence.php', 'User accessed view all absence requests page');
+}
+
 $user_id = $_SESSION['user_id'];
 $room_id = isset($_GET['room_id']) ? intval($_GET['room_id']) : 0;
 
@@ -26,6 +31,10 @@ $stmt->execute();
 $result = $stmt->get_result();
 
 if ($result->num_rows === 0) {
+    // Log unauthorized access attempt
+    if (function_exists('logUserActivity')) {
+        logUserActivity($conn, $_SESSION['user_id'], 'unauthorized_absence_view', 'view_all_absence.php', 'User attempted unauthorized access to absence requests');
+    }
     header("Location: index.php?error=Room not found or access denied");
     exit();
 }
@@ -34,6 +43,10 @@ $room = $result->fetch_assoc();
 $is_admin = $room['is_admin'] == 1;
 
 if (!$is_admin) {
+    // Log unauthorized access attempt
+    if (function_exists('logUserActivity')) {
+        logUserActivity($conn, $_SESSION['user_id'], 'unauthorized_absence_view', 'view_all_absence.php', 'User attempted unauthorized access to absence requests (not admin)');
+    }
     header("Location: index.php?error=Only room admins can view absence requests");
     exit();
 }

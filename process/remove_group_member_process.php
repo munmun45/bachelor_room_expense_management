@@ -34,6 +34,9 @@ try {
     // Start transaction
     $conn->begin_transaction();
     
+    // Log user activity for attempting to remove member
+    logUserActivity($conn, $admin_id, 'member_removal_attempt', 'remove_group_member_process.php', 'Attempting to remove member ID: ' . $user_id . ' from group ID: ' . $group_id);
+    
     // Check permissions of the acting user (admin of room OR leader of this group)
     $stmt = $conn->prepare("SELECT
                                 rg.room_id AS room_id,
@@ -137,6 +140,9 @@ try {
     
     $message_id = $conn->insert_id;
     
+    // Log successful member removal
+    logUserActivity($conn, $admin_id, 'member_removed', 'remove_group_member_process.php', 'Successfully removed member ' . $member_full_name . ' (ID: ' . $user_id . ') from group ID: ' . $group_id);
+    
     // Commit the transaction
     $conn->commit();
     
@@ -157,6 +163,9 @@ try {
 } catch (Exception $e) {
     // Rollback transaction on error
     $conn->rollback();
+    
+    // Log error
+    logUserActivity($conn, $admin_id, 'member_removal_failed', 'remove_group_member_process.php', 'Failed to remove member ID: ' . $user_id . ' from group ID: ' . $group_id . ' - Error: ' . $e->getMessage());
     
     error_log("Error removing group member: " . $e->getMessage());
     error_log("Error trace: " . $e->getTraceAsString());

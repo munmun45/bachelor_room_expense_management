@@ -37,6 +37,15 @@
                 echo '<div class="text-center mt-4">
                     <a href="forgot-password.php" class="font-medium text-blue-600 hover:text-blue-500">Go back to forgot password</a>
                 </div>';
+                
+                // Log invalid reset password attempt
+                session_start();
+                if (isset($_SESSION['user_id'])) {
+                    require_once 'config/config.php';
+                    if (function_exists('logUserActivity')) {
+                        logUserActivity($conn, $_SESSION['user_id'], 'invalid_password_reset', 'reset-password.php', 'User attempted invalid password reset');
+                    }
+                }
                 exit();
             }
             
@@ -45,6 +54,24 @@
                 echo '<div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
                     <span class="block sm:inline">' . htmlspecialchars($_GET['error']) . '</span>
                 </div>';
+                
+                // Log password reset error
+                session_start();
+                if (isset($_SESSION['user_id'])) {
+                    require_once 'config/config.php';
+                    if (function_exists('logUserActivity')) {
+                        logUserActivity($conn, $_SESSION['user_id'], 'password_reset_error', 'reset-password.php', 'User encountered error on password reset page: ' . $_GET['error']);
+                    }
+                }
+            }
+            
+            // Log page access for analytics
+            session_start();
+            if (isset($_SESSION['user_id'])) {
+                require_once 'config/config.php';
+                if (function_exists('logUserActivity')) {
+                    logUserActivity($conn, $_SESSION['user_id'], 'reset_password_page_access', 'reset-password.php', 'User accessed password reset page');
+                }
             }
             ?>
             

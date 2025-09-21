@@ -4,19 +4,31 @@ require_once '../config/config.php';
 
 // Check if user is logged in
 if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
+    // Log user activity - unauthorized access
+    if (isset($_SESSION['user_id'])) {
+        logUserActivity($conn, $_SESSION['user_id'], 'unauthorized_access', 'add_group_member_process', 'User attempted to access add_group_member_process without login');
+    }
     header("Location: ../login.php");
     exit();
 }
 
 $user_id = $_SESSION['user_id'];
 
+// Log user activity - add member attempt
+logUserActivity($conn, $user_id, 'add_member_attempt', 'add_group_member_process', 'User attempting to add members to group');
+
 if (isset($_POST['add_members'])) {
     $group_id = intval($_POST['group_id']);
     $room_id = intval($_POST['room_id']);
     $member_ids = isset($_POST['member_ids']) ? $_POST['member_ids'] : [];
     
+    // Log user activity - processing member addition
+    logUserActivity($conn, $user_id, 'add_member_processing', 'add_group_member_process', 'Processing member addition to group ID: ' . $group_id . ' in room ID: ' . $room_id);
+    
     // Validate inputs
     if (empty($member_ids)) {
+        // Log user activity - no members selected
+        logUserActivity($conn, $user_id, 'add_member_failed', 'add_group_member_process', 'No members selected for group ID: ' . $group_id);
         header("Location: ../group.php?id=$group_id&error=Please select at least one member to add");
         exit();
     }
@@ -31,6 +43,8 @@ if (isset($_POST['add_members'])) {
     $result = $stmt->get_result();
     
     if ($result->num_rows === 0) {
+        // Log user activity - not authorized
+        logUserActivity($conn, $user_id, 'add_member_failed', 'add_group_member_process', 'User not authorized to add members to group ID: ' . $group_id);
         header("Location: ../group.php?id=$group_id&error=Only room admin or group leader can add members to groups");
         exit();
     }
@@ -41,6 +55,8 @@ if (isset($_POST['add_members'])) {
     
     // Check if user has permission (admin OR group leader)
     if (!$is_admin && !$is_leader) {
+        // Log user activity - insufficient permissions
+        logUserActivity($conn, $user_id, 'add_member_failed', 'add_group_member_process', 'Insufficient permissions to add members to group ID: ' . $group_id);
         header("Location: ../group.php?id=$group_id&error=Only room admin or group leader can add members to groups");
         exit();
     }
@@ -52,12 +68,16 @@ if (isset($_POST['add_members'])) {
     $result = $stmt->get_result();
     
     if ($result->num_rows === 0) {
+        // Log user activity - group not found
+        logUserActivity($conn, $user_id, 'add_member_failed', 'add_group_member_process', 'Group not found: ' . $group_id);
         header("Location: ../index.php?error=Group not found");
         exit();
     }
     
     $group_data = $result->fetch_assoc();
     if ($group_data['room_id'] != $room_id) {
+        // Log user activity - invalid room/group
+        logUserActivity($conn, $user_id, 'add_member_failed', 'add_group_member_process', 'Invalid room or group combination');
         header("Location: ../group.php?id=$group_id&error=Invalid room or group");
         exit();
     }
@@ -191,8 +211,12 @@ if (isset($_POST['add_members'])) {
         }
         
         if ($added_count > 0) {
+            // Log user activity - members added successfully
+            logUserActivity($conn, $user_id, 'members_added', 'add_group_member_process', 'Successfully added ' . $added_count . ' members to group ID: ' . $group_id);
             header("Location: ../group.php?id=$group_id&success=" . urlencode($success_msg));
         } else {
+            // Log user activity - no members added
+            logUserActivity($conn, $user_id, 'add_member_failed', 'add_group_member_process', 'No members added to group ID: ' . $group_id);
             header("Location: ../group.php?id=$group_id&error=" . urlencode($success_msg ?: "No members were added"));
         }
         exit();
@@ -200,12 +224,18 @@ if (isset($_POST['add_members'])) {
     } catch (Exception $e) {
         $conn->rollback();
         error_log("Add group member error: " . $e->getMessage());
+        
+        // Log user activity - member addition failed
+        logUserActivity($conn, $user_id, 'add_member_failed', 'add_group_member_process', 'Failed to add members to group ID: ' . $group_id . ', error: ' . $e->getMessage());
+        
         header("Location: ../group.php?id=$group_id&error=Failed to add members: " . urlencode($e->getMessage()));
         exit();
     }
     
 } else {
     // If accessed directly without form submission
+    // Log user activity - unauthorized access
+    logUserActivity($conn, $user_id, 'unauthorized_access', 'add_group_member_process', 'User attempted to access add_group_member_process without form submission');
     header("Location: ../index.php");
     exit();
 }

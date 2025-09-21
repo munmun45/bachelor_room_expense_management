@@ -34,11 +34,40 @@
                 echo '<div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
                     <span class="block sm:inline">' . htmlspecialchars($_GET['error']) . '</span>
                 </div>';
+                
+                // Log password reset error
+                session_start();
+                if (isset($_SESSION['user_id'])) {
+                    require_once 'config/config.php';
+                    if (function_exists('logUserActivity')) {
+                        logUserActivity($conn, $_SESSION['user_id'], 'forgot_password_error', 'forgot-password.php', 'User encountered error on forgot password page: ' . $_GET['error']);
+                    }
+                }
             }
             if (isset($_GET['success'])) {
                 echo '<div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4" role="alert">
                     <span class="block sm:inline">' . htmlspecialchars($_GET['success']) . '</span>
                 </div>';
+                
+                // Log password reset success
+                session_start();
+                if (isset($_SESSION['user_id'])) {
+                    require_once 'config/config.php';
+                    if (function_exists('logUserActivity')) {
+                        logUserActivity($conn, $_SESSION['user_id'], 'forgot_password_success', 'forgot-password.php', 'User successfully accessed forgot password page: ' . $_GET['success']);
+                    }
+                }
+            }
+            
+            // Log page access for analytics (only when there's a message or when first accessing the page)
+            if (!isset($_GET['error']) && !isset($_GET['success'])) {
+                session_start();
+                if (isset($_SESSION['user_id'])) {
+                    require_once 'config/config.php';
+                    if (function_exists('logUserActivity')) {
+                        logUserActivity($conn, $_SESSION['user_id'], 'forgot_password_page_access', 'forgot-password.php', 'User accessed forgot password page');
+                    }
+                }
             }
             ?>
             

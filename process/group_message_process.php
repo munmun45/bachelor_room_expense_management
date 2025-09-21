@@ -98,6 +98,20 @@ if (isset($_POST['submit_message'])) {
         
         $message_id = $conn->insert_id;
         
+        // Log user activity for sending message
+        $activity_details = "Message sent to group ID: $group_id";
+        if ($amount > 0) {
+            $activity_details .= " with amount: $amount";
+        }
+        if (!empty($message)) {
+            $activity_details .= " - Message: " . substr($message, 0, 50) . (strlen($message) > 50 ? '...' : '');
+        }
+        if ($attachment) {
+            $activity_details .= " - Attachment: $attachment";
+        }
+        
+        logUserActivity($conn, $user_id, 'message_sent', 'group_message_process.php', $activity_details);
+        
         $conn->commit();
         
         header("Location: ../group.php?id=$group_id&success=Message sent successfully");

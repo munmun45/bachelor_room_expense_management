@@ -20,6 +20,10 @@ if (file_exists('../config/config.php')) {
 
 // Check if user is logged in
 if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
+    // Log user activity - unauthorized access
+    if (isset($_SESSION['user_id'])) {
+        logUserActivity($conn, $_SESSION['user_id'], 'unauthorized_access', 'create_settlement_process', 'User attempted to access create_settlement_process without login');
+    }
     http_response_code(401);
     echo json_encode(['error' => 'Unauthorized']);
     exit();
@@ -33,7 +37,12 @@ $include_food = isset($_POST['include_food']) && $_POST['include_food'] === 'tru
 $include_special = isset($_POST['include_special']) && $_POST['include_special'] === 'true';
 $action = isset($_POST['action']) ? $_POST['action'] : 'create'; // 'preview' or 'create'
 
+// Log user activity - settlement creation attempt
+logUserActivity($conn, $user_id, 'settlement_attempt', 'create_settlement_process', 'User attempting to create settlement for group ID: ' . $group_id);
+
 if ($group_id === 0 || empty($from_date) || empty($to_date)) {
+    // Log user activity - invalid parameters
+    logUserActivity($conn, $user_id, 'settlement_failed', 'create_settlement_process', 'Settlement creation failed: Invalid parameters');
     echo json_encode(['error' => 'Invalid parameters']);
     exit();
 }
@@ -48,6 +57,8 @@ $stmt->execute();
 $result = $stmt->get_result();
 
 if ($result->num_rows === 0) {
+    // Log user activity - not authorized
+    logUserActivity($conn, $user_id, 'settlement_failed', 'create_settlement_process', 'Settlement creation failed: User not authorized for group ID: ' . $group_id);
     echo json_encode(['error' => 'Only room admins or group leaders can create settlements']);
     exit();
 }
@@ -58,6 +69,8 @@ $is_leader = $user_info['is_leader'] == 1;
 
 // Check if user has permission (admin OR group leader)
 if (!$is_admin && !$is_leader) {
+    // Log user activity - insufficient permissions
+    logUserActivity($conn, $user_id, 'settlement_failed', 'create_settlement_process', 'Settlement creation failed: Insufficient permissions for group ID: ' . $group_id);
     echo json_encode(['error' => 'Only room admins or group leaders can create settlements']);
     exit();
 }
@@ -83,6 +96,8 @@ try {
     }
     
     if (empty($members)) {
+        // Log user activity - no members found
+        logUserActivity($conn, $user_id, 'settlement_failed', 'create_settlement_process', 'Settlement creation failed: No members found in group ID: ' . $group_id);
         echo json_encode(['error' => 'No members found in group']);
         exit();
     }
@@ -94,6 +109,8 @@ try {
     $settlement_data = calculateSettlement($conn, $group_id, $room_id, $from_date, $to_date, $include_food, $include_special, $members);
     
     if ($action === 'preview') {
+        // Log user activity - preview requested
+        logUserActivity($conn, $user_id, 'settlement_preview', 'create_settlement_process', 'Settlement preview generated for group ID: ' . $group_id);
         echo json_encode([
             'success' => true,
             'action' => 'preview',
@@ -125,6 +142,9 @@ try {
     
     $conn->commit();
     
+    // Log user activity - settlement created successfully
+    logUserActivity($conn, $user_id, 'settlement_created', 'create_settlement_process', 'Settlement created successfully for group ID: ' . $group_id . ' with ID: ' . $settlement_id);
+    
     echo json_encode([
         'success' => true,
         'action' => 'create',
@@ -137,6 +157,10 @@ try {
 } catch (Exception $e) {
     $conn->rollback();
     error_log("Settlement creation error: " . $e->getMessage());
+    
+    // Log user activity - settlement creation failed
+    logUserActivity($conn, $user_id, 'settlement_failed', 'create_settlement_process', 'Settlement creation failed for group ID: ' . $group_id . ', error: ' . $e->getMessage());
+    
     echo json_encode(['error' => 'Failed to create settlement: ' . $e->getMessage()]);
 }
 

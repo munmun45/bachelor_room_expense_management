@@ -35,6 +35,9 @@ if ($result->num_rows === 0) {
     exit();
 }
 
+// Log user activity for accessing group messages
+logUserActivity($conn, $user_id, 'message_access', 'get_messages_ajax.php', 'Accessing messages for group ID: ' . $group_id);
+
 // Build query based on direction - FIXED LOGIC
 if ($direction === 'newer' && $last_message_id > 0) {
     // Get newer messages (for real-time updates)

@@ -4,6 +4,10 @@ require_once '../config/config.php';
 
 // Check if user is logged in
 if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
+    // Log user activity - unauthorized access
+    if (isset($_SESSION['user_id'])) {
+        logUserActivity($conn, $_SESSION['user_id'], 'unauthorized_access', 'get_deletion_requests_ajax', 'User attempted to access get_deletion_requests_ajax without login');
+    }
     http_response_code(401);
     echo json_encode(['success' => false, 'error' => 'Not logged in']);
     exit();
@@ -12,7 +16,12 @@ if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
 $user_id = $_SESSION['user_id'];
 $group_id = isset($_GET['group_id']) ? intval($_GET['group_id']) : 0;
 
+// Log user activity - viewing deletion requests
+logUserActivity($conn, $user_id, 'view_deletion_requests', 'get_deletion_requests_ajax', 'User viewing deletion requests for group ID: ' . $group_id);
+
 if (empty($group_id)) {
+    // Log user activity - invalid group ID
+    logUserActivity($conn, $user_id, 'invalid_request', 'get_deletion_requests_ajax', 'Invalid group ID for deletion requests');
     echo json_encode(['success' => false, 'error' => 'Invalid group ID']);
     exit();
 }
@@ -25,11 +34,15 @@ try {
     $result = $stmt->get_result();
     
     if ($result->num_rows === 0) {
+        // Log user activity - not a member
+        logUserActivity($conn, $user_id, 'access_denied', 'get_deletion_requests_ajax', 'User not a member of group ID: ' . $group_id);
         throw new Exception('You are not a member of this group');
     }
     
     $member_info = $result->fetch_assoc();
     if ($member_info['is_leader'] != 1) {
+        // Log user activity - not leader
+        logUserActivity($conn, $user_id, 'access_denied', 'get_deletion_requests_ajax', 'User not leader of group ID: ' . $group_id);
         throw new Exception('Only group leaders can view deletion requests');
     }
     
@@ -86,12 +99,18 @@ try {
         ];
     }
     
+    // Log user activity - deletion requests retrieved
+    logUserActivity($conn, $user_id, 'deletion_requests_retrieved', 'get_deletion_requests_ajax', 'Retrieved ' . count($requests) . ' deletion requests for group ID: ' . $group_id);
+    
     echo json_encode([
         'success' => true,
         'requests' => $requests
     ]);
     
 } catch (Exception $e) {
+    // Log user activity - error retrieving requests
+    logUserActivity($conn, $user_id, 'deletion_requests_error', 'get_deletion_requests_ajax', 'Error retrieving deletion requests for group ID: ' . $group_id . ', error: ' . $e->getMessage());
+    
     echo json_encode([
         'success' => false,
         'error' => $e->getMessage()

@@ -23,6 +23,9 @@ if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
 $user_id = $_SESSION['user_id'];
 $group_id = isset($_GET['id']) ? intval($_GET['id']) : 0;
 
+// Log user activity - group access
+logUserActivity($conn, $user_id, 'page_access', 'group_chat', 'User accessed group chat for group ID: ' . $group_id);
+
 // Check if group exists and user is a member
 $stmt = $conn->prepare("SELECT rg.*, r.id as room_id, r.name as room_name,
                         (SELECT COUNT(*) FROM group_members WHERE group_id = rg.id) as member_count,
@@ -37,6 +40,8 @@ $stmt->execute();
 $result = $stmt->get_result();
 
 if ($result->num_rows === 0) {
+    // Log user activity - group access denied
+    logUserActivity($conn, $user_id, 'access_denied', 'group_chat', 'User attempted to access group ID: ' . $group_id . ' but was denied access');
     header("Location: index.php?error=Group not found or you are not a member");
     exit();
 }

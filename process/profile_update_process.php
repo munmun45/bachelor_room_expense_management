@@ -19,6 +19,9 @@ if (isset($_POST['update_profile'])) {
     $occupation = $_POST['occupation'] ?? '';
     $emergency_contact = $_POST['emergency_contact'] ?? '';
     
+    // Log user activity for profile update
+    logUserActivity($conn, $user_id, 'profile_update', 'profile_update_process.php', 'User updated profile information');
+    
     // Update profile image if uploaded
     $profile_image_name = null;
     if (isset($_FILES['profile_image']) && $_FILES['profile_image']['error'] === 0) {

@@ -8,6 +8,11 @@ if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
     exit();
 }
 
+// Log user activity for settlement report page access
+if (function_exists('logUserActivity')) {
+    logUserActivity($conn, $_SESSION['user_id'], 'settlement_report_page_access', 'settlement_report.php', 'User accessed settlement report page');
+}
+
 $user_id = $_SESSION['user_id'];
 $group_id = isset($_GET['group_id']) ? intval($_GET['group_id']) : 0;
 
@@ -41,6 +46,10 @@ $result = $stmt->get_result();
 $is_member = $result->fetch_assoc()['is_member'] > 0;
 
 if (!$is_member) {
+    // Log unauthorized access attempt
+    if (function_exists('logUserActivity')) {
+        logUserActivity($conn, $_SESSION['user_id'], 'unauthorized_settlement_access', 'settlement_report.php', 'User attempted unauthorized access to settlement report');
+    }
     header("Location: index.php");
     exit();
 }

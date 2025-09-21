@@ -16,6 +16,9 @@ if (isset($_POST['request_absence'])) {
     $to_date = $_POST['to_date'];
     $reason = trim($_POST['reason'] ?? '');
     
+    // Log user activity for absence request
+    logUserActivity($conn, $user_id, 'absence_request_submitted', 'request_absence_process.php', 'User submitted absence request for room ID: ' . $room_id . ', from: ' . $from_date . ' to: ' . $to_date);
+    
     // Validate dates
     if (empty($from_date) || empty($to_date)) {
         $_SESSION['error_msg'] = "Please provide both from and to dates.";
@@ -71,6 +74,9 @@ if (isset($_POST['request_absence'])) {
     } catch (Exception $e) {
         error_log("Absence request error: " . $e->getMessage());
         $_SESSION['error_msg'] = "Failed to submit absence request. Please try again.";
+        
+        // Log error
+        logUserActivity($conn, $user_id, 'absence_request_failed', 'request_absence_process.php', 'Failed to submit absence request for room ID: ' . $room_id . ' - Error: ' . $e->getMessage());
     }
 }
 

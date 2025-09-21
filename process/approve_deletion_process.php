@@ -4,6 +4,10 @@ require_once '../config/config.php';
 
 // Check if user is logged in
 if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
+    // Log user activity - unauthorized access
+    if (isset($_SESSION['user_id'])) {
+        logUserActivity($conn, $_SESSION['user_id'], 'unauthorized_access', 'approve_deletion_process', 'User attempted to access approve_deletion_process without login');
+    }
     http_response_code(401);
     echo json_encode(['success' => false, 'error' => 'Not logged in']);
     exit();
@@ -11,7 +15,12 @@ if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
 
 $user_id = $_SESSION['user_id'];
 
+// Log user activity - deletion approval attempt
+logUserActivity($conn, $user_id, 'deletion_approval_attempt', 'approve_deletion_process', 'User attempting to approve/reject deletion for group');
+
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    // Log user activity - invalid method
+    logUserActivity($conn, $user_id, 'invalid_method', 'approve_deletion_process', 'Invalid HTTP method used');
     http_response_code(405);
     echo json_encode(['success' => false, 'error' => 'Method not allowed']);
     exit();
@@ -20,8 +29,13 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 $group_id = intval($_POST['group_id']);
 $action = $_POST['action']; // 'approve' or 'reject'
 
+// Log user activity - processing deletion action
+logUserActivity($conn, $user_id, 'deletion_action_processing', 'approve_deletion_process', 'Processing deletion action: ' . $action . ' for group ID: ' . $group_id);
+
 // Validate inputs
 if (empty($group_id) || !in_array($action, ['approve', 'reject'])) {
+    // Log user activity - invalid parameters
+    logUserActivity($conn, $user_id, 'deletion_action_failed', 'approve_deletion_process', 'Invalid parameters for deletion action');
     echo json_encode(['success' => false, 'error' => 'Invalid parameters']);
     exit();
 }
@@ -40,11 +54,15 @@ try {
     $result = $stmt->get_result();
     
     if ($result->num_rows === 0) {
+        // Log user activity - not a member
+        logUserActivity($conn, $user_id, 'deletion_action_failed', 'approve_deletion_process', 'User not a member of group ID: ' . $group_id);
         throw new Exception('You are not a member of this group');
     }
     
     $group_info = $result->fetch_assoc();
     if ($group_info['is_leader'] != 1) {
+        // Log user activity - not leader
+        logUserActivity($conn, $user_id, 'deletion_action_failed', 'approve_deletion_process', 'User not leader of group ID: ' . $group_id);
         throw new Exception('Only group leaders can approve/reject deletion requests');
     }
     
@@ -92,6 +110,9 @@ try {
         $stmt->bind_param("i", $group_id);
         $stmt->execute();
         
+        // Log user activity - group deleted
+        logUserActivity($conn, $user_id, 'group_deleted', 'approve_deletion_process', 'Group ID: ' . $group_id . ' deleted successfully');
+        
         $success_message = "Group deleted successfully!";
         
     } else if ($action === 'reject') {
@@ -106,6 +127,9 @@ try {
         $stmt = $conn->prepare("INSERT INTO group_messages (group_id, user_id, message, created_at) VALUES (?, ?, ?, NOW())");
         $stmt->bind_param("iis", $group_id, $user_id, $notification_message);
         $stmt->execute();
+        
+        // Log user activity - deletion rejected
+        logUserActivity($conn, $user_id, 'deletion_rejected', 'approve_deletion_process', 'Deletion request rejected for group ID: ' . $group_id);
         
         $success_message = "Deletion request rejected successfully!";
     }
@@ -123,6 +147,9 @@ try {
 } catch (Exception $e) {
     // Rollback transaction
     $conn->rollback();
+    
+    // Log user activity - deletion action failed
+    logUserActivity($conn, $user_id, 'deletion_action_failed', 'approve_deletion_process', 'Deletion action failed for group ID: ' . $group_id . ', error: ' . $e->getMessage());
     
     echo json_encode([
         'success' => false, 

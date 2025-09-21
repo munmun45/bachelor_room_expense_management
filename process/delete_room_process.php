@@ -4,12 +4,19 @@ require_once '../config/config.php';
 
 // Check if user is logged in
 if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
+    // Log user activity - unauthorized access
+    if (isset($_SESSION['user_id'])) {
+        logUserActivity($conn, $_SESSION['user_id'], 'unauthorized_access', 'delete_room_process', 'User attempted to access delete_room_process without login');
+    }
     header("Location: ../login.php");
     exit();
 }
 
 $user_id = $_SESSION['user_id'];
 $room_id = isset($_POST['room_id']) ? intval($_POST['room_id']) : 0;
+
+// Log user activity - room deletion attempt
+logUserActivity($conn, $user_id, 'room_deletion_attempt', 'delete_room_process', 'User attempting to delete room ID: ' . $room_id);
 
 if ($room_id && isset($_POST['confirm']) && $_POST['confirm'] === 'yes') {
     // Check if user is admin of the room
@@ -19,6 +26,8 @@ if ($room_id && isset($_POST['confirm']) && $_POST['confirm'] === 'yes') {
     $result = $stmt->get_result();
     
     if ($result->num_rows === 0) {
+        // Log user activity - not a member
+        logUserActivity($conn, $user_id, 'room_deletion_failed', 'delete_room_process', 'User not a member of room ID: ' . $room_id);
         header("Location: ../index.php?error=You are not a member of this room");
         exit();
     }
@@ -27,6 +36,8 @@ if ($room_id && isset($_POST['confirm']) && $_POST['confirm'] === 'yes') {
     
     // Only admin can delete the room
     if (!$member['is_admin']) {
+        // Log user activity - not admin
+        logUserActivity($conn, $user_id, 'room_deletion_failed', 'delete_room_process', 'User not admin of room ID: ' . $room_id);
         header("Location: ../room-details.php?id=$room_id&error=Only room admins can delete the room");
         exit();
     }
@@ -72,6 +83,9 @@ if ($room_id && isset($_POST['confirm']) && $_POST['confirm'] === 'yes') {
         // Commit transaction
         $conn->commit();
         
+        // Log user activity - room deleted successfully
+        logUserActivity($conn, $user_id, 'room_deleted', 'delete_room_process', 'Room ID: ' . $room_id . ' deleted successfully');
+        
         header("Location: ../index.php?success=Room and all associated data deleted successfully");
         exit();
         
@@ -79,10 +93,16 @@ if ($room_id && isset($_POST['confirm']) && $_POST['confirm'] === 'yes') {
         // Rollback transaction on error
         $conn->rollback();
         error_log("Room deletion error: " . $e->getMessage());
+        
+        // Log user activity - room deletion failed
+        logUserActivity($conn, $user_id, 'room_deletion_failed', 'delete_room_process', 'Failed to delete room ID: ' . $room_id . ', error: ' . $e->getMessage());
+        
         header("Location: ../room-details.php?id=$room_id&error=Failed to delete room: " . urlencode($e->getMessage()));
         exit();
     }
 } else {
+    // Log user activity - deletion not confirmed
+    logUserActivity($conn, $user_id, 'room_deletion_cancelled', 'delete_room_process', 'Room deletion not confirmed for room ID: ' . $room_id);
     header("Location: ../room-details.php?id=$room_id");
     exit();
 }

@@ -28,6 +28,9 @@ try {
     // Start transaction
     $conn->begin_transaction();
     
+    // Log user activity for member removal attempt
+    logUserActivity($conn, $admin_id, 'room_member_removal_attempt', 'remove_member_process.php', 'Attempting to remove member ID: ' . $user_id . ' from room ID: ' . $room_id);
+    
     // Check if current user is admin of the room
     $stmt = $conn->prepare("SELECT is_admin FROM room_members WHERE room_id = ? AND user_id = ?");
     $stmt->bind_param("ii", $room_id, $admin_id);
@@ -126,6 +129,9 @@ try {
     $stmt->bind_param("ii", $room_id, $user_id);
     $stmt->execute();
     
+    // Log successful member removal
+    logUserActivity($conn, $admin_id, 'room_member_removed', 'remove_member_process.php', 'Successfully removed member ' . $member_full_name . ' (ID: ' . $user_id . ') from room ID: ' . $room_id);
+    
     // Commit the transaction
     $conn->commit();
     
@@ -136,6 +142,9 @@ try {
 } catch (Exception $e) {
     // Rollback transaction on error
     $conn->rollback();
+    
+    // Log error
+    logUserActivity($conn, $admin_id, 'room_member_removal_failed', 'remove_member_process.php', 'Failed to remove member ID: ' . $user_id . ' from room ID: ' . $room_id . ' - Error: ' . $e->getMessage());
     
     // Redirect with error message
     header("Location: ../room-details.php?id={$room_id}&error=" . urlencode($e->getMessage()));

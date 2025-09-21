@@ -13,6 +13,9 @@ $room_id = isset($_POST['room_id']) ? intval($_POST['room_id']) : 0;
 $new_admin_id = isset($_POST['new_admin_id']) ? intval($_POST['new_admin_id']) : 0;
 
 if ($room_id && $new_admin_id) {
+    // Log user activity for admin transfer attempt
+    logUserActivity($conn, $user_id, 'admin_transfer_attempt', 'transfer_admin_process.php', 'Attempting to transfer admin rights for room ID: ' . $room_id . ' to user ID: ' . $new_admin_id);
+    
     // Check if user is admin of the room
     $stmt = $conn->prepare("SELECT is_admin FROM room_members WHERE room_id = ? AND user_id = ?");
     $stmt->bind_param("ii", $room_id, $user_id);
@@ -63,6 +66,9 @@ if ($room_id && $new_admin_id) {
         $stmt->bind_param("ii", $room_id, $new_admin_id);
         $stmt->execute();
         
+        // Log successful admin transfer
+        logUserActivity($conn, $user_id, 'admin_transferred', 'transfer_admin_process.php', 'Successfully transferred admin rights for room ID: ' . $room_id . ' to user ID: ' . $new_admin_id);
+        
         // Commit transaction
         $conn->commit();
         
@@ -73,6 +79,10 @@ if ($room_id && $new_admin_id) {
         // Rollback transaction on error
         $conn->rollback();
         error_log("Admin transfer error: " . $e->getMessage());
+        
+        // Log error
+        logUserActivity($conn, $user_id, 'admin_transfer_failed', 'transfer_admin_process.php', 'Failed to transfer admin rights for room ID: ' . $room_id . ' to user ID: ' . $new_admin_id . ' - Error: ' . $e->getMessage());
+        
         header("Location: ../room-details.php?id=$room_id&error=Failed to transfer admin rights: " . urlencode($e->getMessage()));
         exit();
     }

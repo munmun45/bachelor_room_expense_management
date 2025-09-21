@@ -20,6 +20,9 @@ if ($user_id === 0) {
 }
 
 try {
+    // Log user activity for viewing profile
+    logUserActivity($conn, $current_user_id, 'profile_view', 'get_user_profile_ajax.php', 'Viewing profile of user ID: ' . $user_id);
+
     // Get user profile information
     $stmt = $conn->prepare("SELECT u.id, u.full_name, u.phone, u.email, u.profile_image, 
                            u.room_number, u.joined_date, u.occupation, u.emergency_contact, u.kyc_status

@@ -17,10 +17,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['verify_otp'])) {
         exit();
     }
     
+    // Log user activity for OTP verification attempt
+    logUserActivity($conn, 0, 'otp_verification_attempt', 'verify_otp_process.php', 'OTP verification attempt for phone: ' . $phone . ', purpose: ' . $purpose);
+    
     // Verify OTP
     $is_valid = verifyOTP($conn, $phone, $otp, $purpose);
     
     if (!$is_valid) {
+        // Log failed OTP verification
+        logUserActivity($conn, 0, 'otp_verification_failed', 'verify_otp_process.php', 'Invalid or expired OTP for phone: ' . $phone . ', purpose: ' . $purpose);
+        
         $redirect_page = ($purpose == 'password_reset') ? 'forgot-password.php' : 'register.php';
         header("Location: ../$redirect_page?phone=" . urlencode($phone) . "&error=Invalid or expired OTP");
         exit();
@@ -48,10 +54,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['verify_otp'])) {
             $result = $stmt->execute();
         
             if ($result) {
+                // Log successful OTP verification for password reset
+                logUserActivity($conn, $user_id, 'otp_verified_password_reset', 'verify_otp_process.php', 'OTP verified successfully for password reset, redirecting to reset page');
+                
                 // Redirect to reset password page with token
                 header("Location: ../reset-password.php?phone=" . urlencode($phone) . "&token=" . urlencode($token));
                 exit();
             } else {
+                // Log error
+                logUserActivity($conn, $user_id, 'password_reset_token_failed', 'verify_otp_process.php', 'Failed to generate password reset token for user ID: ' . $user_id);
+                
                 header("Location: ../forgot-password.php?error=Failed to process password reset. Please try again.");
                 exit();
             }
@@ -64,6 +76,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['verify_otp'])) {
         if (isset($_SESSION['registration'])) {
             $userData = $_SESSION['registration'];
             
+            // Log user activity for registration OTP verification
+            logUserActivity($conn, 0, 'otp_verified_registration', 'verify_otp_process.php', 'OTP verified successfully for registration, creating account for phone: ' . $userData['phone']);
+            
             // Insert user into database
             $stmt = $conn->prepare("INSERT INTO users (full_name, phone, email, password) VALUES (?, ?, ?, ?)");
             $stmt->bind_param("ssss", $userData['full_name'], $userData['phone'], $userData['email'], $userData['password']);
@@ -73,10 +88,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['verify_otp'])) {
                 // Clear session data
                 unset($_SESSION['registration']);
                 
+                // Log successful registration
+                logUserActivity($conn, 0, 'user_registered', 'verify_otp_process.php', 'New user registered successfully with phone: ' . $userData['phone']);
+                
                 // Redirect to login page with success message
                 header("Location: ../login.php?success=Registration successful! You can now login.");
                 exit();
             } else {
+                // Log registration error
+                logUserActivity($conn, 0, 'registration_failed', 'verify_otp_process.php', 'Failed to create account for phone: ' . $userData['phone']);
+                
                 header("Location: ../register.php?error=Failed to create account. Please try again.");
                 exit();
             }

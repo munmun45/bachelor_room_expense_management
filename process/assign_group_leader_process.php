@@ -4,6 +4,10 @@ require_once '../config/config.php';
 
 // Check if user is logged in
 if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
+    // Log user activity - unauthorized access
+    if (isset($_SESSION['user_id'])) {
+        logUserActivity($conn, $_SESSION['user_id'], 'unauthorized_access', 'assign_group_leader_process', 'User attempted to access assign_group_leader_process without login');
+    }
     http_response_code(401);
     echo json_encode(['success' => false, 'error' => 'Not logged in']);
     exit();
@@ -11,7 +15,12 @@ if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
 
 $user_id = $_SESSION['user_id'];
 
+// Log user activity - leader assignment attempt
+logUserActivity($conn, $user_id, 'leader_assignment_attempt', 'assign_group_leader_process', 'User attempting to assign/remove group leader');
+
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    // Log user activity - invalid method
+    logUserActivity($conn, $user_id, 'invalid_method', 'assign_group_leader_process', 'Invalid HTTP method used');
     http_response_code(405);
     echo json_encode(['success' => false, 'error' => 'Method not allowed']);
     exit();
@@ -22,8 +31,13 @@ $target_user_id = intval($_POST['user_id']);
 $action = $_POST['action']; // 'assign', 'remove', or 'remove_and_assign_admin'
 $member_name = $_POST['member_name'] ?? '';
 
+// Log user activity - processing leader action
+logUserActivity($conn, $user_id, 'leader_action_processing', 'assign_group_leader_process', 'Processing leader action: ' . $action . ' for group ID: ' . $group_id . ' on user ID: ' . $target_user_id);
+
 // Validate inputs
 if (empty($group_id) || empty($target_user_id) || !in_array($action, ['assign', 'remove', 'remove_and_assign_admin'])) {
+    // Log user activity - invalid parameters
+    logUserActivity($conn, $user_id, 'leader_action_failed', 'assign_group_leader_process', 'Invalid parameters for leader action');
     echo json_encode(['success' => false, 'error' => 'Invalid parameters']);
     exit();
 }
@@ -44,6 +58,8 @@ try {
     $result = $stmt->get_result();
     
     if ($result->num_rows === 0) {
+        // Log user activity - not authorized
+        logUserActivity($conn, $user_id, 'leader_action_failed', 'assign_group_leader_process', 'User not authorized to manage group leaders for group ID: ' . $group_id);
         throw new Exception('You are not authorized to manage group leaders');
     }
     
@@ -55,6 +71,8 @@ try {
     
     // Check if user has permission (admin OR group leader)
     if (!$is_admin && !$is_leader) {
+        // Log user activity - insufficient permissions
+        logUserActivity($conn, $user_id, 'leader_action_failed', 'assign_group_leader_process', 'Insufficient permissions to manage group leaders for group ID: ' . $group_id);
         throw new Exception('Only room admins or group leaders can manage group leadership');
     }
     
@@ -68,6 +86,8 @@ try {
     $result = $stmt->get_result();
     
     if ($result->num_rows === 0) {
+        // Log user activity - user not member
+        logUserActivity($conn, $user_id, 'leader_action_failed', 'assign_group_leader_process', 'Target user not member of group ID: ' . $group_id);
         throw new Exception('User is not a member of this group');
     }
     
@@ -86,6 +106,8 @@ try {
     if ($action === 'assign') {
         // Check if user is already a leader
         if ($current_leader_status == 1) {
+            // Log user activity - already leader
+            logUserActivity($conn, $user_id, 'leader_action_failed', 'assign_group_leader_process', 'User already leader of group ID: ' . $group_id);
             throw new Exception('User is already a group leader');
         }
         
@@ -113,16 +135,23 @@ try {
         $stmt->bind_param("iis", $group_id, $user_id, $notification_message);
         $stmt->execute();
         
+        // Log user activity - leader assigned
+        logUserActivity($conn, $user_id, 'leader_assigned', 'assign_group_leader_process', 'Leader assigned to group ID: ' . $group_id . ' for user ID: ' . $target_user_id);
+        
         $success_message = "Leadership assigned successfully!";
         
     } else if ($action === 'remove') {
         // Check if user is actually a leader
         if ($current_leader_status != 1) {
+            // Log user activity - not leader
+            logUserActivity($conn, $user_id, 'leader_action_failed', 'assign_group_leader_process', 'Target user not leader of group ID: ' . $group_id);
             throw new Exception('User is not a group leader');
         }
         
         // Prevent removing leadership from yourself if you're not an admin
         if ($target_user_id == $user_id && !$is_admin) {
+            // Log user activity - cannot remove self
+            logUserActivity($conn, $user_id, 'leader_action_failed', 'assign_group_leader_process', 'User cannot remove own leadership from group ID: ' . $group_id);
             throw new Exception('You cannot remove your own leadership. Only room admins can do this.');
         }
         
@@ -140,16 +169,23 @@ try {
         $stmt->bind_param("iis", $group_id, $user_id, $notification_message);
         $stmt->execute();
         
+        // Log user activity - leader removed
+        logUserActivity($conn, $user_id, 'leader_removed', 'assign_group_leader_process', 'Leader removed from group ID: ' . $group_id . ' for user ID: ' . $target_user_id);
+        
         $success_message = "Leadership removed successfully!";
         
     } else if ($action === 'remove_and_assign_admin') {
         // Check if user is actually a leader
         if ($current_leader_status != 1) {
+            // Log user activity - not leader
+            logUserActivity($conn, $user_id, 'leader_action_failed', 'assign_group_leader_process', 'Target user not leader of group ID: ' . $group_id);
             throw new Exception('User is not a group leader');
         }
         
         // Check if current user is admin
         if (!$is_admin) {
+            // Log user activity - not admin
+            logUserActivity($conn, $user_id, 'leader_action_failed', 'assign_group_leader_process', 'Only admins can transfer leadership for group ID: ' . $group_id);
             throw new Exception('Only room admins can remove leaders and become new leaders');
         }
         
@@ -175,6 +211,9 @@ try {
         $stmt->bind_param("iis", $group_id, $user_id, $notification_message);
         $stmt->execute();
         
+        // Log user activity - leadership transferred
+        logUserActivity($conn, $user_id, 'leadership_transferred', 'assign_group_leader_process', 'Leadership transferred in group ID: ' . $group_id . ' from user ID: ' . $target_user_id);
+        
         $success_message = "Leadership transferred successfully!";
     }
     
@@ -191,6 +230,9 @@ try {
 } catch (Exception $e) {
     // Rollback transaction
     $conn->rollback();
+    
+    // Log user activity - leader action failed
+    logUserActivity($conn, $user_id, 'leader_action_failed', 'assign_group_leader_process', 'Leader action failed for group ID: ' . $group_id . ', error: ' . $e->getMessage());
     
     echo json_encode([
         'success' => false, 

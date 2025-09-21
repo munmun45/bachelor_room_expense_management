@@ -67,6 +67,9 @@ if (isset($_POST['register'])) {
     $otp_stored = storeOTP($conn, $phone, $email, $otp, 'registration');
     
     if ($otp_stored) {
+        // Log user activity for registration attempt
+        logUserActivity($conn, 0, 'registration_attempt', 'register_process.php', 'Registration attempt for phone: ' . $phone . ', name: ' . $full_name);
+        
         // Send OTP via SMS
         $sent = sendOTP($phone, $otp);
         

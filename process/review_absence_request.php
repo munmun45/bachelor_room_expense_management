@@ -22,6 +22,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
     
     try {
+        // Log user activity for reviewing absence request
+        logUserActivity($conn, $user_id, 'absence_request_reviewed', 'review_absence_request.php', 'User reviewed absence request ID: ' . $request_id . ' with action: ' . $action);
+        
         // First, get the absence request and check if user is admin of the room
         $stmt = $conn->prepare("SELECT ar.*, rm.is_admin 
                                FROM absence_requests ar
@@ -56,11 +59,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'message' => 'Absence request ' . $action . ' successfully'
             ]);
         } else {
+            // Log error
+            logUserActivity($conn, $user_id, 'absence_request_review_failed', 'review_absence_request.php', 'Failed to update absence request ID: ' . $request_id);
             echo json_encode(['error' => 'Failed to update absence request']);
         }
         
     } catch (Exception $e) {
         error_log("Review absence request error: " . $e->getMessage());
+        
+        // Log error
+        logUserActivity($conn, $user_id, 'absence_request_review_error', 'review_absence_request.php', 'Error reviewing absence request ID: ' . $request_id . ' - Error: ' . $e->getMessage());
         echo json_encode(['error' => 'Failed to process request']);
     }
     

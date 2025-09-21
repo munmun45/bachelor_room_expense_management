@@ -31,6 +31,9 @@ try {
     // Start transaction
     $conn->begin_transaction();
     
+    // Log user activity for attempting to remove admin
+    logUserActivity($conn, $user_id, 'admin_removal_attempt', 'remove_admin_process.php', 'Attempting to remove admin ID: ' . $target_admin_id . ' from group ID: ' . $group_id);
+    
     // Check permissions of the acting user (admin of room OR leader of this group)
     $stmt = $conn->prepare("SELECT
                                 rg.room_id AS room_id,
@@ -115,6 +118,9 @@ try {
     $stmt->bind_param("iis", $group_id, $user_id, $notification_message);
     $stmt->execute();
     
+    // Log successful admin removal
+    logUserActivity($conn, $user_id, 'admin_removed', 'remove_admin_process.php', 'Successfully removed admin ' . $target_admin_name . ' (ID: ' . $target_admin_id . ') from group ID: ' . $group_id);
+    
     // Commit transaction
     $conn->commit();
     
@@ -127,6 +133,9 @@ try {
 } catch (Exception $e) {
     // Rollback transaction
     $conn->rollback();
+    
+    // Log error
+    logUserActivity($conn, $user_id, 'admin_removal_failed', 'remove_admin_process.php', 'Failed to remove admin ID: ' . $target_admin_id . ' from group ID: ' . $group_id . ' - Error: ' . $e->getMessage());
     
     echo json_encode([
         'success' => false, 

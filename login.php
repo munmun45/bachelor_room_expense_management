@@ -82,5 +82,19 @@
             </div>
         </div>
     </div>
+    
+    <?php
+    // Log page access for analytics
+    if (isset($_GET['error']) || isset($_GET['success'])) {
+        // Only log when there's a message to avoid excessive logging
+        session_start();
+        if (isset($_SESSION['user_id'])) {
+            require_once 'config/config.php';
+            if (function_exists('logUserActivity')) {
+                logUserActivity($conn, $_SESSION['user_id'], 'login_page_access', 'login.php', 'User accessed login page with message');
+            }
+        }
+    }
+    ?>
 </body>
 </html>

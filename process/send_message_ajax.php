@@ -18,6 +18,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $amount = isset($_POST['amount']) ? floatval($_POST['amount']) : 0;
     $is_special_item = isset($_POST['is_special_item']) && $_POST['is_special_item'] === 'on' ? 1 : 0;
     
+    // Log user activity - message sent
+    $activity_details = "Group ID: " . $group_id;
+    if (!empty($message)) {
+        $activity_details .= ", Message: " . substr($message, 0, 50) . (strlen($message) > 50 ? "..." : "");
+    }
+    if ($amount > 0) {
+        $activity_details .= ", Amount: " . $amount;
+    }
+    
+    logUserActivity($conn, $user_id, 'message_sent', 'send_message_ajax', $activity_details);
+    
     // Handle file upload
     $attachment = null;
     $upload_error = '';

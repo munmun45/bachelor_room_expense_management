@@ -4,18 +4,30 @@ require_once '../config/config.php';
 
 // Check if user is logged in
 if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
+    // Log user activity - unauthorized access
+    if (isset($_SESSION['user_id'])) {
+        logUserActivity($conn, $_SESSION['user_id'], 'unauthorized_access', 'invite_member_process', 'User attempted to access invite_member_process without login');
+    }
     header("Location: ../login.php");
     exit();
 }
 
 $user_id = $_SESSION['user_id'];
 
+// Log user activity - member invitation attempt
+logUserActivity($conn, $user_id, 'member_invite_attempt', 'invite_member_process', 'User attempting to invite member to room');
+
 if (isset($_POST['invite_member'])) {
     $room_id = intval($_POST['room_id']);
     $phone = trim($_POST['phone']);
     
+    // Log user activity - processing invitation
+    logUserActivity($conn, $user_id, 'member_invite_processing', 'invite_member_process', 'Processing invitation for phone: ' . $phone . ' to room ID: ' . $room_id);
+    
     // Validate inputs
     if (empty($phone)) {
+        // Log user activity - missing phone
+        logUserActivity($conn, $user_id, 'member_invite_failed', 'invite_member_process', 'Member invitation failed: Phone number is required');
         header("Location: ../room-details.php?id=$room_id&error=Phone number is required");
         exit();
     }
@@ -27,6 +39,8 @@ if (isset($_POST['invite_member'])) {
     $result = $stmt->get_result();
     
     if ($result->num_rows === 0) {
+        // Log user activity - not admin
+        logUserActivity($conn, $user_id, 'member_invite_failed', 'invite_member_process', 'Member invitation failed: User not admin of room ID: ' . $room_id);
         header("Location: ../room-details.php?id=$room_id&error=Only room admin can invite members");
         exit();
     }
@@ -46,6 +60,9 @@ if (isset($_POST['invite_member'])) {
         $stmt->bind_param("iisss", $room_id, $phone, $user_id, $invitation_code, $expires_at);
         $stmt->execute();
         
+        // Log user activity - invitation sent to non-registered user
+        logUserActivity($conn, $user_id, 'member_invited_non_registered', 'invite_member_process', 'Invitation sent to non-registered user with phone: ' . $phone . ' for room ID: ' . $room_id);
+        
         // In a real app, send SMS with invitation link
         header("Location: ../room-details.php?id=$room_id&success=Invitation sent to non-registered user");
         exit();
@@ -59,6 +76,8 @@ if (isset($_POST['invite_member'])) {
         $result = $stmt->get_result();
         
         if ($result->num_rows > 0) {
+            // Log user activity - user already member
+            logUserActivity($conn, $user_id, 'member_invite_failed', 'invite_member_process', 'Member invitation failed: User already member of room ID: ' . $room_id);
             header("Location: ../room-details.php?id=$room_id&error=User is already a member of this room");
             exit();
         }
@@ -69,11 +88,16 @@ if (isset($_POST['invite_member'])) {
         $stmt->bind_param("iis", $room_id, $invited_user_id, $status);
         $stmt->execute();
         
+        // Log user activity - member invited successfully
+        logUserActivity($conn, $user_id, 'member_invited', 'invite_member_process', 'Member invited successfully: User ID ' . $invited_user_id . ' to room ID: ' . $room_id);
+        
         header("Location: ../room-details.php?id=$room_id&success=Member invited successfully");
         exit();
     }
 } else {
     // If accessed directly without form submission
+    // Log user activity - unauthorized access
+    logUserActivity($conn, $user_id, 'unauthorized_access', 'invite_member_process', 'User attempted to access invite_member_process without form submission');
     header("Location: ../index.php");
     exit();
 }

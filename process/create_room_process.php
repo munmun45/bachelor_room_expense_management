@@ -21,8 +21,13 @@ if (isset($_POST['create_room'])) {
     $advance_payment = !empty($_POST['advance_payment']) ? $_POST['advance_payment'] : null;
     $user_id = $_SESSION['user_id'];
     
+    // Log user activity - room creation attempt
+    logUserActivity($conn, $user_id, 'room_create_attempt', 'create_room_process', 'User attempting to create room: ' . $room_name);
+    
     // Validate inputs
     if (empty($room_name) || empty($room_address)) {
+        // Log user activity - room creation failed
+        logUserActivity($conn, $user_id, 'room_create_failed', 'create_room_process', 'Room creation failed: Name or address missing');
         header("Location: ../index.php?error=Room name and address are required");
         exit();
     }
@@ -105,6 +110,9 @@ if (isset($_POST['create_room'])) {
         
         $conn->commit();
         
+        // Log user activity - room created successfully
+        logUserActivity($conn, $user_id, 'room_created', 'create_room_process', 'Room created successfully with ID: ' . $room_id);
+        
         // Redirect to room details page
         header("Location: ../room-details.php?id=$room_id&success=Room created successfully");
         exit();
@@ -112,11 +120,17 @@ if (isset($_POST['create_room'])) {
     } catch (Exception $e) {
         $conn->rollback();
         error_log("Room creation error: " . $e->getMessage());
+        // Log user activity - room creation failed
+        logUserActivity($conn, $user_id, 'room_create_failed', 'create_room_process', 'Room creation failed: ' . $e->getMessage());
         header("Location: ../index.php?error=Failed to create room: " . urlencode($e->getMessage()));
         exit();
     }
 } else {
     // If accessed directly without form submission
+    // Log user activity - unauthorized access
+    if (isset($_SESSION['user_id'])) {
+        logUserActivity($conn, $_SESSION['user_id'], 'unauthorized_access', 'create_room_process', 'User attempted to access create_room_process without form submission');
+    }
     header("Location: ../index.php");
     exit();
 }

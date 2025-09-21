@@ -40,6 +40,15 @@
                     <span class="block sm:inline">' . htmlspecialchars($_GET['success']) . '</span>
                 </div>';
             }
+            
+            // Log page access for analytics
+            session_start();
+            if (isset($_SESSION['user_id'])) {
+                require_once 'config/config.php';
+                if (function_exists('logUserActivity')) {
+                    logUserActivity($conn, $_SESSION['user_id'], 'register_page_access', 'register.php', 'User accessed registration page');
+                }
+            }
             ?>
             
             <!-- Step 1: Registration Form -->

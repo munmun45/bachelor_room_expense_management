@@ -9,6 +9,9 @@ if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
     exit();
 }
 
+// Log user activity - dashboard access
+logUserActivity($conn, $_SESSION['user_id'], 'page_access', 'dashboard', 'User accessed the main dashboard');
+
 // Get user profile image
 $user_id = $_SESSION['user_id'];
 $profile_image = 'uploads/profile/default_avatar.png'; // Default image
@@ -565,22 +568,25 @@ $total_spending = $total_spending_result->fetch_assoc()['total_spending'] ?? 0;
                     </div>
 
                     <!-- Latitude / Longitude -->
-                    <div class="grid grid-cols-2 gap-3">
-                        <div>
-                            <label class="block text-gray-700 text-xs font-bold mb-1.5" for="latitude">Latitude</label>
-                            <input class="shadow-sm border border-gray-200 rounded-lg w-full text-gray-700 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-transparent transition-all"
-                                id="latitude" name="latitude" type="text" placeholder="Latitude">
-                        </div>
-                        <div>
-                            <label class="block text-gray-700 text-xs font-bold mb-1.5" for="longitude">Longitude</label>
-                            <input class="shadow-sm border border-gray-200 rounded-lg w-full text-gray-700 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-transparent transition-all"
-                                id="longitude" name="longitude" type="text" placeholder="Longitude">
-                        </div>
-                    </div>
 
-                    <button type="button" onclick="getCurrentLocation()" class="text-indigo-600 text-xs font-medium flex items-center">
+                    <button type="button" onclick="getCurrentLocation()" class="text-indigo-600 text-xs font-medium flex items-center" style=" background-color: rgb(90 67 231); color: white; padding: 5px 10px; border-radius: 7px;">
                         <i class="fas fa-map-marker-alt mr-2 text-sm"></i> Get Current Location
                     </button>
+
+                    <div class=" gap-3">
+                        <div>
+                            <label class="block text-gray-700 text-xs font-bold mb-1.5" for="latitude">Get Location  Click  ⬆️ this Button</label>
+                            <div style="display: flex; gap: 10px;" >
+                                <input class="shadow-sm border border-gray-200 rounded-lg w-full text-gray-700 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-transparent transition-all"
+                                    id="latitude" name="latitude" type="text" placeholder="Location Latitude">
+                                <input class="shadow-sm border border-gray-200 rounded-lg w-full text-gray-700 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-transparent transition-all"
+                                id="longitude" name="longitude" type="text" placeholder="Location Longitude">
+                            </div>
+                        </div>
+                        
+                    </div>
+
+                    
 
                     <!-- Rental Information -->
                     <div class="border-t border-gray-200 pt-4 mt-4">
@@ -594,7 +600,7 @@ $total_spending = $total_spending_result->fetch_assoc()['total_spending'] ?? 0;
                                 <input class="shadow-sm border border-gray-200 rounded-lg w-full text-gray-700 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-transparent transition-all"
                                     id="rental_date" name="rental_date" type="date">
                             </div>
-                            <div>
+                            <div style="margin-top: 10px;">
                                 <label class="block text-gray-700 text-xs font-bold mb-1.5" for="monthly_rent">Monthly Rent (₹)</label>
                                 <input class="shadow-sm border border-gray-200 rounded-lg w-full text-gray-700 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-transparent transition-all"
                                     id="monthly_rent" name="monthly_rent" type="number" step="0.01" min="0" placeholder="Enter monthly rent">

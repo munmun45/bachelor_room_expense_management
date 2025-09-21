@@ -8,6 +8,9 @@ if (!isset($_SESSION['user_id'])) {
     exit;
 }
 
+// Log user activity for profile page access
+logUserActivity($conn, $_SESSION['user_id'], 'profile_page_access', 'profile.php', 'User accessed profile page');
+
 // Get user data
 $user_id = $_SESSION['user_id'];
 $sql = "SELECT * FROM users WHERE id = ?";

@@ -8,6 +8,9 @@ if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
     exit();
 }
 
+// Log user activity - report access
+logUserActivity($conn, $_SESSION['user_id'], 'page_access', 'report', 'User accessed the report page');
+
 $user_id = $_SESSION['user_id'];
 $group_id = isset($_GET['group_id']) ? intval($_GET['group_id']) : 0;
 $settlement_id = isset($_GET['settlement_id']) ? intval($_GET['settlement_id']) : 0;
@@ -156,14 +159,15 @@ if ($settlement_source === 'calculated') {
 }
 
 // Get user profile image
-$profile_image = 'uploads/profile/default_avatar.png';
+$profile_image = 'uploads/profile/default_avatar.png'; // Default image
 $stmt = $conn->prepare("SELECT profile_image FROM users WHERE id = ?");
 $stmt->bind_param("i", $user_id);
 $stmt->execute();
 $result = $stmt->get_result();
+
 if ($result->num_rows === 1) {
     $user = $result->fetch_assoc();
-    if ($user['profile_image']) {
+    if (!empty($user['profile_image'])) {
         $profile_image = 'uploads/profile/' . $user['profile_image'];
     }
 }
@@ -563,7 +567,6 @@ if ($result->num_rows === 1) {
                                     <?php echo $total_net >= 0 ? 'To Receive' : 'To Pay'; ?>
                                 </div>
                             </div>
-                        </div>
                 <?php endforeach;
                 endif; // End of user settlements check 
                 ?>

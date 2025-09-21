@@ -42,6 +42,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['reset_password'])) {
     $user_row = $user_result->fetch_assoc();
     $user_id = $user_row['id'];
     
+    // Log user activity for password reset attempt
+    logUserActivity($conn, $user_id, 'password_reset_attempt', 'reset_password_process.php', 'User attempted to reset password');
+    
     // Verify token from password_reset table
     $stmt = $conn->prepare("SELECT * FROM password_reset WHERE user_id = ? AND reset_token = ? AND is_used = 0 AND expires_at > NOW()");
     $stmt->bind_param("is", $user_id, $token);
@@ -49,6 +52,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['reset_password'])) {
     $result = $stmt->get_result();
     
     if ($result->num_rows == 0) {
+        // Log failed password reset attempt
+        logUserActivity($conn, $user_id, 'password_reset_failed', 'reset_password_process.php', 'Invalid or expired reset token');
         header("Location: ../forgot-password.php?error=Invalid or expired reset token. Please try again.");
         exit();
     }
@@ -67,10 +72,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['reset_password'])) {
         $mark_used->bind_param("is", $user_id, $token);
         $mark_used->execute();
         
+        // Log successful password reset
+        logUserActivity($conn, $user_id, 'password_reset_success', 'reset_password_process.php', 'User successfully reset password');
+        
         // Redirect to login with success message
         header("Location: ../login.php?success=Password has been reset successfully. You can now login with your new password.");
         exit();
     } else {
+        // Log failed password reset
+        logUserActivity($conn, $user_id, 'password_reset_failed', 'reset_password_process.php', 'Failed to update password in database');
         header("Location: ../reset-password.php?phone=" . urlencode($phone) . "&token=" . urlencode($token) . "&error=Failed to reset password. Please try again.");
         exit();
     }

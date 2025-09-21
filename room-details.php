@@ -11,6 +11,9 @@ if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
 $user_id = $_SESSION['user_id'];
 $room_id = isset($_GET['id']) ? intval($_GET['id']) : 0;
 
+// Log user activity - room access
+logUserActivity($conn, $user_id, 'page_access', 'room_details', 'User accessed room details for room ID: ' . $room_id);
+
 // Get user profile image
 $profile_image = 'uploads/profile/default_avatar.png'; // Default image
 
@@ -41,6 +44,8 @@ $stmt->execute();
 $result = $stmt->get_result();
 
 if ($result->num_rows === 0) {
+    // Log user activity - room access denied
+    logUserActivity($conn, $user_id, 'access_denied', 'room_details', 'User attempted to access room ID: ' . $room_id . ' but was denied access');
     header("Location: index.php?error=Room not found or you are not a member");
     exit();
 }

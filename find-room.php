@@ -8,6 +8,11 @@ if (!isset($_SESSION['user_id'])) {
     exit;
 }
 
+// Log user activity for find room page access
+if (function_exists('logUserActivity')) {
+    logUserActivity($conn, $_SESSION['user_id'], 'find_room_page_access', 'find-room.php', 'User accessed find room page');
+}
+
 $user_id = $_SESSION['user_id'];
 
 // Get user profile image

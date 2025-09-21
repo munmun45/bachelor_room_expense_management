@@ -4,6 +4,10 @@ require_once '../config/config.php';
 
 // Check if user is logged in
 if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
+    // Log user activity - unauthorized access
+    if (isset($_SESSION['user_id'])) {
+        logUserActivity($conn, $_SESSION['user_id'], 'unauthorized_access', 'delete_group_process', 'User attempted to access delete_group_process without login');
+    }
     http_response_code(401);
     echo json_encode(['success' => false, 'error' => 'Not logged in']);
     exit();
@@ -11,7 +15,12 @@ if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
 
 $user_id = $_SESSION['user_id'];
 
+// Log user activity - group deletion attempt
+logUserActivity($conn, $user_id, 'group_deletion_attempt', 'delete_group_process', 'User attempting to delete group');
+
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    // Log user activity - invalid method
+    logUserActivity($conn, $user_id, 'invalid_method', 'delete_group_process', 'Invalid HTTP method used');
     http_response_code(405);
     echo json_encode(['success' => false, 'error' => 'Method not allowed']);
     exit();
@@ -21,8 +30,13 @@ $group_id = intval($_POST['group_id']);
 $action = $_POST['action']; // 'delete_direct' or 'request_deletion'
 $room_id = intval($_POST['room_id']);
 
+// Log user activity - processing group deletion
+logUserActivity($conn, $user_id, 'group_deletion_processing', 'delete_group_process', 'Processing group deletion: ' . $action . ' for group ID: ' . $group_id . ' in room ID: ' . $room_id);
+
 // Validate inputs
 if (empty($group_id) || !in_array($action, ['delete_direct', 'request_deletion'])) {
+    // Log user activity - invalid parameters
+    logUserActivity($conn, $user_id, 'group_deletion_failed', 'delete_group_process', 'Invalid parameters for group deletion');
     echo json_encode(['success' => false, 'error' => 'Invalid parameters']);
     exit();
 }
@@ -41,6 +55,8 @@ try {
     $result = $stmt->get_result();
     
     if ($result->num_rows === 0) {
+        // Log user activity - not authorized
+        logUserActivity($conn, $user_id, 'group_deletion_failed', 'delete_group_process', 'User not authorized to manage groups in room ID: ' . $room_id);
         throw new Exception('You are not authorized to manage groups in this room');
     }
     
@@ -49,6 +65,8 @@ try {
     $room_name = $user_info['room_name'];
     
     if (!$is_admin) {
+        // Log user activity - not admin
+        logUserActivity($conn, $user_id, 'group_deletion_failed', 'delete_group_process', 'User not admin of room ID: ' . $room_id);
         throw new Exception('Only room admins can delete groups');
     }
     
@@ -63,6 +81,8 @@ try {
     $result = $stmt->get_result();
     
     if ($result->num_rows === 0) {
+        // Log user activity - group not found
+        logUserActivity($conn, $user_id, 'group_deletion_failed', 'delete_group_process', 'Group not found: ' . $group_id);
         throw new Exception('Group not found');
     }
     
@@ -82,6 +102,8 @@ try {
     if ($action === 'delete_direct') {
         // Admin is also the group leader - delete directly
         if (!$is_leader) {
+            // Log user activity - not leader
+            logUserActivity($conn, $user_id, 'group_deletion_failed', 'delete_group_process', 'User not leader of group ID: ' . $group_id . ' for direct deletion');
             throw new Exception('You can only delete groups where you are the leader');
         }
         
@@ -105,11 +127,16 @@ try {
         $stmt->bind_param("i", $group_id);
         $stmt->execute();
         
+        // Log user activity - group deleted successfully
+        logUserActivity($conn, $user_id, 'group_deleted', 'delete_group_process', 'Group ID: ' . $group_id . ' deleted successfully');
+        
         $success_message = "Group deleted successfully!";
         
     } else if ($action === 'request_deletion') {
         // Admin is not the leader - send deletion request
         if ($is_leader) {
+            // Log user activity - already leader
+            logUserActivity($conn, $user_id, 'group_deletion_failed', 'delete_group_process', 'User is leader of group ID: ' . $group_id . ', should use direct deletion');
             throw new Exception('You are the group leader. Use direct deletion instead.');
         }
         
@@ -132,6 +159,9 @@ try {
         $stmt->bind_param("iis", $group_id, $user_id, $notification_message);
         $stmt->execute();
         
+        // Log user activity - deletion request sent
+        logUserActivity($conn, $user_id, 'deletion_request_sent', 'delete_group_process', 'Deletion request sent for group ID: ' . $group_id);
+        
         $success_message = "Deletion request sent to group leader successfully!";
     }
     
@@ -148,6 +178,9 @@ try {
 } catch (Exception $e) {
     // Rollback transaction
     $conn->rollback();
+    
+    // Log user activity - group deletion failed
+    logUserActivity($conn, $user_id, 'group_deletion_failed', 'delete_group_process', 'Group deletion failed for group ID: ' . $group_id . ', error: ' . $e->getMessage());
     
     echo json_encode([
         'success' => false, 

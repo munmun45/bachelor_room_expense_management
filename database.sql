@@ -481,3 +481,42 @@ COMMIT;
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `user_activities`
+-- Tracking all user activities in the application
+--
+
+CREATE TABLE `user_activities` (
+  `id` int(11) NOT NULL,
+  `user_id` int(11) NOT NULL,
+  `activity_type` varchar(50) NOT NULL,
+  `page_accessed` varchar(100) DEFAULT NULL,
+  `action_details` text DEFAULT NULL,
+  `ip_address` varchar(45) DEFAULT NULL,
+  `user_agent` text DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Indexes for table `user_activities`
+--
+ALTER TABLE `user_activities`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `user_id` (`user_id`),
+  ADD KEY `activity_type` (`activity_type`),
+  ADD KEY `created_at` (`created_at`);
+
+--
+-- AUTO_INCREMENT for table `user_activities`
+--
+ALTER TABLE `user_activities`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- Constraints for table `user_activities`
+--
+ALTER TABLE `user_activities`
+  ADD CONSTRAINT `user_activities_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;

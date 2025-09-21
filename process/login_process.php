@@ -31,14 +31,21 @@ if (isset($_POST['login'])) {
             $_SESSION['phone'] = $user['phone'];
             $_SESSION['logged_in'] = true;
             
+            // Log user activity - login
+            logUserActivity($conn, $user['id'], 'login', 'login_process', 'User successfully logged in');
+            
             // Redirect to dashboard
             header("Location: ../index.php");
             exit();
         } else {
+            // Log user activity - failed login
+            logUserActivity($conn, $user['id'], 'login_failed', 'login_process', 'User failed to login - invalid password');
             header("Location: ../login.php?error=Invalid password");
             exit();
         }
     } else {
+        // Log user activity - failed login
+        logUserActivity($conn, 0, 'login_failed', 'login_process', 'User failed to login - user not found for phone: ' . $phone);
         header("Location: ../login.php?error=User not found");
         exit();
     }

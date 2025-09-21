@@ -9,6 +9,9 @@ if (isset($_GET['phone'])) {
     $purpose = isset($_GET['purpose']) ? trim($_GET['purpose']) : 'registration';
     $email = isset($_GET['email']) ? $_GET['email'] : null;
     
+    // Log user activity for OTP resend attempt
+    logUserActivity($conn, 0, 'otp_resend_attempt', 'resend_otp.php', 'OTP resend attempt for phone: ' . $phone . ', purpose: ' . $purpose);
+    
     // Generate new OTP
     $otp = generateOTP();
     $expiry = date('Y-m-d H:i:s', strtotime('+10 minutes'));
@@ -20,6 +23,9 @@ if (isset($_GET['phone'])) {
         $sent = sendOTP($phone, $message);
         
         if ($sent) {
+            // Log successful OTP resend
+            logUserActivity($conn, 0, 'otp_resend_success', 'resend_otp.php', 'OTP successfully resent to phone: ' . $phone . ', purpose: ' . $purpose);
+            
             // Redirect back with success message
             if ($purpose == 'registration') {
                 header("Location: ../register.php?phone=" . urlencode($phone) . "&success=New OTP sent to your phone number");
@@ -28,6 +34,9 @@ if (isset($_GET['phone'])) {
             }
             exit();
         } else {
+            // Log failed OTP resend
+            logUserActivity($conn, 0, 'otp_resend_failed', 'resend_otp.php', 'Failed to send OTP to phone: ' . $phone . ', purpose: ' . $purpose);
+            
             // Failed to send OTP
             if ($purpose == 'registration') {
                 header("Location: ../register.php?phone=" . urlencode($phone) . "&error=Failed to send OTP. Please try again.");
@@ -37,6 +46,9 @@ if (isset($_GET['phone'])) {
             exit();
         }
     } else {
+        // Log failed OTP storage
+        logUserActivity($conn, 0, 'otp_resend_failed', 'resend_otp.php', 'Failed to store OTP for phone: ' . $phone . ', purpose: ' . $purpose);
+        
         // Failed to store OTP
         if ($purpose == 'registration') {
             header("Location: ../register.php?error=Something went wrong. Please try again.");
