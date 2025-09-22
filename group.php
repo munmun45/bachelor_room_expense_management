@@ -248,14 +248,20 @@ if ($result->num_rows === 1) {
                 <i class="fas fa-chevron-up mr-1"></i> more messages
             </button>
         </div>
-
+        
         <!-- Messages -->
         <div id="messagesContainer" class="message-container space-y-2 px-4" style="overflow-x: hidden;">
             <?php if (count($initial_messages) > 0): ?>
                 <?php foreach ($initial_messages as $message): ?>
                     <?php
                     $is_my_message = $message['user_id'] == $user_id;
-                    $message_bg_color = $is_my_message ? 'bg-blue-my text-white' : 'bg-white';
+                    $is_settle = strpos($message['message'], '🧮 **Settlement Created**') !== false;
+                    if ($is_settle) {
+                        $message_bg_color = 'bg-green-500 text-white';
+                    } else {
+                        $message_bg_color = $is_my_message ? 'bg-blue-my text-white' : 'bg-white';
+                    }
+
                     $message_alignment = $is_my_message ? 'justify-end' : 'justify-start';
                     $flex_direction = $is_my_message ? 'flex-row-reverse' : 'flex-row';
                     ?>
@@ -277,8 +283,12 @@ if ($result->num_rows === 1) {
                                     </div>
                                 <?php endif; ?>
 
-                                <?php if (!empty($message['message'])): ?>
+                                <?php if (!empty($message['message']) && !(strpos($message['message'], '🧮 **Settlement Created**') !== false) ): ?>
                                     <p class="text-sm mb-1"><?php echo nl2br(renderMarkdown(htmlspecialchars($message['message']))); ?></p>
+                                <?php endif; ?>
+
+                                <?php if ((strpos($message['message'], '🧮 **Settlement Created**') !== false) ): ?>
+                                    <p class="text-sm mb-1">Settlement Created <br> ⬇️⬇️ Click hear to check details</p>
                                 <?php endif; ?>
 
                                 <?php if (!empty($message['amount']) && $message['amount'] > 0): ?>
@@ -307,7 +317,7 @@ if ($result->num_rows === 1) {
                                             $food_lines = array_filter(explode("\n", $food_payments));
                                             if (!empty($food_lines)):
                                         ?>
-                                                <div class="bg-blue-50  border-blue-200 rounded-lg p-3">
+                                                <div class="bg-blue-50  border-blue-200 rounded-lg p-3" style="display:none;">
                                                     <div class="flex items-center mb-2">
                                                         <i class="fas fa-utensils text-blue-600 mr-2"></i>
                                                         <span class="font-semibold text-blue-800 text-sm">Food Payments</span>
@@ -347,7 +357,7 @@ if ($result->num_rows === 1) {
                                             $special_lines = array_filter(explode("\n", $special_payments));
                                             if (!empty($special_lines)):
                                             ?>
-                                                <div class="bg-purple-50  border-purple-200 rounded-lg p-3">
+                                                <div class="bg-purple-50  border-purple-200 rounded-lg p-3" style="display:none;">
                                                     <div class="flex items-center mb-2">
                                                         <i class="fas fa-star text-purple-600 mr-2"></i>
                                                         <span class="font-semibold text-purple-800 text-sm">Special Payments</span>
@@ -386,7 +396,7 @@ if ($result->num_rows === 1) {
                                             $final_lines = array_filter(explode("\n", $final_payments));
                                             if (!empty($final_lines)):
                                             ?>
-                                                <div class="bg-gradient-to-r from-green-50 to-blue-50  border-gray-300 rounded-lg p-3">
+                                                <div class="bg-gradient-to-r from-green-50 to-blue-50  border-gray-300 rounded-lg p-3" style="display:none;">
                                                     <div class="flex items-center mb-2">
                                                         <i class="fas fa-handshake text-gray-700 mr-2"></i>
                                                         <span class="font-semibold text-gray-800 text-sm">Final Payments</span>
@@ -422,18 +432,10 @@ if ($result->num_rows === 1) {
 
                                         <!-- View Report Button -->
                                         <div class="flex justify-center space-x-2">
-                                            <a href="settlement_report.php?group_id=<?php echo $group_id; ?>" class="inline-block bg-purple-600 text-white text-xs px-3 py-2 rounded-full hover:bg-purple-700 shadow-md">
+                                            <a href="settlement_report.php?group_id=<?php echo $group_id; ?>" class="inline-block bg-purple-600 text-white text-xs px-3 py-2 rounded-full hover:bg-purple-700 shadow-md" style="flex-grow: 1; border-radius: 5px;">
                                                 <i class="fas fa-file-invoice-dollar mr-1"></i> All Settlements
                                             </a>
-                                            <?php
-                                            $report_url = "report.php?group_id=" . $group_id;
-                                            if (!empty($message['settlement_id'])) {
-                                                $report_url .= "&settlement_id=" . $message['settlement_id'];
-                                            }
-                                            ?>
-                                            <a href="<?php echo $report_url; ?>" class="inline-block bg-green-600 text-white text-xs px-3 py-2 rounded-full hover:bg-green-700 shadow-md">
-                                                <i class="fas fa-calculator mr-1"></i> <?php echo !empty($message['settlement_id']) ? 'View Report' : 'Current Report'; ?>
-                                            </a>
+                                            
                                         </div>
                                     </div>
                                 <?php endif; ?>
@@ -985,13 +987,20 @@ if ($result->num_rows === 1) {
             const profileImage = message.profile_image ? 'uploads/profile/' + message.profile_image : 'uploads/profile/default_avatar.png';
 
             let messageContent = '';
-            if (message.message) {
+            if (message.message && !message.message.includes('🧮 **Settlement Created**')) {
                 // Render markdown formatting for AJAX messages
                 let renderedMessage = message.message
                     .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
                     .replace(/\*(.*?)\*/g, '<em>$1</em>')
                     .replace(/\n/g, '<br>');
                 messageContent += '<p class="text-sm mb-1">' + renderedMessage + '</p>';
+            }
+            if (message.message.includes('🧮 **Settlement Created**')) {
+                let renderedMessage = message.message
+                    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                    .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                    .replace(/\n/g, '<br>');
+                messageContent += '<p class="text-sm mb-1"> Settlement Created <br> ⬇️⬇️ Click hear to check details </p>';
             }
             if (message.amount && message.amount > 0) {
                 const amountColor = isMyMessage ? 'text-blue-100' : 'text-blue-600';
@@ -1012,7 +1021,7 @@ if ($result->num_rows === 1) {
                 if (foodMatch) {
                     const foodLines = foodMatch[1].split('\n').filter(line => line.trim().startsWith('•'));
                     if (foodLines.length > 0) {
-                        paymentHTML += '<div class="bg-blue-50 border border-blue-200 rounded-lg p-3">';
+                        paymentHTML += '<div class="bg-blue-50 border border-blue-200 rounded-lg p-3" style="display:none;">';
                         paymentHTML += '<div class="flex items-center mb-2"><i class="fas fa-utensils text-blue-600 mr-2"></i>';
                         paymentHTML += '<span class="font-semibold text-blue-800 text-sm">Food Payments</span></div>';
                         paymentHTML += '<div class="space-y-2">';
@@ -1041,7 +1050,7 @@ if ($result->num_rows === 1) {
                 if (specialMatch) {
                     const specialLines = specialMatch[1].split('\n').filter(line => line.trim().startsWith('•'));
                     if (specialLines.length > 0) {
-                        paymentHTML += '<div class="bg-purple-50 border border-purple-200 rounded-lg p-3">';
+                        paymentHTML += '<div class="bg-purple-50 border border-purple-200 rounded-lg p-3" style="display:none;">';
                         paymentHTML += '<div class="flex items-center mb-2"><i class="fas fa-star text-purple-600 mr-2"></i>';
                         paymentHTML += '<span class="font-semibold text-purple-800 text-sm">Special Payments</span></div>';
                         paymentHTML += '<div class="space-y-2">';
@@ -1050,7 +1059,7 @@ if ($result->num_rows === 1) {
                             const paymentMatch = line.match(/• (.+?) pays (.+?) ₹(.+)/);
                             if (paymentMatch) {
                                 const [, payer, receiver, amount] = paymentMatch;
-                                paymentHTML += '<div class="flex items-center justify-between bg-white rounded-lg p-2 border border-purple-100">';
+                                paymentHTML += '<div class="flex items-center justify-between bg-white rounded-lg p-2 border border-purple-100" style="display:none;">';
                                 paymentHTML += '<div class="flex items-center space-x-2 text-xs">';
                                 paymentHTML += '<span class="font-medium text-red-600">' + payer.trim() + '</span>';
                                 paymentHTML += '<i class="fas fa-arrow-right text-gray-400"></i>';
@@ -1070,7 +1079,7 @@ if ($result->num_rows === 1) {
                 if (finalMatch) {
                     const finalLines = finalMatch[1].split('\n').filter(line => line.trim().startsWith('•'));
                     if (finalLines.length > 0) {
-                        paymentHTML += '<div class="bg-gradient-to-r from-green-50 to-blue-50 border-2 border-gray-300 rounded-lg p-3">';
+                        paymentHTML += '<div class="bg-gradient-to-r from-green-50 to-blue-50 border-2 border-gray-300 rounded-lg p-3" style="display:none;">';
                         paymentHTML += '<div class="flex items-center mb-2"><i class="fas fa-handshake text-gray-700 mr-2"></i>';
                         paymentHTML += '<span class="font-semibold text-gray-800 text-sm">Final Payments</span></div>';
                         paymentHTML += '<div class="space-y-2">';
@@ -1096,7 +1105,7 @@ if ($result->num_rows === 1) {
 
                 // Add View Report buttons
                 paymentHTML += '<div class="flex justify-center space-x-2">';
-                paymentHTML += '<a href="settlement_report.php?group_id=<?php echo $group_id; ?>" class="inline-block bg-purple-600 text-white text-xs px-3 py-2 rounded-full hover:bg-purple-700 shadow-md">';
+                paymentHTML += '<a href="settlement_report.php?group_id=<?php echo $group_id; ?>" class="inline-block bg-purple-600 text-white text-xs px-3 py-2 rounded-full hover:bg-purple-700 shadow-md" style="flex-grow: 1; border-radius: 5px;">';
                 paymentHTML += '<i class="fas fa-file-invoice-dollar mr-1"></i> All Settlements</a>';
 
                 // Build report URL with settlement_id if available
@@ -1107,8 +1116,6 @@ if ($result->num_rows === 1) {
                     reportText = 'View Report';
                 }
 
-                paymentHTML += '<a href="' + reportUrl + '" class="inline-block bg-green-600 text-white text-xs px-3 py-2 rounded-full hover:bg-green-700 shadow-md">';
-                paymentHTML += '<i class="fas fa-calculator mr-1"></i> ' + reportText + '</a>';
                 paymentHTML += '</div>';
 
                 paymentHTML += '</div>';
