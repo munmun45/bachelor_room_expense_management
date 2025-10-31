@@ -7,7 +7,7 @@ require_once 'config/config.php';
 if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
     header("Location: login.php");
     exit();
-}
+} 
 
 // Log user activity - dashboard access
 logUserActivity($conn, $_SESSION['user_id'], 'page_access', 'dashboard', 'User accessed the main dashboard');
