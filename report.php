@@ -567,194 +567,201 @@ if ($result->num_rows === 1) {
                                     <?php echo $total_net >= 0 ? 'To Receive' : 'To Pay'; ?>
                                 </div>
                             </div>
-                <?php endforeach;
+                    <?php endforeach;
                 endif; // End of user settlements check 
-                ?>
+                    ?>
+                        </div>
             </div>
-        </div>
 
-        <!-- Payment Instructions -->
-        <div class="p-5 mb-4 mt-3 rounded-3xl  relative bg-gradient-to-br from-gray-50 via-white to-gray-100  border-gray-200 text-[12px]">
-            <h2 class="text-lg font-semibold mb-3">💸 Payment Instructions</h2>
+            <!-- Payment Instructions -->
+            <div class="p-5 mb-4 mt-3 rounded-3xl  relative bg-gradient-to-br from-gray-50 via-white to-gray-100  border-gray-200 text-[12px]">
+                <h2 class="text-lg font-semibold mb-3">💸 Payment Instructions</h2>
 
-            <?php
-            // Generate payment instructions for food expenses
-            $food_settlements = [];
-            $special_settlements = [];
-            $combined_settlements = [];
+                <?php
+                // Generate payment instructions for food expenses
+                $food_settlements = [];
+                $special_settlements = [];
+                $combined_settlements = [];
 
-            if (!empty($user_settlements)) {
-                foreach ($user_settlements as $user_id => $user_data) {
-                    if ($user_data['food']['net'] != 0) {
-                        $food_settlements[$user_id] = $user_data['food'];
-                    }
-                    if ($user_data['special']['net'] != 0) {
-                        $special_settlements[$user_id] = $user_data['special'];
-                    }
+                if (!empty($user_settlements)) {
+                    foreach ($user_settlements as $user_id => $user_data) {
+                        if ($user_data['food']['net'] != 0) {
+                            $food_settlements[$user_id] = $user_data['food'];
+                        }
+                        if ($user_data['special']['net'] != 0) {
+                            $special_settlements[$user_id] = $user_data['special'];
+                        }
 
-                    $total_net = $user_data['food']['net'] + $user_data['special']['net'];
-                    if ($total_net != 0) {
-                        $combined_settlements[$user_id] = [
-                            'name' => $user_data['name'],
-                            'net' => $total_net
-                        ];
+                        $total_net = $user_data['food']['net'] + $user_data['special']['net'];
+                        if ($total_net != 0) {
+                            $combined_settlements[$user_id] = [
+                                'name' => $user_data['name'],
+                                'net' => $total_net
+                            ];
+                        }
                     }
                 }
-            }
 
-            // Food payment instructions
-            if (!empty($food_settlements)):
-                $food_payments = generatePaymentInstructions($food_settlements, 'food');
-                if (!empty($food_payments)):
-            ?>
-                    <div class="mb-6">
-                        <h3 class="text-md font-semibold mb-3 text-blue-800">
-                            <i class="fas fa-utensils mr-2"></i>Food Expense Payments
-                        </h3>
-                        <div class="space-y-2">
-                            <?php foreach ($food_payments as $payment): ?>
-                                <div class="flex items-center justify-between p-3 bg-blue-50  border-blue-200 rounded-lg">
-                                    <div class="flex items-center space-x-3">
-                                        <div class="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center">
-                                            <i class="fas fa-arrow-right text-red-600 text-sm"></i>
-                                        </div>
-                                        <div class="text-sm">
-                                            <span class="font-medium text-red-600"><?php echo htmlspecialchars($payment['payer']); ?></span>
-                                            <span class="text-gray-600"> pays </span> <br>
-                                            <span class="font-medium text-green-600"><?php echo htmlspecialchars($payment['receiver']); ?></span>
-                                        </div>
-                                    </div>
-                                    <div class="font-bold text-lg text-blue-600">
-                                        ₹<?php echo number_format($payment['amount'], 2); ?>
-                                    </div>
-                                </div>
-                            <?php endforeach; ?>
-                        </div>
-                    </div>
-                <?php
-                endif;
-            endif;
-
-            // Special item payment instructions
-            if (!empty($special_settlements)):
-                $special_payments = generatePaymentInstructions($special_settlements, 'special');
-                if (!empty($special_payments)):
+                // Food payment instructions
+                if (!empty($food_settlements)):
+                    $food_payments = generatePaymentInstructions($food_settlements, 'food');
+                    if (!empty($food_payments)):
                 ?>
-                    <div class="mb-6">
-                        <h3 class="text-md font-semibold mb-3 text-purple-800">
-                            <i class="fas fa-star mr-2"></i>Special Item Payments
-                        </h3>
-                        <div class="space-y-2">
-                            <?php foreach ($special_payments as $payment): ?>
-                                <div class="flex items-center justify-between p-3 bg-purple-50  border-purple-200 rounded-lg">
-                                    <div class="flex items-center space-x-3">
-                                        <div class="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center">
-                                            <i class="fas fa-arrow-right text-red-600 text-sm"></i>
+                        <div class="mb-6">
+                            <h3 class="text-md font-semibold mb-3 text-blue-800">
+                                <i class="fas fa-utensils mr-2"></i>Food Expense Payments
+                            </h3>
+                            <div class="space-y-2">
+                                <?php foreach ($food_payments as $payment): ?>
+                                    <div class="flex items-center justify-between p-3 bg-blue-50  border-blue-200 rounded-lg">
+                                        <div class="flex items-center space-x-3">
+                                            <div class="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center">
+                                                <i class="fas fa-arrow-right text-red-600 text-sm"></i>
+                                            </div>
+                                            <div class="text-sm">
+                                                <span class="font-medium text-red-600"><?php echo htmlspecialchars($payment['payer']); ?></span>
+                                                <span class="text-gray-600"> pays </span> <br>
+                                                <span class="font-medium text-green-600"><?php echo htmlspecialchars($payment['receiver']); ?></span>
+                                            </div>
                                         </div>
-                                        <div class="text-sm">
-                                            <span class="font-medium text-red-600"><?php echo htmlspecialchars($payment['payer']); ?></span>
-                                            <span class="text-gray-600"> pays </span><br>
-                                            <span class="font-medium text-green-600"><?php echo htmlspecialchars($payment['receiver']); ?></span>
+                                        <div class="font-bold text-lg text-blue-600">
+                                            ₹<?php echo number_format($payment['amount'], 2); ?>
                                         </div>
                                     </div>
-                                    <div class="font-bold text-lg text-purple-600">
-                                        ₹<?php echo number_format($payment['amount'], 2); ?>
-                                    </div>
-                                </div>
-                            <?php endforeach; ?>
+                                <?php endforeach; ?>
+                            </div>
                         </div>
-                    </div>
-                <?php
+                    <?php
+                    endif;
                 endif;
-            endif;
 
-            // Combined payment instructions
-            if (!empty($combined_settlements)):
-                $combined_payments = generatePaymentInstructions($combined_settlements, 'combined');
-                if (!empty($combined_payments)):
-                ?>
-                    <div class="mb-4">
-                        <h3 class="text-md font-semibold mb-3 text-gray-800">
-                            <i class="fas fa-handshake mr-2"></i>Final Payment Instructions (Combined)
-                        </h3>
-                        <div class="space-y-2">
-                            <?php foreach ($combined_payments as $payment): ?>
-                                <div class="flex items-center justify-between p-4 bg-gradient-to-r from-green-50 to-blue-50  border-gray-300 rounded-lg shadow-sm">
-                                    <div class="flex items-center space-x-3">
-                                        <div class="w-10 h-10 rounded-full bg-gradient-to-r from-red-500 to-orange-500 flex items-center justify-center">
-                                            <i class="fas fa-arrow-right text-white"></i>
+                // Special item payment instructions
+                if (!empty($special_settlements)):
+                    $special_payments = generatePaymentInstructions($special_settlements, 'special');
+                    if (!empty($special_payments)):
+                    ?>
+                        <div class="mb-6">
+                            <h3 class="text-md font-semibold mb-3 text-purple-800">
+                                <i class="fas fa-star mr-2"></i>Special Item Payments
+                            </h3>
+                            <div class="space-y-2">
+                                <?php foreach ($special_payments as $payment): ?>
+                                    <div class="flex items-center justify-between p-3 bg-purple-50  border-purple-200 rounded-lg">
+                                        <div class="flex items-center space-x-3">
+                                            <div class="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center">
+                                                <i class="fas fa-arrow-right text-red-600 text-sm"></i>
+                                            </div>
+                                            <div class="text-sm">
+                                                <span class="font-medium text-red-600"><?php echo htmlspecialchars($payment['payer']); ?></span>
+                                                <span class="text-gray-600"> pays </span><br>
+                                                <span class="font-medium text-green-600"><?php echo htmlspecialchars($payment['receiver']); ?></span>
+                                            </div>
                                         </div>
-                                        <div class="text-md">
-                                            <span class="font-bold text-red-700"><?php echo htmlspecialchars($payment['payer']); ?></span>
-                                            <span class="text-gray-700 font-medium"> pays </span> <br>
-                                            <span class="font-bold text-green-700"><?php echo htmlspecialchars($payment['receiver']); ?></span>
+                                        <div class="font-bold text-lg text-purple-600">
+                                            ₹<?php echo number_format($payment['amount'], 2); ?>
                                         </div>
                                     </div>
-                                    <div class="font-bold text-xl text-gray-800">
-                                        ₹<?php echo number_format($payment['amount'], 2); ?>
-                                    </div>
-                                </div>
-                            <?php endforeach; ?>
+                                <?php endforeach; ?>
+                            </div>
                         </div>
-                    </div>
-                <?php
-                else:
-                ?>
-                    <div class="text-center py-8 text-gray-500">
-                        <i class="fas fa-check-circle text-4xl mb-3 text-green-400"></i>
-                        <p class="font-medium">All settlements are balanced!</p>
-                        <p class="text-sm">No payments required for this period.</p>
-                    </div>
-            <?php
+                    <?php
+                    endif;
                 endif;
-            endif;
-            ?>
-        </div>
 
-        <!-- Settlement Date -->
-        <div class="text-center text-sm text-gray-600 bg-white rounded-lg shadow-sm p-3 mb-4">
-            <i class="fas fa-calendar mr-2 text-gray-600"></i>
-            <?php if ($settlement_source === 'saved'): ?>
-                Settlement Created: <span class="font-semibold"><?php echo date('M d, Y \a\t g:i A', strtotime($settlement_details['created_at'])); ?></span>
-                <div class="text-xs text-gray-500 mt-1">
-                    <i class="fas fa-database mr-1"></i>Settlement ID: #<?php echo $settlement_details['id']; ?>
-                </div>
-            <?php else: ?>
-                Report Generated: <span class="font-semibold"><?php echo date('M d, Y \a\t g:i A'); ?></span>
-            <?php endif; ?>
-        </div>
+                // Combined payment instructions
+                if (!empty($combined_settlements)):
+                    $combined_payments = generatePaymentInstructions($combined_settlements, 'combined');
+                    if (!empty($combined_payments)):
+                    ?>
+                        <div class="mb-4">
+                            <h3 class="text-md font-semibold mb-3 text-gray-800">
+                                <i class="fas fa-handshake mr-2"></i>Final Payment Instructions (Combined)
+                            </h3>
+                            <div class="space-y-2">
+                                <?php foreach ($combined_payments as $payment): ?>
+                                    <div class="flex items-center justify-between p-4 bg-gradient-to-r from-green-50 to-blue-50  border-gray-300 rounded-lg shadow-sm">
+                                        <div class="flex items-center space-x-3">
+                                            <div class="w-10 h-10 rounded-full bg-gradient-to-r from-red-500 to-orange-500 flex items-center justify-center">
+                                                <i class="fas fa-arrow-right text-white"></i>
+                                            </div>
+                                            <div class="text-md">
+                                                <span class="font-bold text-red-700"><?php echo htmlspecialchars($payment['payer']); ?></span>
+                                                <span class="text-gray-700 font-medium"> pays </span> <br>
+                                                <span class="font-bold text-green-700"><?php echo htmlspecialchars($payment['receiver']); ?></span>
+                                            </div>
+                                        </div>
+                                        <div class="font-bold text-xl text-gray-800">
+                                            ₹<?php echo number_format($payment['amount'], 2); ?>
+                                        </div>
+                                    </div>
+                                <?php endforeach; ?>
+                            </div>
+                        </div>
+                    <?php
+                    else:
+                    ?>
+                        <div class="text-center py-8 text-gray-500">
+                            <i class="fas fa-check-circle text-4xl mb-3 text-green-400"></i>
+                            <p class="font-medium">All settlements are balanced!</p>
+                            <p class="text-sm">No payments required for this period.</p>
+                        </div>
+                <?php
+                    endif;
+                endif;
+                ?>
+            </div>
+
+            <!-- Settlement Date -->
+            <div class="text-center text-sm text-gray-600 bg-white rounded-lg shadow-sm p-3 mb-4">
+                <i class="fas fa-calendar mr-2 text-gray-600"></i>
+                <?php if ($settlement_source === 'saved'): ?>
+                    Settlement Created: <span class="font-semibold"><?php echo date('M d, Y \a\t g:i A', strtotime($settlement_details['created_at'])); ?></span>
+                    <div class="text-xs text-gray-500 mt-1">
+                        <i class="fas fa-database mr-1"></i>Settlement ID: #<?php echo $settlement_details['id']; ?>
+                    </div>
+                <?php else: ?>
+                    Report Generated: <span class="font-semibold"><?php echo date('M d, Y \a\t g:i A'); ?></span>
+                <?php endif; ?>
+            </div>
     </main>
 
 
+
+
+
+
+
+
+
     <div class="fixed bottom-0 left-0 right-0 bg-white shadow-lg border-t border-gray-200 z-10 h-[70px]">
-    <div class="flex justify-between items-center max-w-md mx-auto h-full relative">
+        <div class="flex justify-between items-center max-w-md mx-auto h-full relative">
 
-        <!-- Home -->
-        <a href="index.php" class="flex flex-col items-center justify-center flex-1 text-indigo-600 h-full">
-            <i class="fas fa-home text-lg mb-1"></i>
-            <span class="text-xs font-medium">Home</span>
-        </a>
+            <!-- Home -->
+            <a href="index.php" class="flex flex-col items-center justify-center flex-1 text-indigo-600 h-full">
+                <i class="fas fa-home text-lg mb-1"></i>
+                <span class="text-xs font-medium">Home</span>
+            </a>
 
-        <!-- Find a Room -->
-        <a href="find-room.php" class="flex flex-col items-center justify-center flex-1 text-green-600 h-full">
-            <i class="fas fa-search text-lg mb-1"></i>
-            <span class="text-xs font-medium">Find Room</span>
-        </a>
+            <!-- Find a Room -->
+            <a href="find-room.php" class="flex flex-col items-center justify-center flex-1 text-green-600 h-full">
+                <i class="fas fa-search text-lg mb-1"></i>
+                <span class="text-xs font-medium">Find Room</span>
+            </a>
 
-        <!-- Settings -->
-        <a href="profile.php" class="flex flex-col items-center justify-center flex-1 text-blue-600 h-full">
-            <i class="fas fa-cog text-lg mb-1"></i>
-            <span class="text-xs font-medium">Settings</span>
-        </a>
+            <!-- Create Room -->
+            <a href="create-room.php" class="flex flex-col items-center justify-center flex-1 text-blue-600 h-full">
+                <i class="fas fa-door-open text-lg mb-1"></i>
+                <span class="text-xs font-medium">Add Room</span>
+            </a>
 
-        <!-- Donation -->
-        <a href="donate.php" class="flex flex-col items-center justify-center flex-1 text-purple-600 h-full">
-            <i class="fas fa-donate text-lg mb-1"></i>
-            <span class="text-xs font-medium">Donation</span>
-        </a>
+            <!-- Donation -->
+            <a href="donate.php" class="flex flex-col items-center justify-center flex-1 text-purple-600 h-full">
+                <i class="fas fa-donate text-lg mb-1"></i>
+                <span class="text-xs font-medium">Donation</span>
+            </a>
 
+        </div>
     </div>
-</div>
 
 
 </body>
