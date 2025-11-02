@@ -634,6 +634,50 @@ $total_spending = $total_spending_result->fetch_assoc()['total_spending'] ?? 0;
                 </a>
             </div>
 
+
+
+
+        </div>
+
+
+
+
+
+        <!-- Legal & Policies Section -->
+        <div class="p-5 mb-4 mt-3 rounded-3xl relative bg-gradient-to-br from-gray-50 via-white to-gray-100 border-gray-200">
+            <h3 class="text-lg font-semibold text-gray-800 mb-4">Legal & Policies</h3>
+            
+            <div class="space-y-3">
+                <a href="privacy-policy.php" class="flex items-center justify-between p-3 bg-white rounded-lg shadow-sm hover:bg-gray-50 transition">
+                    <div class="flex items-center">
+                        <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center mr-3">
+                            <i class="fas fa-shield-alt text-blue-600"></i>
+                        </div>
+                        <span class="font-medium text-gray-700">Privacy Policy</span>
+                    </div>
+                    <i class="fas fa-chevron-right text-gray-400"></i>
+                </a>
+                
+                <a href="terms-conditions.php" class="flex items-center justify-between p-3 bg-white rounded-lg shadow-sm hover:bg-gray-50 transition">
+                    <div class="flex items-center">
+                        <div class="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center mr-3">
+                            <i class="fas fa-file-contract text-green-600"></i>
+                        </div>
+                        <span class="font-medium text-gray-700">Terms & Conditions</span>
+                    </div>
+                    <i class="fas fa-chevron-right text-gray-400"></i>
+                </a>
+                
+                <a href="data-policy.php" class="flex items-center justify-between p-3 bg-white rounded-lg shadow-sm hover:bg-gray-50 transition">
+                    <div class="flex items-center">
+                        <div class="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center mr-3">
+                            <i class="fas fa-database text-purple-600"></i>
+                        </div>
+                        <span class="font-medium text-gray-700">Data Policy</span>
+                    </div>
+                    <i class="fas fa-chevron-right text-gray-400"></i>
+                </a>
+            </div>
         </div>
 
 
