@@ -14,12 +14,37 @@
   require_once("./config/config.php");
 
 
-  // Fetch groups data with related information
-  $query = "SELECT rg.*, r.name as room_name, u.full_name as creator_name, 
-          (SELECT COUNT(*) FROM group_members gm WHERE gm.group_id = rg.id) as member_count
+  // Build dynamic conditions for filtering
+  $conditions = [];
+  if (!empty($_GET['creator'])) {
+    $creator = mysqli_real_escape_string($conn, $_GET['creator']);
+    $conditions[] = "u.full_name LIKE '%$creator%'";
+  }
+  $conditionSql = !empty($conditions) ? ' WHERE ' . implode(' AND ', $conditions) : '';
+
+  // Fetch groups data with related information and dynamic filters
+  $query = "SELECT rg.*, r.name as room_name, u.full_name as creator_name,
+          (SELECT COUNT(*) FROM group_members gm WHERE gm.group_id = rg.id) as member_count,
+          (SELECT u2.full_name FROM group_members gm2 JOIN users u2 ON u2.id = gm2.user_id WHERE gm2.group_id = rg.id AND gm2.is_leader = 1 LIMIT 1) as leader_name
           FROM room_groups rg
           LEFT JOIN rooms r ON rg.room_id = r.id
-          LEFT JOIN users u ON rg.created_by = u.id
+          LEFT JOIN users u ON rg.created_by = u.id" . $conditionSql . "
+          ORDER BY rg.id DESC";
+  $result = mysqli_query($conn, $query);
+  // Build dynamic conditions for filtering
+  $conditions = [];
+  if (!empty($_GET['creator'])) {
+    $creator = mysqli_real_escape_string($conn, $_GET['creator']);
+    $conditions[] = "u.full_name LIKE '%$creator%'";
+  }
+  $conditionSql = !empty($conditions) ? ' WHERE ' . implode(' AND ', $conditions) : '';
+
+  $query = "SELECT rg.*, r.name as room_name, u.full_name as creator_name,
+          (SELECT COUNT(*) FROM group_members gm WHERE gm.group_id = rg.id) as member_count,
+          (SELECT u2.full_name FROM group_members gm2 JOIN users u2 ON u2.id = gm2.user_id WHERE gm2.group_id = rg.id AND gm2.is_leader = 1 LIMIT 1) as leader_name
+          FROM room_groups rg
+          LEFT JOIN rooms r ON rg.room_id = r.id
+          LEFT JOIN users u ON rg.created_by = u.id" . $conditionSql . "
           ORDER BY rg.id DESC";
   $result = mysqli_query($conn, $query);
   ?>
@@ -43,6 +68,17 @@
             <div class="card-body">
               <h5 class="card-title">Groups List</h5>
 
+              <!-- Filter Form -->
+              <form method="GET" class="row g-3 mb-4">
+                <div class="col-md-6">
+                  <div class="input-group mb-3">
+                    <input type="text" class="form-control" placeholder="Search by Creator" name="creator" value="<?php echo isset($_GET['creator']) ? htmlspecialchars($_GET['creator']) : ''; ?>">
+                    <button class="btn btn-primary" type="submit"><i class="bi bi-search"></i> Search</button>
+                    <a href="groups.php" class="btn btn-secondary ms-2"><i class="bi bi-x-circle"></i> Reset</a>
+                  </div>
+                </div>
+              </form>
+              <!-- End Filter Form -->
               <!-- Table with groups data -->
               <table class="table table-striped datatable">
                 <thead>
@@ -52,6 +88,7 @@
                     <th scope="col">Room</th>
                     <th scope="col">Members</th>
                     <th scope="col">Created By</th>
+                    <th>Admin</th>
                     <th scope="col">Created At</th>
                     <th scope="col">Actions</th>
                   </tr>
@@ -63,8 +100,9 @@
                       <td><?php echo $row['name']; ?></td>
                       <td><?php echo $row['room_name']; ?></td>
                       <td><?php echo $row['member_count']; ?></td>
-                      <td><?php echo $row['creator_name']; ?></td>
-                      <td><?php echo date('M d, Y', strtotime($row['created_at'])); ?></td>
+                      <td><?php echo htmlspecialchars($row['creator_name']); ?></td>
+                      <td><?php echo !empty($row['leader_name']) ? htmlspecialchars($row['leader_name']) : 'Not Assigned'; ?></td>
+                      <td><?php echo date('d M Y', strtotime($row['created_at'])); ?></td>
                       <td>
                         <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#groupModal<?php echo $row['id']; ?>">
                           <i class="bi bi-eye"></i> View

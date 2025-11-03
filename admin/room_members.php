@@ -16,7 +16,7 @@
   $room_id = isset($_GET['room_id']) ? intval($_GET['room_id']) : 0;
 
   // Fetch room members with room information
-  $query = "SELECT rm.*, u.full_name, u.phone, u.email, u.profile_img, r.name as room_name 
+  $query = "SELECT rm.*, u.full_name, u.phone, u.email, u.profile_img, r.name as room_name, rm.joined_at AS joined_date 
           FROM room_members rm
           LEFT JOIN users u ON rm.user_id = u.id
           LEFT JOIN rooms r ON rm.room_id = r.id";
@@ -26,7 +26,7 @@
     $query .= " WHERE rm.room_id = $room_id";
   }
 
-  $query .= " ORDER BY r.name, rm.joined_date DESC";
+  $query .= " ORDER BY r.name, rm.joined_at DESC";
   $result = mysqli_query($conn, $query);
   ?>
 
