@@ -13,7 +13,22 @@
   require_once("./config/config.php");
 
   // Fetch users with KYC data
-  $query = "SELECT * FROM users WHERE kyc_status IS NOT NULL ORDER BY 
+  $conditions = [];
+  if (!empty($_GET['name'])) {
+    $name = mysqli_real_escape_string($conn, $_GET['name']);
+    $conditions[] = "full_name LIKE '%$name%'";
+  }
+  if (!empty($_GET['phone'])) {
+    $phone = mysqli_real_escape_string($conn, $_GET['phone']);
+    $conditions[] = "phone LIKE '%$phone%'";
+  }
+  if (!empty($_GET['status'])) {
+    $status = mysqli_real_escape_string($conn, $_GET['status']);
+    $conditions[] = "kyc_status = '$status'";
+  }
+  $conditionSql = !empty($conditions) ? ' AND ' . implode(' AND ', $conditions) : '';
+
+  $query = "SELECT * FROM users WHERE kyc_status IS NOT NULL $conditionSql ORDER BY 
           CASE 
             WHEN kyc_status = 'pending' THEN 1
             WHEN kyc_status = 'verified' THEN 2
@@ -41,15 +56,39 @@
           <div class="card">
             <div class="card-body">
               <h5 class="card-title">KYC Verification Requests</h5>
+              <!-- Search Form -->
+              <form method="GET" class="row g-3 mb-4">
+                <div class="col-md-3">
+                  <input type="text" name="name" class="form-control" placeholder="Search by Name" value="<?php echo isset($_GET['name']) ? htmlspecialchars($_GET['name']) : ''; ?>">
+                </div>
+                <div class="col-md-3">
+                  <input type="text" name="phone" class="form-control" placeholder="Search by Phone" value="<?php echo isset($_GET['phone']) ? htmlspecialchars($_GET['phone']) : ''; ?>">
+                </div>
+                <div class="col-md-3">
+                  <select name="status" class="form-select">
+                    <option value="">All Status</option>
+                    <option value="pending" <?php echo (isset($_GET['status']) && $_GET['status'] == 'pending') ? 'selected' : ''; ?>>Pending</option>
+                    <option value="verified" <?php echo (isset($_GET['status']) && $_GET['status'] == 'verified') ? 'selected' : ''; ?>>Verified</option>
+                    <option value="rejected" <?php echo (isset($_GET['status']) && $_GET['status'] == 'rejected') ? 'selected' : ''; ?>>Rejected</option>
+                  </select>
+                </div>
+                <div class="col-md-3 d-grid gap-2 d-md-block">
+                  <button type="submit" class="btn btn-primary"><i class="bi bi-search"></i> Filter</button>
+                  <a href="kyc_verification.php" class="btn btn-secondary"><i class="bi bi-x-circle"></i> Reset</a>
+                </div>
+              </form>
+              <!-- End Search Form -->
 
               <!-- Table with KYC data -->
-              <table class="table table-striped datatable">
+              <table class="table table-striped table-bordered">
                 <thead>
                   <tr>
                     <th scope="col">ID</th>
                     <th scope="col">User</th>
+                    <th scope="col">Phone</th>
                     <th scope="col">Submission Date</th>
                     <th scope="col">Status</th>
+                    <th scope="col">WhatsApp</th>
                     <th scope="col">Actions</th>
                   </tr>
                 </thead>
@@ -64,14 +103,15 @@
                       <th scope="row"><?php echo $row['id']; ?></th>
                       <td>
                         <div class="d-flex align-items-center">
-                          <?php if (!empty($row['profile_img'])) { ?>
-                            <img src="../uploads/profile/<?php echo $row['profile_img']; ?>" alt="Profile" class="rounded-circle me-2" width="32" height="32">
+                          <?php if (!empty($row['profile_image'])) { ?>
+                            <img src="../uploads/profile/<?php echo $row['profile_image']; ?>" alt="Profile" class="rounded-circle me-2" width="32" height="32">
                           <?php } else { ?>
                             <img src="../assets/img/profile-img.jpg" alt="Profile" class="rounded-circle me-2" width="32" height="32">
                           <?php } ?>
                           <?php echo $row['full_name']; ?>
                         </div>
                       </td>
+                      <td><?php echo $row['phone']; ?></td>
                       <td><?php echo date('M d, Y', strtotime($row['kyc_submitted_at'] ?? $row['created_at'])); ?></td>
                       <td>
                         <?php if ($row['kyc_status'] == 'verified') { ?>
@@ -81,6 +121,19 @@
                         <?php } else { ?>
                           <span class="badge bg-warning">Pending</span>
                         <?php } ?>
+                      </td>
+                      <td>
+                        <?php
+                        $waNumber = preg_replace('/[^0-9]/', '', $row['phone']);
+                        if ($row['kyc_status'] == 'verified') {
+                          $waMessage = 'Congratulations! Your KYC has been approved.';
+                        } elseif ($row['kyc_status'] == 'rejected') {
+                          $waMessage = 'We are sorry, your KYC was rejected. Please contact support.';
+                        } else {
+                          $waMessage = 'Your KYC verification is pending. We will notify you once it is completed.';
+                        }
+                        ?>
+                        <a href="https://wa.me/<?php echo $waNumber; ?>?text=<?php echo urlencode($waMessage); ?>" target="_blank" class="btn btn-success btn-sm"><i class="bi bi-whatsapp"></i> Send</a>
                       </td>
                       <td>
                         <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#kycModal<?php echo $row['id']; ?>">
@@ -100,8 +153,8 @@
                           <div class="modal-body">
                             <div class="row mb-3">
                               <div class="col-md-4 text-center">
-                                <?php if (!empty($row['profile_img'])) { ?>
-                                  <img src="../uploads/profile/<?php echo $row['profile_img']; ?>" alt="Profile" class="rounded-circle img-fluid" style="max-width: 150px;">
+                                <?php if (!empty($row['profile_image'])) { ?>
+                                  <img src="../uploads/profile/<?php echo $row['profile_image']; ?>" alt="Profile" class="rounded-circle img-fluid" style="max-width: 150px;">
                                 <?php } else { ?>
                                   <img src="../assets/img/profile-img.jpg" alt="Profile" class="rounded-circle img-fluid" style="max-width: 150px;">
                                 <?php } ?>

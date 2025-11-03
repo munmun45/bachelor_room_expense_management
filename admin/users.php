@@ -14,8 +14,26 @@
 
 
 
-  // Fetch users data
-  $query = "SELECT * FROM users ORDER BY id DESC";
+  // Fetch users data with optional filters
+  $conditions = [];
+  if (!empty($_GET['name'])) {
+    $name = mysqli_real_escape_string($conn, $_GET['name']);
+    $conditions[] = "full_name LIKE '%$name%'";
+  }
+  if (!empty($_GET['phone'])) {
+    $phone = mysqli_real_escape_string($conn, $_GET['phone']);
+    $conditions[] = "phone LIKE '%$phone%'";
+  }
+  if (!empty($_GET['email'])) {
+    $email = mysqli_real_escape_string($conn, $_GET['email']);
+    $conditions[] = "email LIKE '%$email%'";
+  }
+  if (!empty($_GET['room_number'])) {
+    $room_number = mysqli_real_escape_string($conn, $_GET['room_number']);
+    $conditions[] = "room_number LIKE '%$room_number%'";
+  }
+  $condition_sql = count($conditions) ? (' WHERE ' . implode(' AND ', $conditions)) : '';
+  $query = "SELECT * FROM users" . $condition_sql . " ORDER BY id DESC";
   $result = mysqli_query($conn, $query);
   ?>
 
@@ -37,8 +55,29 @@
             <div class="card-body">
               <h5 class="card-title">Users List</h5>
 
+              <!-- Search Form -->
+              <form method="GET" class="row g-3 mb-4">
+                <div class="col-md-3">
+                  <input type="text" name="name" class="form-control" placeholder="Search by Name" value="<?php echo isset($_GET['name']) ? htmlspecialchars($_GET['name']) : ''; ?>">
+                </div>
+                <div class="col-md-2">
+                  <input type="text" name="phone" class="form-control" placeholder="Search by Phone" value="<?php echo isset($_GET['phone']) ? htmlspecialchars($_GET['phone']) : ''; ?>">
+                </div>
+                <div class="col-md-3">
+                  <input type="text" name="email" class="form-control" placeholder="Search by Email" value="<?php echo isset($_GET['email']) ? htmlspecialchars($_GET['email']) : ''; ?>">
+                </div>
+                <div class="col-md-2">
+                  <input type="text" name="room_number" class="form-control" placeholder="Search by Room" value="<?php echo isset($_GET['room_number']) ? htmlspecialchars($_GET['room_number']) : ''; ?>">
+                </div>
+                <div class="col-md-2 d-grid gap-2 d-md-block">
+                  <button type="submit" class="btn btn-primary"><i class="bi bi-search"></i> Filter</button>
+                  <a href="users.php" class="btn btn-secondary"><i class="bi bi-x-circle"></i> Reset</a>
+                </div>
+              </form>
+              <!-- End Search Form -->
+
               <!-- Table with users data -->
-              <table class="table table-striped datatable">
+              <table class="table table-striped table-bordered">
                 <thead>
                   <tr>
                     <th scope="col">ID</th>
@@ -48,7 +87,8 @@
                     <th scope="col">Email</th>
                     <th scope="col">Room Number</th>
                     <th scope="col">KYC Status</th>
-                    <th scope="col">Actions</th>
+                    <th scope="col">WhatsApp</th>
+                    <th scope="col">Edit</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -72,12 +112,13 @@
                         <?php } ?>
                       </td>
                       <td>
-                        <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#userModal<?php echo $row['id']; ?>">
-                          <i class="bi bi-eye"></i> View
-                        </button>
-                        <a href="edit_user.php?id=<?php echo $row['id']; ?>" class="btn btn-info btn-sm">
-                          <i class="bi bi-pencil"></i> Edit
+                        <?php $waNumber = preg_replace('/[^0-9]/', '', $row['phone']); ?>
+                        <a href="https://wa.me/<?php echo $waNumber; ?>?text=<?php echo urlencode('Thank you for being a valued member of our community!'); ?>" target="_blank" class="btn btn-success btn-sm">
+                          <i class="bi bi-whatsapp"></i> Send
                         </a>
+                      </td>
+                      <td>
+                        <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#editUserModal<?php echo $row['id']; ?>"><i class="bi bi-pencil-square"></i> Edit</button>
                       </td>
                     </tr>
 
@@ -167,12 +208,71 @@
                           </div>
                           <div class="modal-footer">
                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                            <a href="edit_user.php?id=<?php echo $row['id']; ?>" class="btn btn-primary">Edit User</a>
+                            
                           </div>
                         </div>
                       </div>
                     </div>
                     <!-- End User Modal -->
+
+                    <!-- Edit User Modal -->
+                    <div class="modal fade" id="editUserModal<?php echo $row['id']; ?>" tabindex="-1">
+                      <div class="modal-dialog modal-dialog-centered modal-lg">
+                        <div class="modal-content">
+                          <form action="edit_user.php?id=<?php echo $row['id']; ?>" method="POST" enctype="multipart/form-data">
+                            <div class="modal-header">
+                              <h5 class="modal-title">Edit User</h5>
+                              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                              <div class="row g-3">
+                                <div class="col-md-6">
+                                  <label class="form-label">Full Name</label>
+                                  <input type="text" name="full_name" class="form-control" value="<?php echo htmlspecialchars($row['full_name']); ?>" required>
+                                </div>
+                                <div class="col-md-6">
+                                  <label class="form-label">Phone</label>
+                                  <input type="text" name="phone" class="form-control" value="<?php echo htmlspecialchars($row['phone']); ?>" required>
+                                </div>
+                                <div class="col-md-6">
+                                  <label class="form-label">Email</label>
+                                  <input type="email" name="email" class="form-control" value="<?php echo htmlspecialchars($row['email']); ?>">
+                                </div>
+                                <div class="col-md-6">
+                                  <label class="form-label">Room Number</label>
+                                  <input type="text" name="room_number" class="form-control" value="<?php echo htmlspecialchars($row['room_number']); ?>">
+                                </div>
+                                <div class="col-md-6">
+                                  <label class="form-label">Joined Date</label>
+                                  <input type="date" name="joined_date" class="form-control" value="<?php echo htmlspecialchars($row['joined_date'] ? date('Y-m-d', strtotime($row['joined_date'])) : ''); ?>">
+                                </div>
+                                <div class="col-md-6">
+                                  <label class="form-label">Occupation</label>
+                                  <input type="text" name="occupation" class="form-control" value="<?php echo htmlspecialchars($row['occupation']); ?>">
+                                </div>
+                                <div class="col-md-6">
+                                  <label class="form-label">Emergency Contact</label>
+                                  <input type="text" name="emergency_contact" class="form-control" value="<?php echo htmlspecialchars($row['emergency_contact']); ?>">
+                                </div>
+                                <div class="col-md-6">
+                                  <label class="form-label">KYC Status</label>
+                                  <select name="kyc_status" class="form-select">
+                                    <option value="pending" <?php echo $row['kyc_status']=='pending'?'selected':''; ?>>Pending</option>
+                                    <option value="verified" <?php echo $row['kyc_status']=='verified'?'selected':''; ?>>Verified</option>
+                                    <option value="rejected" <?php echo $row['kyc_status']=='rejected'?'selected':''; ?>>Rejected</option>
+                                  </select>
+                                </div>
+                              </div>
+                            </div>
+                            <div class="modal-footer">
+                              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                              <button type="submit" class="btn btn-success">Save Changes</button>
+                            </div>
+                          </form>
+                        </div>
+                      </div>
+                    </div>
+                    <!-- End Edit User Modal -->
                   <?php } ?>
                 </tbody>
               </table>

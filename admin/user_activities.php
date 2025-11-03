@@ -14,7 +14,7 @@
   require_once("./config/config.php");
 
   // Fetch user activities
-  $query = "SELECT a.*, u.full_name, u.profile_img 
+  $query = "SELECT a.*, u.full_name, u.profile_image 
           FROM user_activities a
           LEFT JOIN users u ON a.user_id = u.id
           ORDER BY a.created_at DESC";
@@ -41,13 +41,13 @@
               <h5 class="card-title">Activity Log</h5>
 
               <!-- Table with activities data -->
-              <table class="table table-striped datatable">
+              <table class="table table-striped table-bordered">
                 <thead>
                   <tr>
                     <th scope="col">ID</th>
                     <th scope="col">User</th>
                     <th scope="col">Activity Type</th>
-                    <th scope="col">Description</th>
+                    <th scope="col">Details</th>
                     <th scope="col">Date & Time</th>
                     <th scope="col">IP Address</th>
                   </tr>
@@ -58,8 +58,8 @@
                       <th scope="row"><?php echo $row['id']; ?></th>
                       <td>
                         <div class="d-flex align-items-center">
-                          <?php if (!empty($row['profile_img'])) { ?>
-                            <img src="../uploads/profile/<?php echo $row['profile_img']; ?>" alt="Profile" class="rounded-circle me-2" width="32" height="32">
+                          <?php if (!empty($row['profile_image'])) { ?>
+                            <img src="../uploads/profile/<?php echo $row['profile_image']; ?>" alt="Profile" class="rounded-circle me-2" width="32" height="32">
                           <?php } else { ?>
                             <img src="../assets/img/profile-img.jpg" alt="Profile" class="rounded-circle me-2" width="32" height="32">
                           <?php } ?>
@@ -91,7 +91,7 @@
                         ?>
                         <span class="badge <?php echo $activity_class; ?>"><?php echo ucfirst($row['activity_type']); ?></span>
                       </td>
-                      <td><?php echo $row['description']; ?></td>
+                      <td><?php echo $row['action_details']; ?></td>
                       <td><?php echo date('M d, Y g:i A', strtotime($row['created_at'])); ?></td>
                       <td><?php echo $row['ip_address']; ?></td>
                     </tr>
