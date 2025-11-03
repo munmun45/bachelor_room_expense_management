@@ -19,12 +19,12 @@
 
                 <a class="nav-link nav-profile d-flex align-items-center pe-0" href="#" data-bs-toggle="dropdown">
                     <img src="assets/img/profile-img.jpg" alt="Profile" class="rounded-circle">
-                    <span class="d-none d-md-block dropdown-toggle ps-2">Hotel Four Waves</span>
+                    <span class="d-none d-md-block dropdown-toggle ps-2">Room Expense Management</span>
                 </a><!-- End Profile Iamge Icon -->
 
                 <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow profile">
                     <li class="dropdown-header">
-                        <h6>Hotel Four Waves</h6>
+                        <h6>Room Expense Management</h6>
                         <span>Administer</span>
                     </li>
                     <li>
@@ -55,7 +55,7 @@
                     </li>
 
                     <li>
-                        <a class="dropdown-item d-flex align-items-center" href="./process/logout">
+                        <a class="dropdown-item d-flex align-items-center" href="./process/logout.php">
                             <i class="bi bi-box-arrow-right"></i>
                             <span>Sign Out</span>
                         </a>
@@ -83,7 +83,7 @@
                 <h5 class="modal-title" id="changePasswordModalLabel">Change Password</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <form action="./process/change_password" method="POST">
+            <form action="./process/change_password.php" method="POST">
                 <div class="modal-body">
                     <div class="mb-3">
                         <label for="oldPassword" class="form-label">Old Password</label>

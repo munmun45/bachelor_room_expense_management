@@ -3,7 +3,7 @@
     <ul class="sidebar-nav" id="sidebar-nav">
 
         <li class="nav-item">
-            <a class="nav-link collapsed" href="index">
+            <a class="nav-link collapsed" href="./index.php">
                 <i class="bi bi-speedometer2"></i>
                 <span>Dashboard</span>
             </a>

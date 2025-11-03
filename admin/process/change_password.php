@@ -11,12 +11,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // Validate inputs
     if (empty($old_password) || empty($new_password) || empty($confirm_password)) {
-        echo "<script>alert('All fields are required.'); window.location.href = './logout';</script>";
+        echo "<script>alert('All fields are required.'); window.location.href = './logout.php';</script>";
         exit();
     }
 
     if ($new_password !== $confirm_password) {
-        echo "<script>alert('New password and confirmation do not match.'); window.location.href = './logout';</script>";
+        echo "<script>alert('New password and confirmation do not match.'); window.location.href = './logout.php';</script>";
         exit();
     }
 
@@ -39,14 +39,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->bind_param("ss", $hashed_password, $username);
 
         if ($stmt->execute()) {
-            echo "<script>alert('Password changed successfully.'); window.location.href = './logout';</script>";
+            echo "<script>alert('Password changed successfully.'); window.location.href = './logout.php';</script>";
             exit();
         } else {
-            echo "<script>alert('Error updating password. Please try again.'); window.location.href = './logout';</script>";
+            echo "<script>alert('Error updating password. Please try again.'); window.location.href = './logout.php';</script>";
             exit();
         }
     } else {
-        echo "<script>alert('Old password is incorrect.'); window.location.href = './logout';</script>";
+        echo "<script>alert('Old password is incorrect.'); window.location.href = './logout.php';</script>";
         exit();
     }
 }
