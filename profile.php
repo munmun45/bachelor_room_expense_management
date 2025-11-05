@@ -457,6 +457,43 @@ $form_action = 'process/profile_update_process.php';
             </div>
         </div>
 
+        <!-- Legal & Policies Section -->
+        <div class="p-5 mb-4 mt-3 rounded-3xl relative bg-gradient-to-br from-gray-50 via-white to-gray-100 border-gray-200">
+            <h3 class="text-lg font-semibold text-gray-800 mb-4">Legal & Policies</h3>
+            
+            <div class="space-y-3">
+                <a href="privacy-policy.php" class="flex items-center justify-between p-3 bg-white rounded-lg shadow-sm hover:bg-gray-50 transition">
+                    <div class="flex items-center">
+                        <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center mr-3">
+                            <i class="fas fa-shield-alt text-blue-600"></i>
+                        </div>
+                        <span class="font-medium text-gray-700">Privacy Policy</span>
+                    </div>
+                    <i class="fas fa-chevron-right text-gray-400"></i>
+                </a>
+                
+                <a href="terms-conditions.php" class="flex items-center justify-between p-3 bg-white rounded-lg shadow-sm hover:bg-gray-50 transition">
+                    <div class="flex items-center">
+                        <div class="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center mr-3">
+                            <i class="fas fa-file-contract text-green-600"></i>
+                        </div>
+                        <span class="font-medium text-gray-700">Terms & Conditions</span>
+                    </div>
+                    <i class="fas fa-chevron-right text-gray-400"></i>
+                </a>
+                
+                <a href="data-policy.php" class="flex items-center justify-between p-3 bg-white rounded-lg shadow-sm hover:bg-gray-50 transition">
+                    <div class="flex items-center">
+                        <div class="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center mr-3">
+                            <i class="fas fa-database text-purple-600"></i>
+                        </div>
+                        <span class="font-medium text-gray-700">Data Policy</span>
+                    </div>
+                    <i class="fas fa-chevron-right text-gray-400"></i>
+                </a>
+            </div>
+        </div>
+
         <!-- Logout Button -->
         <div class="p-5 mb-4 mt-3 rounded-3xl  relative bg-gradient-to-br from-gray-50 via-white to-gray-100  border-gray-200">
             <a href="process/logout_process.php" class="block w-full bg-red-600 text-white py-3 rounded-lg font-medium text-center">
@@ -466,34 +503,34 @@ $form_action = 'process/profile_update_process.php';
     </main>
 
     <div class="fixed bottom-0 left-0 right-0 bg-white shadow-lg border-t border-gray-200 z-10 h-[70px]">
-    <div class="flex justify-between items-center max-w-md mx-auto h-full relative">
+        <div class="flex justify-between items-center max-w-md mx-auto h-full relative">
 
-        <!-- Home -->
-        <a href="index.php" class="flex flex-col items-center justify-center flex-1 text-indigo-600 h-full">
-            <i class="fas fa-home text-lg mb-1"></i>
-            <span class="text-xs font-medium">Home</span>
-        </a>
+            <!-- Home -->
+            <a href="index.php" class="flex flex-col items-center justify-center flex-1 text-indigo-600 h-full">
+                <i class="fas fa-home text-lg mb-1"></i>
+                <span class="text-xs font-medium">Home</span>
+            </a>
 
-        <!-- Find a Room -->
-        <a href="find-room.php" class="flex flex-col items-center justify-center flex-1 text-green-600 h-full">
-            <i class="fas fa-search text-lg mb-1"></i>
-            <span class="text-xs font-medium">Find Room</span>
-        </a>
+            <!-- Find a Room -->
+            <a href="find-room.php" class="flex flex-col items-center justify-center flex-1 text-green-600 h-full">
+                <i class="fas fa-search text-lg mb-1"></i>
+                <span class="text-xs font-medium">Find Room</span>
+            </a>
 
-        <!-- Settings -->
-        <a href="profile.php" class="flex flex-col items-center justify-center flex-1 text-blue-600 h-full">
-            <i class="fas fa-cog text-lg mb-1"></i>
-            <span class="text-xs font-medium">Settings</span>
-        </a>
+            <!-- Create Room -->
+            <a href="create-room.php" class="flex flex-col items-center justify-center flex-1 text-blue-600 h-full">
+                <i class="fas fa-door-open text-lg mb-1"></i>
+                <span class="text-xs font-medium">Add Room</span>
+            </a>
 
-        <!-- Donation -->
-        <a href="donate.php" class="flex flex-col items-center justify-center flex-1 text-purple-600 h-full">
-            <i class="fas fa-donate text-lg mb-1"></i>
-            <span class="text-xs font-medium">Donation</span>
-        </a>
+            <!-- Donation -->
+            <a href="donate.php" class="flex flex-col items-center justify-center flex-1 text-purple-600 h-full">
+                <i class="fas fa-donate text-lg mb-1"></i>
+                <span class="text-xs font-medium">Donation</span>
+            </a>
 
+        </div>
     </div>
-</div>
 
 
     <script>
