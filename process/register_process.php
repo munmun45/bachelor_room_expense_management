@@ -3,18 +3,19 @@
 session_start();
 require_once '../config/config.php';
 require_once '../sms/twilio_sms.php';
+require_once '../email/otp_email.php';
 
 if (isset($_POST['register'])) {
     // Get form data
     $full_name = trim($_POST['full_name']);
     $phone = trim($_POST['phone']);
-    $email = trim($_POST['email']) ?: null; // Optional
+    $email = trim($_POST['email']); 
     $password = $_POST['password'];
     $confirm_password = $_POST['confirm_password'];
     
     // Validate inputs
-    if (empty($full_name) || empty($phone) || empty($password)) {
-        header("Location: ../register.php?error=All fields except email are required");
+    if (empty($full_name) || empty($phone) || empty($password) || empty($email)) {
+        header("Location: ../register.php?error=All fields are required");
         exit();
     }
     
@@ -71,7 +72,9 @@ if (isset($_POST['register'])) {
         logUserActivity($conn, 0, 'registration_attempt', 'register_process.php', 'Registration attempt for phone: ' . $phone . ', name: ' . $full_name);
         
         // Send OTP via SMS
-        $sent = sendOTP($phone, $otp);
+        // $sent = sendOTP($phone, $otp);
+
+        $sent = sendOtpEmail($email, $otp, $full_name);
         
         if ($sent) {
             // Redirect to OTP verification page
@@ -81,6 +84,7 @@ if (isset($_POST['register'])) {
             header("Location: ../register.php?error=Failed to send OTP. Please try again.");
             exit();
         }
+        
     } else {
         header("Location: ../register.php?error=Something went wrong. Please try again.");
         exit();
