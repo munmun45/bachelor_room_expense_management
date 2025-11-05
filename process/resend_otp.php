@@ -3,6 +3,7 @@
 session_start();
 require_once '../config/config.php';
 require_once '../sms/twilio_sms.php';
+require_once '../email/otp_email.php';
 
 if (isset($_GET['phone'])) {
     $phone = trim($_GET['phone']);
@@ -20,7 +21,8 @@ if (isset($_GET['phone'])) {
     if ($otp_stored) {
         // Send OTP via SMS
         $message = "Your verification code is: $otp. Valid for 10 minutes.";
-        $sent = sendOTP($phone, $message);
+        // $sent = sendOTP($phone, $message);
+        $sent = sendOtpEmail($phone, $otp, $full_name);
         
         if ($sent) {
             // Log successful OTP resend

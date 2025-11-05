@@ -2,6 +2,7 @@
 session_start();
 require_once '../config/config.php';
 require_once '../sms/twilio_sms.php';
+require_once '../email/otp_email.php';
 
 // Check if form is submitted
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['send_otp'])) {
@@ -37,17 +38,32 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['send_otp'])) {
     $expiry = date('Y-m-d H:i:s', strtotime('+10 minutes'));
     
     // Store OTP in database
-    storeOTP($conn, $phone, $otp, $expiry, 'password_reset');
+    // For password reset we may not have email at this point
+    storeOTP($conn, $phone, null, $otp, 'password_reset');
     
-    // Send OTP via SMS
-    $message = "Your password reset OTP is: $otp. Valid for 10 minutes.";
-    sendOTP($phone, $message);
+    // Send OTP via Email (update to email method)
+    // Retrieve user email and name
+    $user_details_stmt = $conn->prepare("SELECT email, full_name FROM users WHERE phone = ?");
+    $user_details_stmt->bind_param("s", $phone);
+    $user_details_stmt->execute();
+    $user_details = $user_details_stmt->get_result()->fetch_assoc();
+    $email_to = $user_details['email'];
+    $full_name = $user_details['full_name'];
+
+    // If email exists send via email otherwise fallback to SMS
+    if ($email_to) {
+        sendOtpEmail($email_to, $otp, $full_name);
+    } else {
+        // fallback to SMS (optional)
+        $message = "Your password reset OTP is: $otp. Valid for 10 minutes.";
+        sendOTP($phone, $message);
+    }
     
     // Log user activity - OTP sent
     logUserActivity($conn, 0, 'otp_sent', 'forgot_password_process', 'OTP sent for password reset to phone: ' . $phone);
     
     // Redirect to OTP verification page
-    header("Location: ../forgot-password.php?phone=" . urlencode($phone) . "&success=OTP sent to your phone number");
+    header("Location: ../forgot-password.php?phone=" . urlencode($email_to) . "&success=OTP sent to your Email Id");
     exit();
 } else {
     // If accessed directly without form submission

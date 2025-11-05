@@ -93,7 +93,7 @@
             <!-- Step 2: OTP Verification Form -->
             <form id="otp-verification-form" action="process/verify_otp_process.php" method="POST" class="space-y-6" <?php echo isset($_GET['phone']) ? '' : 'style="display:none;"'; ?>>
                 <div class="text-center mb-4">
-                    <p class="text-gray-600">We've sent a verification code to your phone number</p>
+                    <p class="text-gray-600">We've sent a verification code to your Email Id</p>
                     <?php if(isset($_GET['phone'])): ?>
                     <p class="font-medium"><?php echo htmlspecialchars($_GET['phone']); ?></p>
                     <input type="hidden" name="phone" value="<?php echo htmlspecialchars($_GET['phone']); ?>">
