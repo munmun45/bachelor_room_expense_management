@@ -78,7 +78,7 @@ if (isset($_POST['register'])) {
         
         if ($sent) {
             // Redirect to OTP verification page
-            header("Location: ../register.php?phone=" . urlencode($email) . "&success=OTP sent to your phone");
+            header("Location: ../register.php?phone=" . urlencode($phone) . "&success=OTP sent to your phone");
             exit();
         } else {
             header("Location: ../register.php?error=Failed to send OTP. Please try again.");

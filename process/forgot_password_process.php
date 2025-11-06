@@ -53,10 +53,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['send_otp'])) {
     // If email exists send via email otherwise fallback to SMS
     if ($email_to) {
         sendOtpEmail($email_to, $otp, $full_name);
-    } else {
-        // fallback to SMS (optional)
-        $message = "Your password reset OTP is: $otp. Valid for 10 minutes.";
-        sendOTP($phone, $message);
     }
     
     // Log user activity - OTP sent

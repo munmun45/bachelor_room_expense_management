@@ -15,6 +15,10 @@
  * @return bool Success status
  */
 function logUserActivity($conn, $user_id, $activity_type, $page_accessed = null, $action_details = null) {
+    // If the user_id is not a positive integer (e.g., during guest/registration flow), skip logging to avoid FK constraint errors
+    if (!is_numeric($user_id) || $user_id <= 0) {
+        return false;
+    }
     // Get IP address
     $ip_address = $_SERVER['REMOTE_ADDR'] ?? null;
     
